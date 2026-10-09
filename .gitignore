@@ -1,0 +1,16 @@
+node_modules/
+/dist/
+*.log
+.env
+.env.*
+!.env.example
+*.dpapi
+*.tmp
+backend/data/
+backend/library/
+backend/translations/
+backend/vendor/yt-dlp.exe
+qa/
+design-qa.md
+.DS_Store
+Thumbs.db

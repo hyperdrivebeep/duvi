@@ -1,0 +1,32 @@
+{
+  "name": "duvi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "setup": "node scripts/setup.mjs",
+    "start": "node server.mjs",
+    "test": "node --test backend/tests/ai.test.mjs tests/media.test.mjs tests/sites-worker.test.mjs",
+    "pretest": "vite build && node scripts/prepare-sites-build.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/noto-sans-kr": "^5.3.0",
+    "@vitejs/plugin-react": "5.0.4",
+    "lucide": "^1.54.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "vite": "6.4.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "description": "A local bilingual lecture player with contextual Korean subtitles.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyperdrivebeep/duvi.git"
+  }
+}
