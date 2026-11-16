@@ -10,7 +10,7 @@
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "setup": "node scripts/setup.mjs",
     "start": "node server.mjs",
-    "test": "node --test backend/tests/ai.test.mjs tests/media.test.mjs tests/sites-worker.test.mjs",
+    "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/sentences.test.mjs tests/library-ui.test.mjs tests/media.test.mjs tests/sites-worker.test.mjs",
     "pretest": "vite build && node scripts/prepare-sites-build.mjs"
   },
   "dependencies": {

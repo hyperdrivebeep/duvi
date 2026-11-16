@@ -10,6 +10,25 @@ When implementing from a selected generated mock, treat that image as the source
 
 Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
+## Lecture organization
+
+On 2026-11-16 the user requested project-like lecture folders and importing an entire
+YouTube playlist into a folder in its original order. Preserve the existing player
+and bilingual captions. Keep folders and imported lectures on this PC, retain
+lecture data when a folder is deleted, and show caption failures without dropping
+videos from a playlist. See DESIGN.md for sidebar and dialog primitives.
+
 ## Product identity
+
+The user also requested matching English/Korean sentence boundaries on 2026-11-16.
+Keep aligned English cues and Korean translations in the same atomic cache, keep
+source caption data intact, and never reuse index-keyed translations after changing
+sentence boundaries. Sentence navigation and repeat must use the displayed units.
+
+On 2026-11-16 the user selected compact subtitles outside the video as the default
+fullscreen layout, after research of YouTube and bilingual players. Keep the full
+transcript in an optional right panel, auto-hide controls, offer an overlay option,
+and do not insist on a fixed subtitle position. Preserve aligned sentence pairs
+and the playing media when toggling layouts.
 
 The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this app in a public GitHub repository. Use Duvi for the product name and 내 강의 for its lecture library. Keep credentials, imported lecture data, generated translations, logs, and local build artifacts out of Git. Preserve the existing local vault path so branding changes do not disconnect accounts.

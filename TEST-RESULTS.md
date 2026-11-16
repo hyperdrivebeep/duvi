@@ -37,3 +37,66 @@ Preview: http://127.0.0.1:6103
 - Convenience launchers were created but not executed because the server was already running.
 
 Local-only evidence (excluded from Git): design-qa.md; qa/desktop-final.png; qa/mobile-final.png; qa/mobile-320-final.png; qa/fullscreen-measurements.json; qa/duvi-brand.png.
+# Folder and playlist update · 2026-11-16
+
+- Production build succeeds. Node suites: 34 tests passed (existing authentication,
+  translation, media, Sites packaging plus 13 folder/playlist/UI regression tests).
+- New coverage: default MIT folder migration; concurrent folder writes; rename,
+  move and delete preserving lectures; restart persistence; restricted playlist URL
+  validation; ordered import and duplicate reuse; invalid/empty/oversized playlists;
+  caption failure and SRT recovery; concurrent caption requests; zero-caption
+  translation rejection; session/origin/CSRF protection for the new API routes;
+  overlapping playlist order; conflicting caption uploads; stale refresh selection.
+- In an isolated local library, the real public **Neural Networks: Zero to Hero**
+  playlist imported 10 videos in source order. Reimport reused all 10. No video
+  files were downloaded. Its first video's automatic caption extraction failed in
+  this environment; the UI retained the lecture, and uploading an SRT restored
+  captions. Availability of automatic YouTube captions remains source-dependent.
+- Chrome UI checks covered folder create/rename/move/delete, reload persistence,
+  empty folders and search, import error feedback, closing/reopening an active
+  import, successful reimport, subtitle-file recovery, and existing MIT playback.
+- Captured 12 relevant player/library/dialog states at 375, 768 and 1280px:
+  36 screenshots, no document/dialog horizontal overflow, no JavaScript page errors.
+  Test fixtures and browser evidence are outside the repository in the chat's work/.
+# Sentence alignment verification — 2026-11-16
+
+- `npm test`: 40 tests passed, including cross-cue sentence boundaries, overlap
+  stitching, checkpoint resume, invalid-response rejection, preserving the old
+  cache on failure, atomic paired-cache publication and original-cache backup.
+- Reproduced the old splitter cutting `with / respect to` at its 15-second limit.
+- Real Karpathy micrograd lecture: 24,341 original words preserved in order,
+  1,035 English/Korean pairs, original 653 translations backed up. Original
+  lecture/caption file unchanged. New timings are estimated from source cues.
+- Real Chrome at 1366x900 and 768x900, live localhost API (no response fixture):
+  reproduced the user's 65-second passage, verified matching bilingual text,
+  next/previous/repeat, no JavaScript errors or horizontal caption overflow.
+- Existing server and user browser sessions were preserved. The active server
+  already serves the corrected cache and rebuilt client; the new full-lecture
+  alignment API branch loads on the next normal server start.
+
+# Compact study view — 2026-11-16
+
+- Default focus layout keeps captions below the video; optional top/bottom overlay
+  and transcript sidebar reuse the existing media and aligned caption nodes.
+- Chrome live API: 1,035 aligned pairs loaded, playback continues across placement
+  and transcript toggles. Controls hide after inactivity; settings restore them.
+- Checked 1536x674 desktop and 375x812 mobile; no horizontal stage overflow.
+  Mobile transcript is a lower drawer. 30px captions remain scrollable; returning
+  to normal view restores the opener and clears temporary inert attributes.
+- Source review caught and fixed transcript header overlap, normal toolbar wrapping,
+  and keyboard focus leaking behind the fallback fullscreen player.
+- Screenshots: ../outputs/duvi-study-{dock,sidebar,mobile,overlay-top,overlay-bottom}.jpg.
+- The current server serves the rebuilt client and aligned cache. A server restart
+  to load the new full-lecture alignment route was rejected by automatic approval
+  review, so that route remains pending the next normal server start.
+- Final build and all 40 tests pass. Independent implementation and visual/CJK
+  reviews passed after fixing Korean transcript word wrapping (keep-all).
+
+# Caption spacing follow-up — 2026-11-16
+
+- Reproduced the reported 10:55 sentence. Previous language gap was 4px.
+- Increased gap to 12px (10px on short viewports); replaced viewport-height
+  clipping with two complete lines per language. Longer text remains scrollable.
+- Chrome measured 66px rows / 33px line-height at 22px, and 90px / 45px at 30px.
+  At 375x812 both language rows remain 66px apart from the 12px gutter.
+- Production build passed; no translation data or playback code changed.
