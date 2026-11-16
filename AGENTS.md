@@ -32,3 +32,7 @@ and do not insist on a fixed subtitle position. Preserve aligned sentence pairs
 and the playing media when toggling layouts.
 
 The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this app in a public GitHub repository. Use Duvi for the product name and 내 강의 for its lecture library. Keep credentials, imported lecture data, generated translations, logs, and local build artifacts out of Git. Preserve the existing local vault path so branding changes do not disconnect accounts.
+
+## Learning and discovery direction
+
+The learning product direction is documented in docs/LEARNING_DESIGN.md. Help the learner distinguish observations, selection, variables and assumptions; compare alternatives; propose discriminating tests; and record changed explanations. These are planned capabilities, not implemented features. Preserve optional lightweight notes, first-person answers and AI-help history. Watch time and AI approval alone are not evidence of mastery. Keep the wide video, aligned bilingual captions, and stable media instance.
