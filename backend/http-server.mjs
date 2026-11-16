@@ -61,6 +61,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||''});return;}
           if(pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
           if(pathname==='/api/library'){json(res,200,await library.list());return;}
+          if(pathname==='/api/folders'){json(res,200,await library.folders.list());return;}
           if(pathname.startsWith('/api/lectures/')){json(res,200,await library.get(pathname.split('/').at(-1)));return;}
           if(pathname.startsWith('/api/translations/')){json(res,200,await translations.cache(pathname.split('/').at(-1)));return;}
           if(pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
@@ -76,7 +77,13 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/auth/select'){await auth.select(body.accountId);json(res,200,auth.publicState());return;}
           if(pathname==='/api/auth/ack'){await auth.acknowledge();json(res,200,{ok:true});return;}
           if(pathname==='/api/auth/signout'){if(translations.starting)throw new AppError('번역 준비가 끝난 뒤 연결을 해제하세요.','busy',409);await translations.stop();json(res,200,await auth.signOut());return;}
-          if(pathname==='/api/library/import'){json(res,200,await library.import(body));return;}
+          if(pathname==='/api/library/import'){json(res,200,await library.importIntoFolder(body));return;}
+          if(pathname==='/api/library/playlist'){json(res,200,await library.importPlaylist(body));return;}
+          if(pathname==='/api/library/captions'){json(res,200,await library.prepareCaptions(body));return;}
+          if(pathname==='/api/folders/create'){json(res,200,await library.folders.create(body.name));return;}
+          if(pathname==='/api/folders/rename'){json(res,200,await library.folders.rename(body.id,body.name));return;}
+          if(pathname==='/api/folders/delete'){json(res,200,await library.folders.remove(body.id));return;}
+          if(pathname==='/api/folders/move'){json(res,200,await library.folders.move(body));return;}
           if(pathname==='/api/translate'){json(res,200,{job:await translations.start({number:body.lecture,model:body.model,scope:body.scope,start:body.start||0})});return;}
           if(pathname==='/api/translate/stop'){json(res,200,{job:await translations.stop()});return;}
         }

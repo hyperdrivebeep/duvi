@@ -87,6 +87,7 @@ export class TranslationService{
       const accountId=this.auth.state.activeId;
       const models=await this.auth.models(accountId);if(!models.some(m=>m.id===model))throw new AppError('이 계정에서 사용할 수 있는 모델을 선택하세요.','invalid_model');
       const lecture=await this.lecture(number),cache=await this.cache(number,lecture);
+      if(!lecture.cues?.length)throw new AppError('영어 자막을 먼저 준비한 뒤 번역을 시작하세요.','no_captions',422);
       if(scope==='sample')start=Math.min(start,lecture.cues.at(-1).end);
       const ids=lecture.cues.map((c,i)=>({c,i})).filter(({c})=>scope==='lecture'||(c.end>start&&c.start<start+300)).map(({i})=>i);
       const pending=ids.filter(id=>!cache.translations[id]);
