@@ -52,7 +52,8 @@ export function state(value){
   keys(value,['schemaVersion','revision','records','progress','settings']);if(value.schemaVersion!==1)invalid('지원하지 않는 학습 데이터 버전입니다.');
   const progress={};object(value.progress);if(Object.keys(value.progress).length>2000)invalid();
   for(const [key,row]of Object.entries(value.progress)){
-    id(key);keys(row,['status','updatedAt','revision']);progress[key]={status:choice(row.status,STATUSES),updatedAt:date(row.updatedAt),revision:integer(row.revision,1)};
+    id(key);keys(row,['status','updatedAt','revision','completed']);progress[key]={status:choice(row.status,STATUSES),updatedAt:date(row.updatedAt),revision:integer(row.revision,1)};
+    if(row.completed!==undefined){if(typeof row.completed!=='boolean')invalid();progress[key].completed=row.completed;}
   }
   // Version 1 has no writable global preferences; browser playback settings stay local.
   keys(value.settings,[]);

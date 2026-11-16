@@ -7,6 +7,20 @@ import {LearningStore} from '../learning.mjs';
 import {atomicJSON} from '../vault.mjs';
 
 const now=()=>Date.parse('2026-11-16T23:30:00+09:00');
+test('explicit completion survives reload and activity edits, supports undo and rejects stale writes',async t=>{
+  const store=await fixture(t);
+  let state=await store.setProgress({revision:0,resourceId:'mit-1',status:'explained'});assert.equal(state.progress['mit-1'].completed,false);
+  state=await store.setProgress({revision:1,resourceId:'mit-1',status:'explained',completed:true});
+  assert.equal((await new LearningStore({root:store.root}).get()).progress['mit-1'].completed,true);
+  state=await store.setProgress({revision:2,resourceId:'mit-1',status:'reviewed'});assert.equal(state.progress['mit-1'].completed,true);
+  await assert.rejects(store.setProgress({revision:2,resourceId:'mit-1',status:'reviewed',completed:false}),{code:'revision_conflict'});
+  state=await store.setProgress({revision:3,resourceId:'mit-1',status:'reviewed',completed:false});assert.equal(state.progress['mit-1'].completed,false);
+  assert.throws(()=>store.setProgress({revision:4,resourceId:'mit-1',status:'watching',completed:'yes'}),{code:'invalid_learning'});
+});
+test('old persisted progress without completion remains readable and incomplete',async t=>{
+  const store=await fixture(t);await atomicJSON(store.file,{schemaVersion:1,revision:1,records:[],settings:{},progress:{old:{status:'reviewed',revision:1,updatedAt:new Date(now()).toISOString()}}});
+  const state=await store.get();assert.equal(state.progress.old.completed,undefined);assert.equal(state.progress.old.status,'reviewed');
+});
 async function fixture(t,options={}){const root=await mkdtemp(path.join(os.tmpdir(),'duvi-learning-store-'));t.after(()=>rm(root,{recursive:true,force:true}));return new LearningStore({root,now,...options});}
 const input={resourceId:'mit-01',lectureId:'1',question:'Why?',explanation:'Initial explanation',prediction:'Before',help:'none',anchor:{lectureId:'1',seconds:1,sourceText:'Hello.',translation:'안녕.',alignmentRevision:null,cueStart:0,cueEnd:3}};
 

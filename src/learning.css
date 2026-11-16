@@ -1,4 +1,27 @@
 :root{--learning-width:1040px;--learning-reader:760px;--learning-entry-height:96px;--learning-radius:8px}
+.learning-meter{display:block;width:100%;height:var(--space-2);accent-color:var(--blue);margin:var(--space-2) 0;max-width:100%}
+.learning-phase-count{display:block;font-size:var(--text-small);color:var(--muted);font-weight:500}
+.learning-complete{min-height:44px;white-space:nowrap}
+.learning-complete[aria-pressed=true],.lecture-completed{color:var(--blue);font-weight:650}
+.learning-complete[aria-pressed=true]{background:var(--selected)}
+.learning-resource-controls{align-self:center;min-width:0}
+.learning-resource-controls .learning-complete{width:100%}
+.learning-completion-notice{font-size:var(--text-small);max-width:16em;line-height:1.5;white-space:normal}
+.learning-completion-notice:empty{display:none}
+.learning-keep-phrase{white-space:nowrap}
+.learning-resume{margin-bottom:var(--space-3);font-size:var(--text-small)}
+.learning-resume p{margin:0 0 var(--space-1)}
+.learning-resume-action{width:100%;justify-content:flex-start;text-align:left;font-size:var(--text-small);white-space:normal;line-height:1.5;padding:var(--space-2);overflow-wrap:anywhere}
+.folder-learning-progress{padding:0 var(--space-3) var(--space-2) var(--space-5);font-size:var(--text-small);color:var(--muted)}
+.folder-learning-tasks{padding:var(--space-2);font-size:var(--text-small);line-height:1.6}
+.folder-learning-tasks p{margin:var(--space-2)}
+.folder-learning-tasks button{font-size:var(--text-small);min-height:44px;white-space:normal;text-align:left}
+.lecture-completed{display:block;font-size:var(--text-small);margin-top:var(--space-1)}
+.lecture-complete-toggle{flex:none;min-width:44px;min-height:44px;padding:var(--space-1);border-color:transparent;background:transparent;font-size:17px;color:var(--muted)}
+.lecture-complete-toggle[aria-pressed=true]{color:var(--blue);background:var(--selected)}
+.study-focus .learning-complete[aria-pressed=true]{background:#203652;color:#fff;border-color:var(--focus)}
+.study-focus .learning-completion-notice{color:#fff}
+@media(max-width:480px){.lecture-item .lecture-row{grid-template-columns:var(--space-4) minmax(0,1fr)}.lecture-item .thumbnail{display:none}}
 .learning-sidebar-entry{width:100%;justify-content:flex-start;margin-bottom:var(--space-4);color:var(--blue);background:var(--selected);font-weight:650}
 .learning-mobile-entry{font-size:var(--text-small);white-space:nowrap;padding:var(--space-2)}
 #openQuestion{white-space:nowrap;flex-shrink:0;min-width:7em}

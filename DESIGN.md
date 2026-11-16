@@ -218,3 +218,52 @@ Not established: human UX outcomes or task times, learning effectiveness or mast
 live-provider answer quality, real screen-reader results, Lighthouse measurements,
 all-size visual approval, OS local-file execution or external publishing. The
 reported ArrowRight check does not establish every keyboard or accessibility path.
+
+## 11. Visible progress and continuation (2026-11-17)
+
+User task: see what is finished, what remains and the next action without opening
+each folder. Preserve lecture-first navigation; external readings stay links in
+the roadmap, never embedded documents or empty-video placeholders.
+
+C08: explicit reversible completion is separate from the existing activity status.
+Old explained/reviewed entries do not silently become completed. No automatic
+completion from seeking, playback end or AI approval. Progress means completed
+resources / all resources, including named external tasks; it does not mean mastery.
+C09: sidebar lecture badges, phase counts and native progress bars share the same
+server snapshot as the roadmap and player button. Repeated lectures share their
+completion. Reading-only phases show task counts and an open-tasks action.
+C10: the first unfinished resource in curriculum order is next; an unfinished
+watching/practicing resource takes priority for continuation. All-complete shows a
+finished state, never returns MIT 1 as a new next task. A completed resource can be
+reopened and its completion undone. Preserve media and draft identity on updates.
+
+Reuse existing blue/white palette, spacing tokens and native buttons. Completion
+uses text and a check, not color alone; counts remain visible when phases collapse.
+Controls have accessible names and 44px targets. Mobile wraps actions. Test old
+data, save/reload/undo, mixed and external-only phases, all-complete, conflicts and
+backup roundtrip, plus Chrome desktop/mobile/fullscreen. Baseline: user-supplied
+empty phase 3/8 screenshots and current learning UI; no UX speed claim is assumed.
+
+Observed validation: Chrome on isolated local data exercised lecture complete,
+reload persistence, undo, next lecture at its saved position, external phase
+3/4 to 4/4 and back, activity changes preserving completion, all 66 complete,
+and a stale-revision rejection followed by explicit retry. Completion kept the
+paused media at 200 seconds in focus/fullscreen mode. At 375px, a real server
+connection failure appeared in the mobile library; restarting the QA server and
+retrying returned to the player and closed that library. Both navigation defects
+found in review were fixed, with a regression test. Final suite: 103 passed.
+
+Responsive evidence: desktop, 375px and 768px CSS viewports; no horizontal
+document overflow in the checked mobile/tablet states. Below 480px the lecture
+list omits thumbnails so completion controls do not squeeze title/position text.
+Short Korean auxiliary phrases stay together; longer text continues to wrap.
+Native JPEG captures are local QA artifacts, not committed learner data. The
+capture service's output dimensions can differ from CSS viewport dimensions;
+this is not an exact pixel-match or measured UX-effectiveness result.
+
+Evidence names: progress-lecture-done, progress-reading-stage, progress-roadmap-next,
+progress-phase-partial, progress-phase-complete, progress-all-complete,
+progress-mobile-player, progress-mobile-roadmap, progress-tablet-roadmap,
+progress-fullscreen-controls, progress-mobile-copy, progress-mobile-library,
+progress-mobile-error and progress-mobile-retry (JPEG). The paragraph/compact-list
+fixes have fresh affected captures; unchanged surfaces retain their earlier captures.

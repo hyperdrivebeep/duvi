@@ -1,4 +1,5 @@
 import {createIcons,Folder,FolderPlus,ListVideo,ChevronRight,ChevronDown,Ellipsis,FolderInput,Plus} from 'lucide';
+import {lectureResource,resourceCompleted,completionSummary} from './learning-model.mjs';
 
 const $=id=>document.getElementById(id);
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;}
@@ -35,6 +36,7 @@ export class LibraryUI{
     $('lecture').value=rows.some(row=>String(row.number)===String(wanted))?String(wanted):String(rows[0]?.number||'');
     this.render();return rows;
   }
+  setLearning(learning){this.learning=learning;this.render();}
   rememberCollapsed(){try{localStorage.setItem('duvi-collapsed-folders',JSON.stringify([...this.collapsed]));}catch{}}
   revealFolder(id){
     const list=$('libraryList'),section=[...list.querySelectorAll('.folder-section')].find(node=>node.dataset.folderId===id);
@@ -52,6 +54,7 @@ export class LibraryUI{
     const groups=[...this.folders,{id:'',name:'미분류',lectureIds:this.rows.filter(row=>!assigned.has(String(row.number))).map(row=>String(row.number))}];
     const visible=new Set();list.replaceChildren();
     for(const folder of groups){
+      const phase=this.learning?.roadmap?.phases.find(p=>p.id===folder.id),external=phase?.resources.filter(r=>!r.lectureId)||[];
       const all=folder.lectureIds.map(key=>byId.get(key)).filter(Boolean);
       if(!folder.id&&!all.length)continue;
       const folderMatches=folder.name.toLocaleLowerCase().includes(search);
@@ -65,14 +68,16 @@ export class LibraryUI{
       toggle.setAttribute('aria-expanded',String(expanded));toggle.title=folder.name;
       const children=element('div','folder-lectures');children.id='folder-'+(folder.id||'unfiled');children.hidden=!expanded;
       toggle.setAttribute('aria-controls',children.id);
-      toggle.append(icon(expanded?'chevron-down':'chevron-right'),icon('folder'),element('span','folder-name',folder.name),element('span','folder-count',String(all.length)));
+      toggle.append(icon(expanded?'chevron-down':'chevron-right'),icon('folder'),element('span','folder-name',folder.name),element('span','folder-count',phase?(all.length?`영상 ${all.length}`:`과제 ${external.length}`):String(all.length)));
       toggle.onclick=()=>{if(this.collapsed.has(folder.id))this.collapsed.delete(folder.id);else this.collapsed.add(folder.id);this.rememberCollapsed();this.render();};
       header.append(toggle);
       if(folder.id){const manage=iconButton('ellipsis',`${folder.name} 폴더 관리`,()=>this.editFolder(folder));manage.dataset.libraryFocus='manage-'+folder.id;header.append(manage);}
-      if(!rows.length)children.append(element('p','folder-empty','아직 강의가 없습니다. 아래에서 추가하세요.'));
+      if(phase){const summary=completionSummary(this.learning.roadmap,this.learning.progress,phase.resources),progress=element('div','folder-learning-progress'),meter=element('progress','learning-meter');meter.max=summary.total||1;meter.value=summary.done;meter.setAttribute('aria-label',`${folder.name} 학습 진행률`);progress.append(element('span','',`${summary.total&&summary.done===summary.total?'✓ ':''}학습 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`),meter);section.append(progress);}
+      if(!rows.length&&!external.length)children.append(element('p','folder-empty','아직 강의가 없습니다. 아래에서 추가하세요.'));
+      if(external.length){const tasks=element('div','folder-learning-tasks');if(!all.length)tasks.append(element('p','muted','영상 대신 읽기·실습으로 진행하는 단계입니다.'));const open=element('button','plain',`읽기·실습 ${external.length}개 보기 →`);open.type='button';open.onclick=()=>this.learning.onPhase(phase.id);tasks.append(open);children.append(tasks);}
       for(const row of rows)children.append(this.lectureRow(row,folder,all.indexOf(row)+1));
-      const add=element('button','folder-add plain','강의 추가');add.prepend(icon('plus'));add.onclick=()=>this.openImport('video',folder.id);children.append(add);
-      section.append(header,children);list.append(section);
+      if(all.length||!external.length){const add=element('button','folder-add plain','강의 추가');add.prepend(icon('plus'));add.onclick=()=>this.openImport('video',folder.id);children.append(add);}
+      section.prepend(header);section.append(children);list.append(section);
     }
     if(!list.children.length)list.append(element('p','empty','일치하는 폴더나 강의가 없습니다. 다른 검색어를 입력하세요.'));
     $('libraryCount').textContent=`${this.folders.length}개 폴더 · ${visible.size}개 강의`;
@@ -90,10 +95,12 @@ export class LibraryUI{
     const copy=element('span','lecture-copy');copy.append(element('span','lecture-name',row.title.split(' | ')[0]));
     const status=row.unavailable?'재생 제한 · 원본 확인':row.captionStatus==='pending'?'열면 영어 자막 준비':row.captionStatus==='failed'?'영어 자막 확인 필요':row.course;
     copy.append(element('span','lecture-course',status));
+    const resource=lectureResource(this.learning?.roadmap,String(row.number),row.title),done=resourceCompleted(this.learning?.roadmap,this.learning?.progress,resource);
+    if(done)copy.append(element('span','lecture-completed','✓ 완료'));
     if(this.playPositions[row.number]>5)copy.append(element('span','resume-time',this.format(this.playPositions[row.number])+'부터 이어보기'));
     button.append(element('span','lecture-ordinal',String(position).padStart(2,'0')),thumb,copy);button.onclick=()=>this.select(row.number);
     const move=iconButton('folder-input',`${row.title} 강의 이동`,()=>this.openMove(row,folder));move.classList.add('lecture-move');move.dataset.libraryFocus=`move-${folder.id}-${row.number}`;
-    item.append(button,move);return item;
+    item.append(button);if(this.learning){const complete=element('button','lecture-complete-toggle',done?'✓':'○');complete.type='button';complete.setAttribute('aria-label',`${row.title} ${done?'완료 취소':'완료 표시'}`);complete.setAttribute('aria-pressed',String(done));complete.title=done?'완료 취소':'완료로 표시';complete.dataset.libraryFocus=`complete-${folder.id}-${row.number}`;complete.onclick=async()=>{complete.disabled=true;try{await this.learning.onComplete(resource);}catch{}finally{complete.disabled=false;}};item.append(complete);}item.append(move);return item;
   }
   populateFolders(id,emptyLabel,selected=''){
     $(id).replaceChildren(new Option(emptyLabel,''),...this.folders.map(folder=>new Option(folder.name,folder.id)));
