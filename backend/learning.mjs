@@ -43,8 +43,9 @@ export class LearningStore{
     });
   }
   setProgress(body){
-    v.keys(body,['revision','resourceId','status']);v.id(body.resourceId);v.choice(body.status,v.STATUSES);
-    return this.change(body.revision,current=>{current.progress[body.resourceId]={status:body.status,revision:(current.progress[body.resourceId]?.revision||0)+1,updatedAt:new Date(this.now()).toISOString()};});
+    v.keys(body,['revision','resourceId','status','completed']);v.id(body.resourceId);v.choice(body.status,v.STATUSES);
+    if(body.completed!==undefined&&typeof body.completed!=='boolean')v.invalid();
+    return this.change(body.revision,current=>{const previous=current.progress[body.resourceId];current.progress[body.resourceId]={status:body.status,completed:body.completed??previous?.completed??false,revision:(previous?.revision||0)+1,updatedAt:new Date(this.now()).toISOString()};});
   }
   review(body){
     v.keys(body,['revision','id','reflection','intervalDays','help']);v.id(body.id);v.text(body.reflection);v.integer(body.intervalDays,1,3650);v.choice(body.help,v.HELP);

@@ -43,7 +43,7 @@ test('wire record contains only agreed writable fields; history and first explan
   assert.equal(payload.id,'abc');assert.equal(payload.originalExplanation,undefined);assert.equal(payload.revision,undefined);assert.deepEqual(payload.anchor,anchor);
 });
 test('409 does not mutate current state; fresh revision is used on explicit retry',async()=>{
-  const ui=Object.create(LearningUI.prototype);ui.loaded=true;ui.state={revision:2,records:[]};ui.renderPanel=()=>{};
+  const ui=Object.create(LearningUI.prototype);ui.loaded=true;ui.state={revision:2,records:[]};ui.sync=()=>{};
   ui.api=async()=>{const e=new Error('conflict');e.status=409;throw e;};await assert.rejects(ui.mutate('/api/learning/records',{record}),{status:409});assert.equal(ui.state.revision,2);assert.equal(ui.saving,false);
   ui.state={revision:3,records:[]};ui.api=async(route,body)=>{assert.equal(body.revision,3);return {revision:4,records:[record]};};await ui.mutate('/api/learning/records',{record});assert.equal(ui.state.revision,4);
 });

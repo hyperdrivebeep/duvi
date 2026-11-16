@@ -11,6 +11,14 @@ import {fingerprint} from '../chatgpt-translate.mjs';
 import {LearningTutor} from '../learning-tutor.mjs';
 
 const at='2026-11-16T00:00:00.000Z';
+test('explicit completion survives backup preview and restore without promoting activity',async t=>{
+  const source=await fixture(t),target=await fixture(t,{seed:false});
+  await source.store.setProgress({revision:1,resourceId:'mit-1',status:'explained',completed:true});
+  await source.store.setProgress({revision:2,resourceId:'reading',status:'reviewed'});
+  const backup=await source.service.export(),preview=await target.service.preview({backup});
+  const restored=await target.service.commit({revision:0,token:preview.token,mode:'merge'});
+  assert.equal(restored.progress['mit-1'].completed,true);assert.equal(restored.progress.reading.completed,false);
+});
 async function fixture(t,{seed=true,...options}={}){
   const root=await mkdtemp(path.join(os.tmpdir(),'duvi-learning-backup-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const store=new LearningStore({root}),library=new LectureLibrary({root});

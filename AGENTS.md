@@ -45,4 +45,10 @@ Keep backend/learning/, local lecture/translation data, browser drafts and downl
 
 ## Task-first frontend evidence
 
+On 2026-11-17 the user requested visible lecture completion, phase progress and
+the next task at a glance. Keep Duvi lecture-first: external documents are linked
+reading/practice tasks, not an embedded document manager. Explicit completion is
+reversible and separate from activity status, playback position and mastery.
+Never show reading-only curriculum phases as empty folders asking for videos.
+
 The user prefers a working, understandable task flow in the frontend and evidence from that flow. Start with the learner's first click and resulting action, not an API inventory or implementation explanation. For feature work, verify the actual UI at normal scale and a small viewport, including playback/caption continuity; document what was exercised and what remains unverified. Automated tests and source review supplement that evidence, but do not replace a browser observation or establish that the learner understood a lesson. Respect an explicitly limited documentation/integration assignment rather than changing another agent's UI or starting a server outside its scope.

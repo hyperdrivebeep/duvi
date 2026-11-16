@@ -1,4 +1,4 @@
-export const PROGRESS = Object.freeze({not_started:'아직 시작 전',watching:'시청 중',practicing:'직접 실습 중',explained:'내 말로 설명함',reviewed:'시간을 두고 적용함'});
+export const PROGRESS = Object.freeze({not_started:'아직 시작 전',watching:'학습 중',practicing:'직접 실습 중',explained:'내 말로 설명함',reviewed:'시간을 두고 적용함'});
 export const HELP = Object.freeze({none:'도움 없이',hint:'힌트 사용',partial:'부분 설명 사용',full:'전체 설명 사용'});
 export const RECORD_FIELDS = ['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'];
 export const FIRST_TWO_WEEKS = [
@@ -16,9 +16,13 @@ export const FIRST_TWO_WEEKS = [
 export function progressStatus(value){return typeof value==='string'?value:value?.status||'not_started';}
 export function orderedResources(roadmap){return (roadmap?.phases||[]).flatMap(phase=>phase.resources||[]);}
 export function nextResource(roadmap,progress={}){
-  const resources=orderedResources(roadmap),started=resources.find(r=>['watching','practicing'].includes(progressStatus(progress[r.id])));
-  return started||resources.find(r=>progressStatus(progress[r.id])==='not_started')||resources[0];
+  const resources=orderedResources(roadmap).filter(r=>!resourceCompleted(roadmap,progress,r)),started=resources.find(r=>['watching','practicing'].includes(progressStatus(progress[resourceProgressId(roadmap,r)])));
+  return started||resources[0]||null;
 }
+export function resourceProgressId(roadmap,resource){return resource.lectureId?orderedResources(roadmap).find(r=>String(r.lectureId)===String(resource.lectureId))?.id||resource.id:resource.id;}
+export function resourceCompleted(roadmap,progress,resource){return progress?.[resourceProgressId(roadmap,resource)]?.completed===true;}
+export function completionSummary(roadmap,progress,resources=orderedResources(roadmap)){const total=resources.length,done=resources.filter(r=>resourceCompleted(roadmap,progress,r)).length;return {total,done,percent:total?Math.round(done/total*100):0};}
+export function lectureResource(roadmap,lectureId,title='현재 강의'){return orderedResources(roadmap).find(r=>String(r.lectureId)===String(lectureId))||{id:`lecture-${lectureId}`,lectureId:String(lectureId),title};}
 export function firstLecture(roadmap){return orderedResources(roadmap).find(r=>String(r.lectureId)==='1')||orderedResources(roadmap).find(r=>/mit/i.test(r.id+' '+r.title)&&/1(?:\D|$)/.test(r.title))||orderedResources(roadmap)[0];}
 export function dueRecords(records,now=Date.now()){return records.filter(r=>r.reviewDueAt&&Number.isFinite(Date.parse(r.reviewDueAt))&&Date.parse(r.reviewDueAt)<=now);}
 export function makeAnchor({lecture,seconds=0,cue,translation=''}){
