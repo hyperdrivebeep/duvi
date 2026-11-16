@@ -2,14 +2,19 @@ import {cueAt} from './core.mjs';
 import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
+import {LearningUI} from './learning-ui.mjs';
+import {makeAnchor,anchorState} from './learning-model.mjs';
+import {LearningPlaybackState} from './learning-playback-state.mjs';
 import './library.css';
 import './study-view.css';
+import './learning.css';
 import {createIcons, Search, Plus, Settings, X, PanelLeft, SkipBack, SkipForward, RotateCcw, Maximize, Minimize, Languages, ChevronRight, ChevronDown, Play} from 'lucide';
 const $=id=>document.getElementById(id),video=new MediaPlayer($('video'),$('youtubeWrap'));
 createIcons({icons:{Search,Plus,Settings,X,PanelLeft,SkipBack,SkipForward,RotateCcw,Maximize,Minimize,Languages,ChevronRight,ChevronDown,Play},attrs:{'aria-hidden':'true'}});
 let follow=true,resumeSaved=0,lectureReady=false,captionLoadingKey='',cacheRequest=0;
 function readStored(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}}
 const playPositions=readStored('study-positions',{});
+const positionState=new LearningPlaybackState(playPositions,localStorage);
 let lecture,translator,generation=0,current=-1,working=false,repeat=false,chromeTranslations={},aiTranslations={},nodes=[],savedAt=0,lastTime=0,translationError='';
 let session,modelKey='',polling=false,job=null,lastJobVersion='',accountBusy=false,aiNotice='',lastAuthMessage='';
 const fmt=seconds=>{seconds=Math.max(0,Math.floor(seconds||0));return `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;};
@@ -20,7 +25,7 @@ function chromeCacheKey(){return `mit6100-ko-${lecture.number}${lecture.alignmen
 function save(){if(!lecture)return;try{localStorage.setItem(chromeCacheKey(),JSON.stringify(chromeTranslations));}catch{}savedAt=Date.now();}
 async function api(route,body){
   let response;try{response=await fetch(route,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrf||''},body:JSON.stringify(body)});}catch{throw new Error('플레이어 서버에 연결할 수 없습니다. 시작 파일을 다시 실행하세요.');}
-  const value=await response.json();if(!response.ok)throw new Error(value.error?.message||'요청에 실패했습니다.');return value;
+  const value=await response.json();if(!response.ok){const error=new Error(value.error?.message||'요청에 실패했습니다.');error.status=response.status;error.code=value.error?.code;error.details=value.error?.details;throw error;}return value;
 }
 function progress(){
   if(!lecture)return;const n=Object.keys(chromeMode()?chromeTranslations:aiTranslations).length;
@@ -45,7 +50,7 @@ async function loadAICache(number=lecture?.number){
 }
 function paintTranslations(){nodes.forEach((node,i)=>node.querySelector('.ko').textContent=translated(i)||'');update();progress();}
 async function load(number){
-  savePosition();save();lectureReady=false;const requestGeneration=++generation;video.pause();lecture=null;current=-1;repeat=false;follow=true;translationError='';$('repeatLabel').textContent='다시 듣기';$('repeat').setAttribute('aria-pressed','false');
+  savePosition();save();lectureReady=false;positionState.beginLecture();const requestGeneration=++generation;video.pause();lecture=null;current=-1;repeat=false;follow=true;translationError='';$('repeatLabel').textContent='다시 듣기';$('repeat').setAttribute('aria-pressed','false');
   $('status').textContent='강의와 자막을 불러오는 중…';$('captionNotice').hidden=true;
   const incoming=await api(`/api/lectures/${encodeURIComponent(number)}`);if(requestGeneration!==generation)return;lecture=incoming;
   try{chromeTranslations=JSON.parse(localStorage.getItem(`mit6100-ko-${number}`)||'{}');}catch{chromeTranslations={};}aiTranslations={};
@@ -57,7 +62,7 @@ async function load(number){
   renderTranscript();renderCaptionNotice();
   localStorage.setItem('mit6100-lecture',String(number));history.replaceState(null,'',`?lecture=${encodeURIComponent(number)}`);renderLibrary();progress();
   if(!lecture.cues.length&&lecture.captionStatus==='pending'&&!lecture.unavailable)void prepareCaptions();
-  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();
+  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.renderPanel();
 }
 function renderTranscript(){
   $('transcript').replaceChildren();nodes=lecture.cues.map((cue,i)=>{const b=document.createElement('button');b.className='cue';const t=document.createElement('time');t.textContent=fmt(cue.start);const e=document.createElement('span');e.className='en';e.textContent=cue.en;const k=document.createElement('span');k.className='ko';k.textContent=translated(i)||'';b.append(t,e,k);b.onclick=()=>seek(i);$('transcript').append(b);return b;});
@@ -91,9 +96,10 @@ $('captionFile').onchange=async()=>{
   if(file.size>2*1024*1024){$('captionNoticeText').textContent='자막 파일은 2MB 이하로 넣어주세요.';return;}
   const version=generation,text=await file.text();if(version===generation)await prepareCaptions(text);$('captionFile').value='';
 };
-function seek(i){if(!lecture?.cues.length)return;i=Math.max(0,Math.min(i,lecture.cues.length-1));lastTime=lecture.cues[i].start+0.02;video.currentTime=lastTime;update();void translateAhead();}
+function seek(i){if(!lecture?.cues.length)return;positionState.allowWrite(lecture.number);i=Math.max(0,Math.min(i,lecture.cues.length-1));lastTime=lecture.cues[i].start+0.02;video.currentTime=lastTime;update();void translateAhead();}
 function update(){
   if(!lecture)return;
+  positionState.observePlayback(lecture.number,video.paused);
   if(!lecture.cues.length){setText('clock',`${fmt(video.currentTime)} / ${fmt(video.duration||lecture.duration)}`);if(Date.now()-resumeSaved>4000)savePosition();return;}
   const t=video.currentTime,next=t<lecture.cues[0].start?0:cueAt(lecture.cues,t),old=current;
   setText('clock',`${fmt(t)} / ${fmt(video.duration||lecture.cues.at(-1).end)}`);
@@ -128,7 +134,7 @@ $('start').onclick=async()=>{
       if(!translator){$('status').textContent='한국어 번역 모델 준비 중…';translator=await Translator.create({sourceLanguage:'en',targetLanguage:'ko',monitor(m){m.addEventListener('downloadprogress',e=>$('status').textContent=`한국어 모델 다운로드 ${Math.round(e.loaded*100)}%`);}});}
       void translateAhead();
     }
-    await video.play();$('start').textContent='한영 자막 재생';
+    positionState.allowWrite(lecture?.number);await video.play();$('start').textContent='한영 자막 재생';
   }catch(error){$('status').textContent=error.message;}finally{$('start').disabled=false;}
 };
 function renderAI(){
@@ -188,12 +194,12 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시 듣기';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
-setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();}});
-video.addEventListener('timeupdate',update);video.addEventListener('seeked',()=>{lastTime=video.currentTime;update();void translateAhead();});
+const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onQuestionOpen:()=>{if(!learningUI.editor.record)learningUI.editor.newRecord();},onLearningOpen:()=>learningUI.renderPanel()});
+video.addEventListener('timeupdate',update);video.addEventListener('seeked',()=>{positionState.allowWrite(lecture?.number);lastTime=video.currentTime;update();void translateAhead();});
 video.addEventListener('error',()=>{$('status').textContent=video.lastError||'영상을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.';});
 window.addEventListener('beforeunload',()=>{save();savePosition();});
 async function refreshLibrary(selected){return libraryUI.refresh(selected);}
-function savePosition(){if(!lecture||!lectureReady||video.lastError||!Number.isFinite(video.currentTime))return;playPositions[lecture.number]=video.currentTime;try{localStorage.setItem('study-positions',JSON.stringify(playPositions));}catch{}resumeSaved=Date.now();}
+function savePosition(){if(!lecture||!lectureReady||video.lastError||!Number.isFinite(video.currentTime))return;try{positionState.save(lecture.number,video.currentTime);}catch{}resumeSaved=Date.now();}
 function renderLibrary(){libraryUI.render();}
 const dialogOpeners=new Map();
 function openDialog(id,opener=document.activeElement){if($('mobileLibrary').open&&id!=='mobileLibrary')closeDialog('mobileLibrary');dialogOpeners.set(id,opener);$(id).showModal();if(id==='importDialog')$('youtubeUrl').focus();}
@@ -215,7 +221,15 @@ for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEvent
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,button,a,[contenteditable=true]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
 const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,playPositions,format:fmt});
+const learningUI=new LearningUI({api,openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
+  onRestorePositions:()=>positionState.restore(lecture?.number,video.paused),
+  capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,
+  onOpen:async resource=>{await refreshLibrary(resource.lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(resource.lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=resource.lectureId;await load(resource.lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
+  onPrepare:()=>refreshLibrary($('lecture').value),
+  onJump:async anchor=>{if(!anchor)throw new Error('저장한 원문 연결이 없습니다.');const target=await api(`/api/lectures/${encodeURIComponent(anchor.lectureId)}`),cache=await api(`/api/translations/${encodeURIComponent(anchor.lectureId)}`);const aligned=cache.cues&&cache.alignmentRevision?{...target,cues:cache.cues,alignmentRevision:cache.alignmentRevision}:target,result=anchorState(anchor,aligned);if(result.status!=='matched')return result;if(String(lecture?.number)!==String(anchor.lectureId)){$('lecture').value=anchor.lectureId;await load(anchor.lectureId);}video.currentTime=anchor.seconds;update();return result;}
+});
 try{
-  await refreshSession();const wanted=new URLSearchParams(location.search).get('lecture')||localStorage.getItem('mit6100-lecture')||'yt_aircAruvnKk';await refreshLibrary(wanted);await load($('lecture').value);
+  await refreshSession();const wanted=new URLSearchParams(location.search).get('lecture')||localStorage.getItem('mit6100-lecture')||'1';await refreshLibrary(wanted);await load($('lecture').value);
 }catch(error){$('aiStatus').textContent=error.message;$('status').textContent=error.message;}
+void learningUI.init();
 setInterval(async()=>{if(polling||accountBusy)return;polling=true;try{await refreshSession();}catch(error){$('aiStatus').textContent=error.message;}finally{polling=false;}},3000);
