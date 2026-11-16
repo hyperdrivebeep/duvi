@@ -35,4 +35,14 @@ The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this
 
 ## Learning and discovery direction
 
-The learning product direction is documented in docs/LEARNING_DESIGN.md. Help the learner distinguish observations, selection, variables and assumptions; compare alternatives; propose discriminating tests; and record changed explanations. These are planned capabilities, not implemented features. Preserve optional lightweight notes, first-person answers and AI-help history. Watch time and AI approval alone are not evidence of mastery. Keep the wide video, aligned bilingual captions, and stable media instance.
+The learning product direction and implementation boundaries are documented in docs/LEARNING_DESIGN.md. The local roadmap, timestamped records, revision history, review scheduling, Markdown export, and backup/restore now have source implementations. Distinguish source implementation, automated checks, and observed browser/live-service behavior; never report one as proof of another.
+
+The first action is **학습 로드맵 → MIT 1강 시작하기**, then MIT Python Lecture 2 and 3 in order. Keep the canonical roadmap URL and commit in src/learning-roadmap.mjs; do not silently create a competing schedule. Curriculum preparation follows setup, reuses existing lectures, and must not imply captions are downloaded or learning is complete.
+
+Help the learner distinguish observations, selection, variables and assumptions; compare alternatives; propose discriminating tests; and record changed explanations. A question or first-person explanation is enough to start; evidence/assumption/experiment fields remain optional. Preserve the original explanation, revision history, help level and review history. AI assistance is optional, explicitly requested, source-grounded, and labeled as a suggestion. Watch time, self-marked progress and AI approval never certify mastery. Keep the wide video, aligned bilingual captions, and stable media instance.
+
+Keep backend/learning/, local lecture/translation data, browser drafts and downloaded backups private and out of Git. Code distribution and personal-data backup are separate operations. Restore requires a validated preview and explicit conflict policy; credentials are excluded. Do not publish notes, run learner code, or push to external repositories as an automatic learning action.
+
+## Task-first frontend evidence
+
+The user prefers a working, understandable task flow in the frontend and evidence from that flow. Start with the learner's first click and resulting action, not an API inventory or implementation explanation. For feature work, verify the actual UI at normal scale and a small viewport, including playback/caption continuity; document what was exercised and what remains unverified. Automated tests and source review supplement that evidence, but do not replace a browser observation or establish that the learner understood a lesson. Respect an explicitly limited documentation/integration assignment rather than changing another agent's UI or starting a server outside its scope.

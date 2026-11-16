@@ -8,18 +8,20 @@ import {createVault} from './vault.mjs';
 import {ChatGPTAuth,AppError} from './chatgpt-auth.mjs';
 import {TranslationService} from './chatgpt-translate.mjs';
 import {LectureLibrary} from './library.mjs';
+import {LearningService} from './learning-service.mjs';
 export const ROOT=path.resolve(fileURLToPath(new URL('.',import.meta.url)));
 const staticFiles=new Set(['/index.html','/app.mjs','/core.mjs','/style.css','/media.mjs']);
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.vtt':'text/vtt; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.jpg':'image/jpeg','.png':'image/png'};
 const fresh=()=>randomBytes(32).toString('base64url');
 function json(res,status,value){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(value));}
-async function readJSON(req){
+async function readJSON(req,limit=2300000){
   if(!req.headers['content-type']?.startsWith('application/json'))throw new AppError('JSON 요청이 필요합니다.','bad_content_type',415);
-  const chunks=[];let bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>2300000)throw new AppError('요청이 너무 큽니다.','too_large',413);chunks.push(chunk);}const body=Buffer.concat(chunks).toString('utf8');
+  const chunks=[];let bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>limit)throw new AppError('요청이 너무 큽니다.','too_large',413);chunks.push(chunk);}const body=Buffer.concat(chunks).toString('utf8');
   try{return JSON.parse(body||'{}');}catch{throw new AppError('요청 형식이 올바르지 않습니다.','invalid_json');}
 }
 export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101}){
   const base=`http://127.0.0.1:${port}`,sessions=new Map();
+  const learning=new LearningService({root,auth,translations,library});
   const cookieName=`mit_session_${port}`;
   function session(req,res,create=false){
     let sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);
@@ -57,18 +59,32 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
       }
       if(pathname.startsWith('/api/')){
         if(!s)throw new AppError('플레이어를 새로고침하세요.','missing_session',403);
+        let body;
+        if(req.method==='POST'){
+          if(req.headers.origin!==base||req.headers['x-csrf-token']!==s.csrf)throw new AppError('요청을 확인할 수 없습니다. 플레이어를 새로고침하세요.','csrf',403);
+          body=await readJSON(req,pathname==='/api/learning/import/preview'?16*1024*1024+1024:2300000);
+        }
+        if(req.method==='GET'&&pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||''});return;}
+        if(req.method==='GET'&&pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
+        if(req.method==='GET'&&pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
+        if(req.method==='POST'&&pathname==='/api/learning/tutor'){await learning.withAssets(()=>undefined);json(res,200,await learning.tutor.ask(body));return;}
+        await learning.withAssets(async()=>{
         if(req.method==='GET'){
-          if(pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||''});return;}
-          if(pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
+          if(pathname==='/api/learning'){json(res,200,await learning.store.get());return;}
+          if(pathname==='/api/learning/export'){json(res,200,await learning.backup.export());return;}
+          if(pathname==='/api/learning/roadmap'){const {ROADMAP}=await import('../src/learning-roadmap.mjs');json(res,200,ROADMAP);return;}
           if(pathname==='/api/library'){json(res,200,await library.list());return;}
           if(pathname==='/api/folders'){json(res,200,await library.folders.list());return;}
           if(pathname.startsWith('/api/lectures/')){json(res,200,await library.get(pathname.split('/').at(-1)));return;}
           if(pathname.startsWith('/api/translations/')){json(res,200,await translations.cache(pathname.split('/').at(-1)));return;}
-          if(pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
         }
         if(req.method==='POST'){
-          if(req.headers.origin!==base||req.headers['x-csrf-token']!==s.csrf)throw new AppError('요청을 확인할 수 없습니다. 플레이어를 새로고침하세요.','csrf',403);
-          const body=await readJSON(req);
+          if(pathname==='/api/learning/records'){json(res,200,await learning.store.saveRecord(body));return;}
+          if(pathname==='/api/learning/progress'){json(res,200,await learning.store.setProgress(body));return;}
+          if(pathname==='/api/learning/review'){json(res,200,await learning.store.review(body));return;}
+          if(pathname==='/api/learning/import/preview'){json(res,200,await learning.backup.preview(body));return;}
+          if(pathname==='/api/learning/import'){json(res,200,await learning.backup.commit(body));return;}
+          if(pathname==='/api/learning/prepare'){const {prepareRoadmap}=await import('./learning-curriculum.mjs');json(res,200,await prepareRoadmap(library));return;}
           if(['/api/auth/start','/api/auth/select'].includes(pathname)&&(translations.job?.status==='running'||translations.starting))throw new AppError('번역을 멈춘 뒤 계정을 변경하세요.','busy',409);
           if(pathname==='/api/auth/start'){
             const target=await auth.start(s.id,base+'/auth/callback',body.accountId||null);
@@ -88,6 +104,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/translate/stop'){json(res,200,{job:await translations.stop()});return;}
         }
         throw new AppError('요청 경로를 찾지 못했습니다.','not_found',404);
+        });return;
       }
       if(!['GET','HEAD'].includes(req.method))throw new AppError('지원하지 않는 요청입니다.','method',405);
       const rel=pathname==='/'?'/index.html':pathname;

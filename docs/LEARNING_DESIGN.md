@@ -1,6 +1,37 @@
-# Duvi 학습·탐구 기획
+# Duvi 학습·탐구 설계와 구현 범위
 
-수정일: 2026-11-16. **기획 문서이며 아래 새 학습 기능은 아직 구현되지 않았다.**
+수정일: 2026-11-16. 아래의 **구현됨**은 현재 작업 트리의 소스에 기능이 있다는 뜻이다.
+자동 테스트 통과, 실제 브라우저 동작, 실제 AI 서비스 응답, 학습자의 이해는 별개의 증거다.
+병렬 구현 중인 작업 트리이므로 통합 확인 항목을 완료 기능으로 간주하지 않는다.
+
+## 소스에서 확인한 구현
+
+| 범위 | 구현된 동작 | 소스와 한계 |
+|---|---|---|
+| 첫 진입·로드맵 | 학습 로드맵, MIT 1강 시작하기, 단계별 자료·활동 상태·첫 2주 실습 | `src/learning-ui.mjs`, `src/learning-map-view.mjs`, `src/learning-roadmap.mjs`. 직접 표시한 활동이며 숙달 판정 아님 |
+| 강의 준비 | setup된 MIT 강의 확인, 단계별 순서 폴더, YouTube 메타데이터 재사용/추가 | `backend/learning-curriculum.mjs`, `scripts/prepare-learning.mjs`. 영상·자막 다운로드와 번역은 수행하지 않음 |
+| 질문·설명·수정 | 원문 시점과 질문/설명, 선택 근거·가정·대안·예측·결과·생각 수정, 최초 설명·수정 이력·도움 정도 | `src/learning-editor.mjs`, `backend/learning.mjs`. 프런트엔드는 영어 자막이 있는 시점과 질문 또는 설명을 요구 |
+| 출처 연결 | 강의 ID·초·원문/번역 스냅샷·cue 시작/끝·정렬 revision 저장, 현재 자막과 불일치하면 안내 | `src/learning-model.mjs`, `backend/learning-validation.mjs`. cue/text hash 기반 재연결은 아직 없음 |
+| 복습 | 예정 기록 목록, 이전 답을 펼치기 전 회상 입력, 도움 정도·다음 복습일 저장 | `src/learning-records-view.mjs`, `backend/learning.mjs`. UI 간격은 1/3/7일, 독립 수행을 자동 평가하지 않음 |
+| Markdown | 현재 기록 미리보기/다운로드, 최초 설명·수정/복습 이력, 연구 연결 작성용 빈 항목 | `src/learning-model.mjs`. 외부 문서 발행·Glorious 연결 자동 작성은 하지 않음 |
+| 로컬 저장 | `backend/learning/state.json`, schema/revision 검증, 직렬화·atomic JSON 저장, 동시 수정 409 | `backend/learning.mjs`, `backend/learning-validation.mjs`. 브라우저 미저장 초안은 별도 localStorage |
+| 백업·복원 | 학습·강의·폴더·번역 JSON, 충돌 미리보기와 유지/덮어쓰기, 복원 전 사본·실패 복구 | `backend/learning-backup*.mjs`, `src/learning-backup-ui.mjs`. 허용된 브라우저 위치/설정만 추가하며 미저장 초안·credential 제외 |
+| 선택적 AI | 저장 후 문맥 미리보기, 원문 대조, 계정 모델 확인, 명시 요청으로 원문·학습 필드 전송, AI 제안 반환·도움 정도 저장 | `src/learning-editor.mjs`, `backend/learning-tutor.mjs`. 실제 계정 호출 성공과 브라우저 흐름은 별도 검증 필요 |
+
+## 남은 구현과 통합 확인
+
+- 튜터 화면 요청은 저장된 `recordId`, `mode`, 선택 `model`을 사용하도록 통합되었다.
+  모드는 `hint/critique/explain`이다. 소스 계약 일치와 실제 계정 요청 성공은 다르므로
+  저장→문맥 확인→명시 전송→응답·도움 정도 저장의 라이브 흐름은 별도 확인한다.
+- AI 응답 전문·요청 이력의 영속 보관은 아직 없다. 저장되는 도움 정도와 수정/복습 이력을
+  전체 AI 대화 이력으로 소개하지 않는다.
+- 아래 목표의 별도 EvidenceCard/RivalHypothesis/DiscriminatingTest/ExperimentLink 객체,
+  원문 hash와 자동 재연결, 구조화된 연구 연결·자동 발행은 미구현이다. 현재는 선택 텍스트 필드다.
+- 실습 코드 실행·결과 자동 검산·새 문제 독립 수행 평가·숙달 자동 승격은 구현하지 않았다.
+  외부 노트북은 사용자가 실행하고 결과와 한계를 기록한다.
+- 실제 브라우저에서 첫 클릭→강의→저장/재로드→복습→백업/복원 흐름, 작은 화면/전체화면,
+  재생·정렬 자막 유지와 실제 계정 AI 응답은 이 문서 작업에서 실행하지 않았다.
+  아래 검증 시나리오는 확인해야 할 항목이며 성공 기록이 아니다.
 
 ## 목적
 
@@ -8,16 +39,24 @@
 대안과 판별 실험을 제안하고 자신의 생각을 수정하는 능력을 키운다.
 [Glorious 북극성](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/00_DIRECTION/NORTH_STAR.md)을 지원한다.
 
-현재 구현된 폴더/재생목록/문장별 반복/영한 정렬 자막/집중 보기를 바탕으로 추가한다.
+폴더/재생목록/문장별 반복/영한 정렬 자막/집중 보기를 바탕으로 학습 기능을 확장한다.
 완강이나 AI의 긍정 판정을 과학적 이해와 동일하게 취급하지 않는다.
 
 ## 첫 학습 경로와 정본
 
+첫 클릭은 **학습 로드맵 → MIT 1강 시작하기**.
 첫 본강의는 Duvi “MIT Python 기초”의 Lecture 1. 그다음 Lecture 2, 3 순서.
 Stanford CS229 LLM 영상은 도입8분만 개관용으로 먼저 볼 수 있다.
 세부 강의 순서·첫2주·33주 편성·연장/통과 기준은
 [강의별 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)에 둔다.
-두 저장소에 서로 다른 일정을 중복 보관하지 않는다. 앱의 초기 학습 지도는 해당 문서 버전을 출처로 기록한다.
+앱의 `src/learning-roadmap.mjs`는 해당 정본의 URL/commit/확인일을 명시한 스냅샷이다.
+독립적인 새 일정을 만들지 않으며 정본 변경 시 출처 버전과 내용을 함께 갱신한다.
+확인 방식의 한계도 표시한다. 링크/제목 확인은 전체 영상 시청·자막 대조를 의미하지 않는다.
+
+`npm run setup` 이후 `npm run prepare:learning`을 실행하거나 화면의
+**순서대로 강의 폴더 준비**를 사용한다. CLI의 `--root <backend-directory>`는
+이미 MIT 데이터가 있는 별도 backend 경로를 지정한다. 기존 자료와 이름을 재사용하고,
+커리큘럼 순서를 맞춘 뒤 사용자 추가 강의를 보존한다. 학습 완료 상태는 만들지 않는다.
 
 ## 사용자 흐름
 
@@ -38,7 +77,9 @@ Stanford CS229 LLM 영상은 도입8분만 개관용으로 먼저 볼 수 있다
 “근거·가정 보기”는 펼침 기능으로 두며 기본 시청 화면에 연구 항목을 늘어놓지 않는다.
 매 문장 자동 일시정지/질문 팝업 대신 사용자가 고른 체크포인트만 제공한다.
 
-## 기능과 완료 조건
+## 목표 기능과 완료 조건
+
+다음 표는 목표 수준이며, 현재 구현 여부는 위 구현/남은 항목 표를 따른다.
 
 | 순서 | 기능 | 실제 완료 조건 |
 |---|---|---|
@@ -51,7 +92,14 @@ Stanford CS229 LLM 영상은 도입8분만 개관용으로 먼저 볼 수 있다
 | 7 | Glorious 연결/내보내기 | 어떤 연구 실패와 연결되는지, 변경할 부품·가중치·새 관측·비교군·실패조건을 Markdown 미리보기로 출력 |
 | 8 | 백업/복원 | 학습·강의·번역·재생 위치/설정을 버전 있게 내보내고 충돌 미리보기 후 복원. credential 제외 |
 
-## 새로운 데이터 계약
+## 현재 데이터 계약과 확장 목표
+
+현재 저장 형식은 `schemaVersion: 1`, 전역 `revision`, `records`, `progress`, 빈 `settings`다.
+기록은 stable ID, 자체 revision, 생성/수정 시각, 최초 설명, 수정/복습 이력과 선택 텍스트 필드를 갖는다.
+현재 anchor는 `lectureId/seconds/sourceText/translation/cueStart/cueEnd/alignmentRevision`이다.
+UI는 원문·cue 범위·정렬 revision 일치를 확인하고 불일치 시 다른 문장으로 조용히 이동하지 않는다.
+
+아래 별도 객체와 hash 기반 anchor는 확장 목표다. 현재 텍스트 필드가 이를 모두 구현한 것은 아니다.
 
 기존 계획의 Goal/Competency/ResourceSegment/Question/Attempt/Review/ExperimentLink/SourceSnapshot을 유지한다.
 큰 전역 지식 그래프나 별도 플랫폼을 먼저 만들지 않는다. 카드별 선택 필드로 시작한다.
@@ -74,6 +122,8 @@ AI는 “다른 설명을 생각해 볼까?”뿐 아니라 “기존 설명을 
 모르는 관측값이나 실험 결과를 생성해서 사실처럼 채우지 않는다.
 채점은 source-grounded/계산 확인/자기 평가/AI 제안/사람 검토를 구분한다.
 AI 점수만으로 숙달을 승격하지 않는다. 사용자가 요청할 때만 필요한 문맥을 기존 인증 경로로 전송한다.
+현재 서버는 저장된 기록의 텍스트 필드·도움 정도·일치한 원문 구간을 보낸다.
+화면의 전송 미리보기는 이 실제 payload 범위와 일치해야 하며, 질문·설명만 보낸다고 축소 안내하지 않는다.
 API가 없어도 기록·복습·내보내기는 가능해야 한다.
 
 복습 1/3/7일은 조정 가능한 초기 기본값이며 보편적 최적 간격이라는 연구 결론이 아니다.
@@ -92,6 +142,19 @@ API가 없어도 기록·복습·내보내기는 가능해야 한다.
 
 ## 검증 시나리오
 
+`npm test`는 Vite/Sites 사전 빌드 후 기존 테스트와
+`backend/tests/learning*.test.mjs`, `tests/learning-ui*.test.mjs`를 함께 실행한다.
+두 glob은 따옴표로 감싸 Node.js 24에서 확장하므로 셸의 glob 동작에 의존하지 않는다.
+실행 결과는 실행 시점의 공유 작업 트리에 대한 결과로 보고한다.
+이 문서에는 실행하지 않은 라이브 테스트나 브라우저 성공 기록을 추가하지 않는다.
+
+2026-11-16 문서/통합 작업에서 Windows, Node.js v24.13.0으로 `npm test` 실행:
+사전 Vite/Sites 빌드 성공, **79개 통과 / 실패 0 / 건너뜀 0**.
+처음 70개 실행 뒤 병렬 작업자가 추가한 학습 UI 테스트 9개를 포함해 재실행한 결과다.
+UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 브라우저 조작 테스트는 아니다.
+`npm run prepare:learning -- --help`도 종료 코드 0을 확인했다.
+실제 계정 AI 요청이나 개인 라이브러리 준비 명령은 이 작업에서 실행하지 않았다.
+
 1. 질문만 입력해 저장/재로드할 수 있고, 추가 가정 칸을 생략해도 손실 없음.
 2. 번역 재정렬 후 원문 anchor 유지 또는 미연결 표시; 잘못된 문장으로 이동하지 않음.
 3. AI 오류/오프라인에도 최초 설명·실습 결과 보존.
@@ -103,4 +166,6 @@ API가 없어도 기록·복습·내보내기는 가능해야 한다.
 9. 사용자의 새 문제 독립 수행은 실제 학습 증거로 확인. 자동 UI 테스트만으로 사람의 이해를 인증하지 않음.
 
 코드 구현 작업과 명령/증거/의존 관계는 로컬 .omo/plans/glorious-duvi-learning.md에서 추적한다.
-이 문서는 공개 제품 기획이며 실행 코드·완료 기능 목록과 구분한다.
+이 문서는 공개 설계와 소스 확인 범위를 기록한다. 개인 학습 기록은 공개 문서에 넣지 않는다.
+`backend/learning/`과 내려받은 백업/Markdown은 Git 배포와 별도로 보관한다.
+백업 UI는 허용된 브라우저 재생 위치/자막 설정도 담지만 미저장 초안과 모든 설정을 복제하지는 않는다.

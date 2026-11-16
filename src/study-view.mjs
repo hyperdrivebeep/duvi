@@ -1,4 +1,4 @@
-export function setupStudyView({onTranscriptOpen}){
+export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
@@ -71,8 +71,20 @@ export function setupStudyView({onTranscriptOpen}){
   function transcript(open){
     $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);
     for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded',String(open));
-    if(open)onTranscriptOpen();
+    if(open)selectTab('transcript');
   }
+  function selectTab(name){
+    for(const tab of document.querySelectorAll('[data-stage-tab]')){const selected=tab.dataset.stageTab===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
+    for(const panel of document.querySelectorAll('[data-stage-panel]'))panel.hidden=panel.dataset.stagePanel!==name;
+    if(name==='transcript')onTranscriptOpen();
+    if(name==='question')onQuestionOpen();
+    if(name==='learning')onLearningOpen();
+  }
+  function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
+  const tabs=[...document.querySelectorAll('[data-stage-tab]')];
+  tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab);tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab);tabs[target].focus();}};});
+  $('openQuestion').onclick=()=>openPanel('question');
   for(const id of ['toggleTranscript','studyTranscript'])$(id).onclick=()=>transcript($('transcriptPanel').hidden);
   $('closeTranscript').onclick=()=>{transcript(false);showControls();$(entered?'studyTranscript':'toggleTranscript').focus();};
+  return {openPanel};
 }
