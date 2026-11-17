@@ -67,7 +67,7 @@ function storageHarness(){const values=new Map();return {get length(){return val
 function editorHarness(saved){
   const editor=Object.create(LearningEditor.prototype);editor.record=structuredClone(saved);editor.savedRecord=saved.id?structuredClone(saved):null;editor.baseRevision=saved.revision;editor.drafts={};editor.key='';editor.fields={disabled:false};
   editor.inputs=Object.fromEntries(['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'].map(key=>[key,{value:saved[key]||'',focus(){}}]));editor.inputs.help={value:saved.help};editor.inputs.reviewDays={value:saved.id?'keep':'1'};
-  for(const key of ['notice','anchorSummary','anchorText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend'])editor[key]={hidden:true};editor.showHistory=()=>{};return editor;
+  for(const key of ['notice','anchorSummary','anchorText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend'])editor[key]={hidden:true};editor.showHistory=()=>{};editor.lectureName=id=>`강의 ${id}`;return editor;
 }
 test('restored dirty draft cannot preview saved provider context; exact saved version is submitted',()=>{
   const saved={...record,id:'saved',revision:3,explanation:'saved answer'},dirty={...saved,explanation:'unsaved private answer'};
@@ -112,4 +112,35 @@ import {resourceAction} from '../src/learning-map-view.mjs';
 test('continuation to external practice opens the source link instead of lecture preparation',()=>{
   const original=globalThis.document;globalThis.document={createElement:tag=>({tag,addEventListener(){}})};
   try{let loads=0;const resource={id:'mit-finger-exercises',title:'Finger exercises',url:'https://ocw.mit.edu/exercises/'},action=resourceAction(resource,'이어서 공부하기',()=>loads++);assert.equal(action.tag,'a');assert.equal(action.href,resource.url);assert.equal(action.target,'_blank');assert.equal(loads,0);assert.equal(resourceAction({...resource,lectureId:'1'},'강의',()=>loads++).tag,'button');}finally{globalThis.document=original;}
+});
+
+import {isOpenQuestion,upcomingReviews,recordsMarkdown,questionAutoPause,QUESTION_AUTOPAUSE_KEY} from '../src/learning-model.mjs';
+test('open questions are questions without an explanation or review; whitespace does not count',()=>{
+  assert.equal(isOpenQuestion({question:'왜?',explanation:'',reviews:[]}),true);
+  assert.equal(isOpenQuestion({question:'왜?',explanation:'  ',reviews:[]}),true);
+  assert.equal(isOpenQuestion({question:'왜?',explanation:'내 말로는 ...',reviews:[]}),false);
+  assert.equal(isOpenQuestion({question:'왜?',explanation:'',reviews:[{id:'r'}]}),false);
+  assert.equal(isOpenQuestion({question:'',explanation:'설명만'}),false);
+});
+test('upcoming reviews list only future valid dates, soonest first; due ones stay in the review list',()=>{
+  const now=Date.parse('2026-11-18T00:00:00Z'),rows=[{id:'late',reviewDueAt:'2026-12-01T00:00:00Z'},{id:'past',reviewDueAt:'2026-11-01T00:00:00Z'},{id:'soon',reviewDueAt:'2026-11-19T00:00:00Z'},{id:'bad',reviewDueAt:'x'},{id:'none'}];
+  assert.deepEqual(upcomingReviews(rows,now).map(r=>r.id),['soon','late']);
+  assert.deepEqual(dueRecords(rows,now).map(r=>r.id),['past']);
+});
+test('all-records Markdown keeps every record in creation order, counts open questions and escapes content',()=>{
+  const rows=[{...record,id:'b',question:'두 번째 <b>',createdAt:'2026-11-18T02:00:00Z'},{...record,id:'a',question:'첫 번째',explanation:'설명',createdAt:'2026-11-18T01:00:00Z'}];
+  const markdown=recordsMarkdown(rows,new Date('2026-11-18T03:00:00Z'));
+  assert.match(markdown,/^# Duvi 학습 기록 모음\n\n내보낸 시각: 2026-11-18T03:00:00.000Z · 기록 2개 · 열린 질문 1개/);
+  assert.ok(markdown.indexOf('## 첫 번째')<markdown.indexOf('## 두 번째'));
+  assert.equal((markdown.match(/^# /gm)||[]).length,1);assert.ok(!markdown.includes('<b>'));
+});
+test('question auto-pause is on by default, can be turned off, and survives unreadable storage',()=>{
+  const storage=value=>({getItem:key=>key===QUESTION_AUTOPAUSE_KEY?value:null});
+  assert.equal(questionAutoPause(storage(null)),true);assert.equal(questionAutoPause(storage('on')),true);assert.equal(questionAutoPause(storage('off')),false);
+  assert.equal(questionAutoPause({getItem(){throw new Error('blocked');}}),true);
+  assert.equal(browserKey(QUESTION_AUTOPAUSE_KEY),true);
+});
+test('records and the editor name a lecture by its roadmap title, not by an internal id',()=>{
+  const ui=Object.create(LearningUI.prototype);ui.roadmap={phases:[{resources:[{id:'video-x',lectureId:'yt_VMj-3S1tku0',title:'micrograd'}]}]};ui.capture=()=>({lectureId:'yt_other0000',title:'내가 가져온 강의'});
+  assert.equal(ui.lectureName('yt_VMj-3S1tku0'),'micrograd');assert.equal(ui.lectureName('yt_other0000'),'내가 가져온 강의');assert.equal(ui.lectureName('9'),'강의 9');
 });

@@ -1,6 +1,6 @@
 import {el,button,field,download,busy} from './learning-dom.mjs';
 import {mergePositionValues} from './learning-playback-state.mjs';
-const preferenceKeys=['study-positions','mit6100-lecture','mit6100-provider','duvi-fullscreen-caption-size','duvi-caption-placement'];
+const preferenceKeys=['study-positions','mit6100-lecture','mit6100-provider','duvi-fullscreen-caption-size','duvi-caption-placement','duvi-question-autopause'];
 export function browserKey(key){return preferenceKeys.includes(key)||/^mit6100-ko-(?:[1-9][0-9]?|yt_[A-Za-z0-9_-]{11})(?:-[A-Za-z0-9_-]{1,160})?$/.test(key);}
 export function captureBrowser(storage){return Object.fromEntries(Array.from({length:storage.length},(_,i)=>storage.key(i)).filter(browserKey).map(key=>[key,storage.getItem(key)]));}
 export function applyBrowserSnapshot(storage,incoming,mode){for(const [key,value]of Object.entries(incoming)){if(!browserKey(key))throw new Error('지원하지 않는 브라우저 설정입니다.');if(key==='study-positions')storage.setItem(key,JSON.stringify(mergePositionValues(storage.getItem(key),value,mode)));else if(mode==='replace'||storage.getItem(key)===null)storage.setItem(key,value);}}

@@ -16,7 +16,8 @@
 .study-focus .video-fullscreen,.study-focus #fullscreen{display:none}
 .study-focus>.captions{grid-column:1;grid-row:2;min-height:0;max-height:none;height:auto;margin:0;padding:8px 20px;gap:12px;border-radius:0;background:#141922;text-align:center;grid-template-rows:repeat(2,minmax(0,auto))}
 .study-focus .caption-label{display:none}
-.study-focus .caption-row{scrollbar-gutter:auto;font-size:var(--fullscreen-caption-size,22px);line-height:1.5;max-height:3em;scroll-padding-block:0}
+/* Three lines fit about 99% of aligned lecture sentences even beside the question panel; two lines clipped most of them. */
+.study-focus .caption-row{scrollbar-gutter:auto;font-size:var(--fullscreen-caption-size,22px);line-height:1.5;max-height:4.5em;scroll-padding-block:0}
 .study-focus .caption-row+.caption-row{border:0;margin:0;padding:0}
 .study-focus .english,.study-focus .korean{font-size:var(--fullscreen-caption-size,22px);line-height:1.5;letter-spacing:0;overflow-wrap:anywhere}
 .study-focus .english{color:#dce3ee}
@@ -25,6 +26,8 @@
 .study-focus[data-caption-placement=top]>.captions{align-self:start;margin:70px 0 0}
 .study-focus>.toolbar{position:absolute;z-index:5;top:12px;left:12px;right:70px;display:flex;flex-wrap:wrap;gap:8px;padding:8px;margin:0;max-height:calc(100dvh - 24px);overflow:auto;background:#141922f5;border:1px solid #ffffff26;border-radius:12px;box-shadow:0 4px 24px #0005}
 .study-focus.controls-hidden>.toolbar{visibility:hidden;pointer-events:none}
+/* A YouTube iframe swallows pointer moves, so a transparent band at the top edge brings the hidden controls back. */
+.study-focus.controls-hidden::after{content:'';position:absolute;z-index:4;top:0;left:0;right:0;height:72px}
 .study-focus .toolbar button,.study-focus .toolbar select,.study-focus .study-controls-handle{min-height:44px;background:#232e40;color:#fff;border-color:#ffffff26}
 .study-focus .toolbar button:hover,.study-focus .study-controls-handle:hover{background:#34445d}
 .study-focus .sentence-controls{gap:6px}
