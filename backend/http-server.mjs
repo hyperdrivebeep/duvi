@@ -72,6 +72,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
         if(req.method==='GET'){
           if(pathname==='/api/learning'){json(res,200,await learning.store.get());return;}
           if(pathname==='/api/learning/export'){json(res,200,await learning.backup.export());return;}
+          if(pathname==='/api/learning/sync'){json(res,200,await learning.sync.get());return;}
           if(pathname==='/api/learning/roadmap'){const {ROADMAP}=await import('../src/learning-roadmap.mjs');json(res,200,ROADMAP);return;}
           if(pathname==='/api/library'){json(res,200,await library.list());return;}
           if(pathname==='/api/folders'){json(res,200,await library.folders.list());return;}
@@ -84,6 +85,10 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/learning/review'){json(res,200,await learning.store.review(body));return;}
           if(pathname==='/api/learning/import/preview'){json(res,200,await learning.backup.preview(body));return;}
           if(pathname==='/api/learning/import'){json(res,200,await learning.backup.commit(body));return;}
+          if(pathname==='/api/learning/sync/folder'){json(res,200,await learning.sync.setFolder(body));return;}
+          if(pathname==='/api/learning/sync/export'){json(res,200,await learning.sync.export());return;}
+          if(pathname==='/api/learning/sync/preview'){json(res,200,await learning.sync.preview(body));return;}
+          if(pathname==='/api/learning/sync/import'){json(res,200,await learning.sync.commit(body));return;}
           if(pathname==='/api/learning/prepare'){const {prepareRoadmap}=await import('./learning-curriculum.mjs');json(res,200,await prepareRoadmap(library));return;}
           if(['/api/auth/start','/api/auth/select'].includes(pathname)&&(translations.job?.status==='running'||translations.starting))throw new AppError('번역을 멈춘 뒤 계정을 변경하세요.','busy',409);
           if(pathname==='/api/auth/start'){

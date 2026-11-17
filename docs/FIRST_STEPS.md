@@ -2,7 +2,7 @@
 
 첫 본강의는 **MIT Python Lecture 1 → 2 → 3**이다. 1~14강을 먼저 배우고, 신경망 단계에서 17/18강을 거친 뒤 micrograd로 간다. 이미 있는 MIT 26개 강의를 다시 가져오지 않는다.
 
-일정의 정본은 [53주 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)이다. 앱 지도는 이 버전의 실행용 요약이며 별도 일정의 정본이 아니다. 주 10~12시간의 초기 편성이고 수행에 따라 연장한다.
+일정의 정본은 [53주 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)이다. 앱 지도는 이 버전의 실행용 요약이며 별도 일정의 정본이 아니다. 주 10~12시간의 초기 편성이고 수행에 따라 연장한다.
 
 ## 강의 준비
 

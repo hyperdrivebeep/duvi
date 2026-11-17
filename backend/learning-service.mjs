@@ -1,6 +1,7 @@
 import {LearningStore} from './learning.mjs';
 import {LearningBackup} from './learning-backup.mjs';
 import {LearningTutor} from './learning-tutor.mjs';
+import {LearningSync} from './learning-sync.mjs';
 
 const gates=new Map();
 export class LearningService{
@@ -8,6 +9,7 @@ export class LearningService{
     this.store=new LearningStore({root});
     this.backup=new LearningBackup({store:this.store,library,translations});
     this.tutor=new LearningTutor({store:this.store,auth,library,translations});
+    this.sync=new LearningSync({store:this.store});
     this.ready=this.store.exclusive(()=>this.backup.recover());
     // Recovery errors are surfaced on API use, without an unhandled rejection at startup.
     this.ready.catch(()=>{});

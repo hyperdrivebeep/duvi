@@ -3,7 +3,7 @@ import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
 import {LearningUI} from './learning-ui.mjs';
-import {makeAnchor,anchorState} from './learning-model.mjs';
+import {makeAnchor,anchorState,questionAutoPause} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
 import './library.css';
 import './study-view.css';
@@ -194,7 +194,7 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시 듣기';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
-const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onQuestionOpen:()=>{if(!learningUI.editor.record)learningUI.editor.newRecord();},onLearningOpen:()=>learningUI.renderPanel()});
+const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onQuestionOpen:()=>{const paused=!!lecture&&!video.paused&&questionAutoPause(localStorage);if(paused)video.pause();if(!learningUI.editor.record)learningUI.editor.newRecord();if(paused)learningUI.editor.notePaused(video.currentTime);},onLearningOpen:()=>learningUI.renderPanel()});
 video.addEventListener('timeupdate',update);video.addEventListener('seeked',()=>{positionState.allowWrite(lecture?.number);lastTime=video.currentTime;update();void translateAhead();});
 video.addEventListener('error',()=>{$('status').textContent=video.lastError||'영상을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.';});
 window.addEventListener('beforeunload',()=>{save();savePosition();});

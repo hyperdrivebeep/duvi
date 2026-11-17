@@ -1,0 +1,1330 @@
+{
+  "source": {
+    "concepts": "docs/CONCEPT_MAP.md (R-019) sections 2-9",
+    "coverage": "Glorious PROJECT_WIKI/10_RESEARCH/CURRICULUM_COVERAGE.md (R-020) section 3, commit 7698135db57abe94a25726874d6392ae867f0fa6",
+    "note": "status is the R-020 judgement against roadmap v1; resources are roadmap resource ids. Version 3 explainer videos are linked through each resource's concepts field."
+  },
+  "durations": {
+    "5jwXThH6fg4": "4:27",
+    "N_ZRcLheNv0": "7:14",
+    "bohL918kXQk": "6:22",
+    "9WXVgQFFsDI": "14:58",
+    "WNuIhXo39_k": "9:10",
+    "e9U0QAFbfLI": "10:14",
+    "Xz0x-8-cgaQ": "9:27",
+    "AkmPv2WEsHw": "46:33",
+    "AXDByU3D1hA": "7:11",
+    "cSoK_6Rkbfg": "8:51",
+    "sfk5h0yC67o": "10:56",
+    "A2Jtqi_oa2Y": "40:03",
+    "2sjqTHE0zok": "1:25:00",
+    "EgpLj86ZHFQ": "33:10",
+    "RwH2UzC2rIo": "40:59",
+    "wG_nF1awSSY": "14:25",
+    "NkOv_k7r6no": "5:36",
+    "Ijqkc7OLenI": "6:25",
+    "APOPm01BVrk": "17:10",
+    "AMdG7IjgSPM": "27:02",
+    "GB9ByFAIAH4": "58:41",
+    "oG1t3qlzq14": "13:06",
+    "pkVwUVEHmfI": "16:22",
+    "M0fX15_-xrY": "14:02",
+    "DbeIqrwb_dE": "15:54",
+    "OSqIP-mOWOI": "14:09",
+    "PXOzkkB5eH0": "15:27",
+    "1SZocGaCAr8": "3:06",
+    "9L9jEOwRrCg": "18:24",
+    "Dicw8GDuEc8": "3:01",
+    "87GhCIQudEA": "10:38",
+    "f1JRFu7X-c8": "1:07:27",
+    "MKu09syGgEk": "17:05",
+    "q-4lo5luKgc": "47:32",
+    "zjkBMFhNj_g": "59:48",
+    "5eqRuVp65eY": "24:07",
+    "P_xeshTnPZg": "29:36",
+    "uF53xsT7mjc": "1:12:20",
+    "9zKuYvjFFS8": "15:05",
+    "sOPDGQjFcuM": "19:44",
+    "iv-5mZ_9CPY": "37:20",
+    "veYq6EWZyVc": "50:08",
+    "mHonq7Gjjqg": "4:54",
+    "lEcQtnflYDc": "17:20",
+    "AunotauS5yI": "10:23",
+    "1nydD0QSnXk": "34:52",
+    "nql000Lu_iE": "38:08",
+    "xgfexqYxrDU": "12:59",
+    "R9NQY2Hyl14": "5:44",
+    "T-kMpA4z-7k": "13:10",
+    "McEN54l3EPU": "9:42",
+    "zwmi8VksxrQ": "6:49",
+    "0KPsTDyf9DY": "3:35",
+    "_5is1F9tKTk": "44:39",
+    "HA-VHNVbvwQ": "24:47",
+    "wm1YSf45KVM": "5:43",
+    "pgS0-xK6tIs": "53:29",
+    "zzXyPGEtseI": "49:31"
+  },
+  "concepts": {
+    "변수·수직선": {
+      "status": "커버",
+      "resources": [
+        {
+          "label": "MIT 6.100L 1–14강",
+          "ids": [
+            "mit-1",
+            "mit-2",
+            "mit-3",
+            "mit-4",
+            "mit-5",
+            "mit-6",
+            "mit-7",
+            "mit-8",
+            "mit-9",
+            "mit-10",
+            "mit-11",
+            "mit-12",
+            "mit-13",
+            "mit-14"
+          ]
+        },
+        "video-fNk_zzaMoSs"
+      ]
+    },
+    "함수와 그래프": {
+      "status": "커버",
+      "resources": [
+        "video-WUvTyaaNkzM"
+      ]
+    },
+    "일차함수·기울기": {
+      "status": "커버",
+      "resources": [
+        "video-WUvTyaaNkzM",
+        "ml-regression"
+      ]
+    },
+    "다항식": {
+      "status": "없음",
+      "resources": [
+        "video-S0_qX4VJhMQ",
+        "mml-book"
+      ]
+    },
+    "지수법칙·지수함수 eˣ": {
+      "status": "없음",
+      "resources": [
+        "video-m2MIpDrF7Es"
+      ]
+    },
+    "로그": {
+      "status": "없음",
+      "resources": [
+        "video-Z5myJ8dg_rM"
+      ]
+    },
+    "시그마(Σ)": {
+      "status": "없음",
+      "resources": [
+        "mml-book"
+      ]
+    },
+    "극한(직관)": {
+      "status": "일부",
+      "resources": [
+        "video-WUvTyaaNkzM",
+        "video-kfF40MiS7zA"
+      ]
+    },
+    "미분계수·도함수": {
+      "status": "일부",
+      "resources": [
+        "video-WUvTyaaNkzM",
+        "video-9vKqVkMQHKk"
+      ]
+    },
+    "곱·합의 미분": {
+      "status": "커버",
+      "resources": [
+        "video-YG15m2VwSjA",
+        "video-S0_qX4VJhMQ"
+      ]
+    },
+    "연쇄법칙(합성함수의 미분)": {
+      "status": "커버",
+      "resources": [
+        "video-YG15m2VwSjA",
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "eˣ·ln x의 미분": {
+      "status": "없음",
+      "resources": [
+        "video-m2MIpDrF7Es"
+      ]
+    },
+    "편미분": {
+      "status": "없음",
+      "resources": [
+        "video-AXqhWeUEtQU"
+      ]
+    },
+    "기울기 벡터(gradient)·최급강하": {
+      "status": "일부",
+      "resources": [
+        "ml-gradient",
+        "video-tIpKfDc295M",
+        "video-IHZwWFHWa-w"
+      ]
+    },
+    "방향도함수": {
+      "status": "없음",
+      "resources": [
+        "d2l-multivariable"
+      ]
+    },
+    "야코비안·VJP": {
+      "status": "없음",
+      "resources": [
+        "d2l-multivariable"
+      ]
+    },
+    "헤시안·곡률": {
+      "status": "없음",
+      "resources": [
+        "d2l-multivariable",
+        "video-vF7eyJ2g3kU"
+      ]
+    },
+    "테일러·선형 근사": {
+      "status": "없음",
+      "resources": [
+        "video-3d6DsjIBzJ4"
+      ]
+    },
+    "볼록 함수": {
+      "status": "없음",
+      "resources": [
+        "mml-book"
+      ]
+    },
+    "f'=0으로 최적화": {
+      "status": "없음",
+      "resources": [
+        "video-vF7eyJ2g3kU",
+        "video-S0_qX4VJhMQ"
+      ]
+    },
+    "적분(넓이·누적)": {
+      "status": "없음",
+      "resources": [
+        "video-rfG8ce4nNh0"
+      ]
+    },
+    "수치·기호·자동 미분": {
+      "status": "일부",
+      "resources": [
+        "video-VMj-3S1tku0",
+        "pytorch-autograd"
+      ]
+    },
+    "행렬 미적분·배치 규약": {
+      "status": "없음",
+      "resources": [
+        "video-q8SA3rM6ckI",
+        "mml-book"
+      ]
+    },
+    "지수이동평균(EMA)·편향 보정": {
+      "status": "없음",
+      "resources": [
+        "video-k8fTYJPd3_I",
+        "video-JXQT_vxqwIs"
+      ]
+    },
+    "exp·log의 수치 안전": {
+      "status": "없음",
+      "resources": [
+        "video-q8SA3rM6ckI"
+      ]
+    },
+    "스칼라·벡터·행렬·텐서·shape": {
+      "status": "커버",
+      "resources": [
+        "video-fNk_zzaMoSs",
+        "video-kYB8IZa5AuE",
+        "pytorch-tensors"
+      ]
+    },
+    "벡터 덧셈·스칼라배·선형결합": {
+      "status": "커버",
+      "resources": [
+        "video-fNk_zzaMoSs",
+        "video-k7RM-ot2NWY"
+      ]
+    },
+    "노름(길이)": {
+      "status": "일부",
+      "resources": [
+        "video-fNk_zzaMoSs",
+        "mml-book"
+      ]
+    },
+    "내적": {
+      "status": "커버",
+      "resources": [
+        "video-LyGKycYT2v0"
+      ]
+    },
+    "코사인 유사도": {
+      "status": "일부",
+      "resources": [
+        "video-LyGKycYT2v0",
+        "mml-book"
+      ]
+    },
+    "행렬-벡터 곱": {
+      "status": "커버",
+      "resources": [
+        "video-kYB8IZa5AuE"
+      ]
+    },
+    "행렬곱·배치": {
+      "status": "일부",
+      "resources": [
+        "video-kYB8IZa5AuE",
+        "pytorch-tensors",
+        "video-XkY2DOUCWMU"
+      ]
+    },
+    "전치·항등·역행렬": {
+      "status": "없음",
+      "resources": [
+        "video-uQhTuRlWMxw"
+      ]
+    },
+    "선형 사상 vs 아핀(편향)": {
+      "status": "일부",
+      "resources": [
+        "ml-regression",
+        "video-aircAruvnKk"
+      ]
+    },
+    "비선형 없이 쌓으면 선형": {
+      "status": "없음",
+      "resources": [
+        "d2l-mlp"
+      ]
+    },
+    "기저·차원·랭크": {
+      "status": "일부",
+      "resources": [
+        "video-k7RM-ot2NWY",
+        "video-uQhTuRlWMxw"
+      ]
+    },
+    "브로드캐스팅": {
+      "status": "일부",
+      "resources": [
+        "pytorch-tensors",
+        "pytorch-broadcasting"
+      ]
+    },
+    "텐서 연산: reshape vs transpose, keepdim 축 축약, cat vs expand": {
+      "status": "일부",
+      "resources": [
+        "pytorch-tensors",
+        "einops-basics",
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "소프트맥스·온도": {
+      "status": "일부",
+      "resources": [
+        "video-PaCmpygFfXo",
+        "video-LLux1SW--oM"
+      ]
+    },
+    "√d 스케일": {
+      "status": "없음",
+      "resources": [
+        "video-eMlx5fFNoYc",
+        "d2l-attention"
+      ]
+    },
+    "임베딩 두 가지": {
+      "status": "없음",
+      "resources": [
+        "video-TCH_1BHY58I",
+        "video-wjZofJX0v4M"
+      ]
+    },
+    "최소제곱 = 직교사영, 의사역행렬": {
+      "status": "일부",
+      "resources": [
+        "ml-regression",
+        "ml-loss",
+        "video-osh80YCg_GM"
+      ]
+    },
+    "릿지 항·조건수": {
+      "status": "없음",
+      "resources": [
+        "video-6g0t3Phly2M",
+        "video-osh80YCg_GM"
+      ]
+    },
+    "양정부호 행렬·촐레스키": {
+      "status": "없음",
+      "resources": [
+        "video-vF7eyJ2g3kU"
+      ]
+    },
+    "고유값·고유벡터": {
+      "status": "없음",
+      "resources": [
+        "video-PFDu9oVAE-g"
+      ]
+    },
+    "직교성·PCA·고차원 기하": {
+      "status": "없음",
+      "resources": [
+        "video-FgakZw6K1QQ"
+      ]
+    },
+    "SVD·행렬식·기저 변환": {
+      "status": "없음",
+      "resources": [
+        "video-gXbThCXjZFM",
+        "video-Ip3X9LOh2dk"
+      ]
+    },
+    "빈도 확률 vs 믿음의 정도": {
+      "status": "커버",
+      "resources": [
+        "bayes-1",
+        "video-HZGCoVF3YvM"
+      ]
+    },
+    "조건부확률·독립": {
+      "status": "커버",
+      "resources": [
+        "bayes-1",
+        "video-HZGCoVF3YvM"
+      ]
+    },
+    "베이즈 정리": {
+      "status": "커버",
+      "resources": [
+        "bayes-2",
+        "video-HZGCoVF3YvM"
+      ]
+    },
+    "확률변수·밀도": {
+      "status": "일부",
+      "resources": [
+        "bayes-3",
+        "video-cy8r7WSuT1I"
+      ]
+    },
+    "베르누이·범주형·가우스 분포": {
+      "status": "일부",
+      "resources": [
+        "bayes-3",
+        "bayes-4",
+        "video-cy8r7WSuT1I"
+      ]
+    },
+    "기댓값·분산·표준편차": {
+      "status": "일부",
+      "resources": [
+        "bayes-3",
+        "video-zeJD6dqJ5lo"
+      ]
+    },
+    "공분산·상관": {
+      "status": "없음",
+      "resources": [
+        "video-qtaqvPAeEJY"
+      ]
+    },
+    "큰수의 법칙·중심극한정리": {
+      "status": "없음",
+      "resources": [
+        "video-zeJD6dqJ5lo"
+      ]
+    },
+    "몬테카를로": {
+      "status": "일부",
+      "resources": [
+        "video-PnHCvfgC_ZA",
+        "video-zeJD6dqJ5lo"
+      ]
+    },
+    "우도·최대우도(MLE)": {
+      "status": "일부",
+      "resources": [
+        "bayes-4",
+        "video-PaCmpygFfXo",
+        "video-XepXtl9YKwc",
+        "video-pYxNSUDSFH4"
+      ]
+    },
+    "음의 로그우도(NLL)": {
+      "status": "커버",
+      "resources": [
+        "video-PaCmpygFfXo"
+      ]
+    },
+    "가우스 잡음 → 제곱오차": {
+      "status": "없음",
+      "resources": [
+        "video-XepXtl9YKwc"
+      ]
+    },
+    "엔트로피·교차 엔트로피·KL": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-4",
+          "label": "4단계 실습(entropy·포함률·Brier)"
+        },
+        "video-PaCmpygFfXo",
+        "video-YtebGVx-Fxw",
+        "video-6ArSys5qHAU",
+        "video-v68zYyaEmEA",
+        "d2l-information-theory"
+      ]
+    },
+    "상호정보량·기대 정보 이득(BALD)": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-4",
+          "label": "4단계 실습(entropy·포함률·Brier)"
+        },
+        "bayes-decision",
+        "video-v68zYyaEmEA",
+        "modern-bed"
+      ]
+    },
+    "우연적 vs 인식적 불확실성": {
+      "status": "없음",
+      "resources": [
+        "kendall-gal"
+      ]
+    },
+    "전분산 법칙": {
+      "status": "없음",
+      "resources": [
+        "deep-ensembles"
+      ]
+    },
+    "보정·포함률과 폭": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-4",
+          "label": "4단계 실습(entropy·포함률·Brier)"
+        },
+        "calibration",
+        "conformal"
+      ]
+    },
+    "사전·사후·MAP": {
+      "status": "일부",
+      "resources": [
+        "bayes-2",
+        "bayes-3",
+        "bayes-4",
+        "gpml-2"
+      ]
+    },
+    "사후예측분포": {
+      "status": "없음",
+      "resources": [
+        "gpml-2"
+      ]
+    },
+    "증거·베이즈 요인·오캄 인수": {
+      "status": "없음",
+      "resources": [
+        "mackay-28"
+      ]
+    },
+    "BIC·AIC": {
+      "status": "없음",
+      "resources": [
+        "mackay-28",
+        "hoeting-bma"
+      ]
+    },
+    "베이즈 모델 평균(BMA)": {
+      "status": "없음",
+      "resources": [
+        "hoeting-bma"
+      ]
+    },
+    "식별 가능성": {
+      "status": "일부",
+      "resources": [
+        {
+          "label": "Brady Neal 인과추론 1–6장",
+          "ids": [
+            "video-CfzO4IEMVUk",
+            "video-q8x9aetyok0",
+            "video-Go4EkHN_PcA",
+            "video-dQeRqb0N6gs",
+            "video-z91LnTDyhtI",
+            "causal-text"
+          ]
+        },
+        {
+          "exercise": "learning-phase-7",
+          "label": "7단계 실습(단위·판별 범위)"
+        },
+        "mackay-28"
+      ]
+    },
+    "후보 중 정답이 없을 때(오지정 모델)": {
+      "status": "없음",
+      "resources": [
+        "hoeting-bma"
+      ]
+    },
+    "학습 분포 = 사전": {
+      "status": "없음",
+      "resources": [
+        "pfn"
+      ]
+    },
+    "가우스 NLL의 함정": {
+      "status": "없음",
+      "resources": [
+        "beta-nll"
+      ]
+    },
+    "선택 편향·계통 오차": {
+      "status": "커버",
+      "resources": [
+        {
+          "exercise": "learning-phase-1",
+          "label": "1단계 실습(선택 규칙)"
+        },
+        {
+          "label": "Brady Neal 인과추론 1–6장",
+          "ids": [
+            "video-CfzO4IEMVUk",
+            "video-q8x9aetyok0",
+            "video-Go4EkHN_PcA",
+            "video-dQeRqb0N6gs",
+            "video-z91LnTDyhtI",
+            "causal-text"
+          ]
+        }
+      ]
+    },
+    "평가의 변동: 시드 간 구간·부트스트랩": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-3",
+          "label": "3단계 실습(세계 단위 분할·seed 변동)"
+        },
+        "lipton-ablation"
+      ]
+    },
+    "가설검정·카이제곱·p값": {
+      "status": "없음",
+      "resources": [
+        "video-0oc49DyA3hU",
+        "video-vemZtEM63GY"
+      ]
+    },
+    "ROC·AUROC": {
+      "status": "없음",
+      "resources": [
+        "video-4jRBRDbJemM"
+      ]
+    },
+    "가우스 과정": {
+      "status": "없음",
+      "resources": [
+        "distill-gp",
+        "gpml-2"
+      ]
+    },
+    "딥 앙상블·적정 점수 규칙": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-4",
+          "label": "4단계 실습(entropy·포함률·Brier)"
+        },
+        "deep-ensembles"
+      ]
+    },
+    "능동 학습·Box-Hill 판별 실험": {
+      "status": "일부",
+      "resources": [
+        "video-sGuiWX07sKw",
+        "bayes-decision",
+        "modern-bed"
+      ]
+    },
+    "분포 밖(OOD) 탐지, 사후예측 점검, 강건 우도, conformal": {
+      "status": "없음",
+      "resources": [
+        "conformal",
+        "d2l-distribution-shift"
+      ]
+    },
+    "프로그램·변수·자료형·리스트·딕셔너리·조건·반복·함수·클래스·모듈·예외": {
+      "status": "커버",
+      "resources": [
+        {
+          "label": "MIT 6.100L 1–14강",
+          "ids": [
+            "mit-1",
+            "mit-2",
+            "mit-3",
+            "mit-4",
+            "mit-5",
+            "mit-6",
+            "mit-7",
+            "mit-8",
+            "mit-9",
+            "mit-10",
+            "mit-11",
+            "mit-12",
+            "mit-13",
+            "mit-14"
+          ]
+        },
+        {
+          "label": "MIT 17–18강(클래스)",
+          "ids": [
+            "mit-17",
+            "mit-18"
+          ]
+        },
+        "mit-finger-exercises"
+      ]
+    },
+    "가상환경·uv·PyTorch CUDA 설치": {
+      "status": "없음",
+      "resources": [
+        "python-venv",
+        "pytorch-install"
+      ]
+    },
+    "NumPy 배열·인덱싱·벡터화·브로드캐스팅·복사 vs 뷰": {
+      "status": "없음",
+      "resources": [
+        "numpy-basics"
+      ]
+    },
+    "텐서·shape/dtype/device": {
+      "status": "커버",
+      "resources": [
+        "pytorch-tensors",
+        "video-PaCmpygFfXo"
+      ]
+    },
+    "자동 미분: requires_grad, backward, .grad, `torch.autograd.grad`": {
+      "status": "일부",
+      "resources": [
+        "video-VMj-3S1tku0",
+        "pytorch-autograd"
+      ]
+    },
+    "detach·no_grad·리프 텐서": {
+      "status": "없음",
+      "resources": [
+        "pytorch-autograd"
+      ]
+    },
+    "nn.Module·Linear·Parameter·state_dict": {
+      "status": "없음",
+      "resources": [
+        "pytorch-model"
+      ]
+    },
+    "module(x) vs module.forward(x)": {
+      "status": "없음",
+      "resources": [
+        "pytorch-model"
+      ]
+    },
+    "학습 루프": {
+      "status": "일부",
+      "resources": [
+        "video-PaCmpygFfXo",
+        "pytorch-optimization",
+        "video-TCH_1BHY58I"
+      ]
+    },
+    "Dataset·DataLoader·에포크 vs 스텝": {
+      "status": "없음",
+      "resources": [
+        "pytorch-data"
+      ]
+    },
+    "시드와 재현성": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-3",
+          "label": "3단계 실습(세계 단위 분할·seed 변동)"
+        },
+        {
+          "label": "8단계 Glorious 문서",
+          "ids": [
+            "discovery-limits",
+            "exp-054-plan",
+            "exp-054-result",
+            "exp-055-plan",
+            "exp-055-result",
+            "exp-056-plan",
+            "exp-056-result"
+          ]
+        },
+        "pytorch-reproducibility"
+      ]
+    },
+    "체크포인트 저장·불러오기": {
+      "status": "일부",
+      "resources": [
+        {
+          "label": "8단계 Glorious 문서",
+          "ids": [
+            "discovery-limits",
+            "exp-054-plan",
+            "exp-054-result",
+            "exp-055-plan",
+            "exp-055-result",
+            "exp-056-plan",
+            "exp-056-result"
+          ]
+        },
+        "pytorch-save"
+      ]
+    },
+    "GPU 비동기·수치 정밀도·프로파일링": {
+      "status": "없음",
+      "resources": [
+        "pytorch-install"
+      ]
+    },
+    "실험 추적·git·pytest·타입 힌트": {
+      "status": "일부",
+      "resources": [
+        {
+          "label": "MIT 12–13강(테스트·예외)",
+          "ids": [
+            "mit-12",
+            "mit-13"
+          ]
+        },
+        "tuning-playbook"
+      ]
+    },
+    "shape 점검: assert, einops, jaxtyping, einsum, bmm": {
+      "status": "없음",
+      "resources": [
+        "einops-basics"
+      ]
+    },
+    "트레이스백·pdb·breakpoint()": {
+      "status": "커버",
+      "resources": [
+        {
+          "label": "MIT 12–13강(테스트·예외)",
+          "ids": [
+            "mit-12",
+            "mit-13"
+          ]
+        }
+      ]
+    },
+    "모델·학습·데이터(특징·레이블)·학습 방식": {
+      "status": "커버",
+      "resources": [
+        "ml-regression",
+        "video-aircAruvnKk"
+      ]
+    },
+    "선형 회귀·최소제곱, 로지스틱·소프트맥스 회귀": {
+      "status": "일부",
+      "resources": [
+        "ml-regression",
+        "video-LLux1SW--oM"
+      ]
+    },
+    "손실 함수 고르기": {
+      "status": "일부",
+      "resources": [
+        "ml-loss",
+        "video-6ArSys5qHAU",
+        "video-XepXtl9YKwc"
+      ]
+    },
+    "경험적 위험 최소화": {
+      "status": "없음",
+      "resources": [
+        "d2l-distribution-shift"
+      ]
+    },
+    "경사하강법·학습률": {
+      "status": "커버",
+      "resources": [
+        "ml-gradient",
+        "video-IHZwWFHWa-w"
+      ]
+    },
+    "미니배치 SGD·배치 크기": {
+      "status": "없음",
+      "resources": [
+        "video-4qJaSmvhxi8"
+      ]
+    },
+    "모멘텀·RMSProp·Adam·AdamW": {
+      "status": "없음",
+      "resources": [
+        "video-k8fTYJPd3_I",
+        "video-_e-LFe_igno",
+        "video-JXQT_vxqwIs"
+      ]
+    },
+    "학습률 스케줄·워밍업·클리핑": {
+      "status": "없음",
+      "resources": [
+        "video-QzulmoOg2JE",
+        "pre-post-ln"
+      ]
+    },
+    "손실 지형·안장점·초기화": {
+      "status": "없음",
+      "resources": [
+        "video-s2coXdufOzE",
+        "video-P6sfmUTpUmc"
+      ]
+    },
+    "일반화·IID·과적합·과소적합·편향-분산": {
+      "status": "커버",
+      "resources": [
+        "ml-overfitting",
+        "video-SjQyLhQIXSM"
+      ]
+    },
+    "학습/검증/시험 분리·교차검증·누설": {
+      "status": "커버",
+      "resources": [
+        "ml-overfitting",
+        {
+          "exercise": "learning-phase-3",
+          "label": "3단계 실습(세계 단위 분할·seed 변동)"
+        },
+        "kapoor-leakage",
+        "video-1waHlpKiNyY"
+      ]
+    },
+    "정규화: L2·조기 종료·드롭아웃·증강": {
+      "status": "일부",
+      "resources": [
+        "ml-overfitting",
+        "video-6g0t3Phly2M",
+        "video-D8PJAL-MZv8"
+      ]
+    },
+    "모델 용량·파라미터 수·이중 하강": {
+      "status": "없음",
+      "resources": [
+        "video-SjQyLhQIXSM"
+      ]
+    },
+    "하이퍼파라미터·무작위 탐색": {
+      "status": "일부",
+      "resources": [
+        "ml-gradient",
+        "tuning-playbook"
+      ]
+    },
+    "평가 지표·적정 점수·보정": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-3",
+          "label": "3단계 실습(세계 단위 분할·seed 변동)"
+        },
+        {
+          "exercise": "learning-phase-4",
+          "label": "4단계 실습(entropy·포함률·Brier)"
+        },
+        "calibration"
+      ]
+    },
+    "절제 연구(ablation)": {
+      "status": "없음",
+      "resources": [
+        "lipton-ablation"
+      ]
+    },
+    "분포 이동·OOD": {
+      "status": "없음",
+      "resources": [
+        "d2l-distribution-shift"
+      ]
+    },
+    "메타학습·상각 추론·PFN·맥락 내 학습": {
+      "status": "없음",
+      "resources": [
+        "weng-meta-learning",
+        "pfn"
+      ]
+    },
+    "기호 회귀·버킹엄 π·모델 선택 vs 평균": {
+      "status": "일부",
+      "resources": [
+        "ai-feynman",
+        {
+          "exercise": "learning-phase-7",
+          "label": "7단계 실습(단위·판별 범위)"
+        },
+        "pysr",
+        "video-fk2r8y5TfNY"
+      ]
+    },
+    "스케일링 법칙": {
+      "status": "없음",
+      "resources": [
+        "scaling-kaplan",
+        "scaling-chinchilla"
+      ]
+    },
+    "가중치": {
+      "status": "커버",
+      "resources": [
+        "ml-regression",
+        "video-VMj-3S1tku0",
+        "video-aircAruvnKk"
+      ]
+    },
+    "편향": {
+      "status": "커버",
+      "resources": [
+        "ml-regression",
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "파라미터와 세기": {
+      "status": "없음",
+      "resources": [
+        "video-TCH_1BHY58I",
+        "pytorch-model"
+      ]
+    },
+    "뉴런": {
+      "status": "커버",
+      "resources": [
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "활성화 함수(ReLU·sigmoid·tanh·GELU)": {
+      "status": "일부",
+      "resources": [
+        "video-VMj-3S1tku0",
+        "video-aircAruvnKk",
+        "video-P6sfmUTpUmc"
+      ]
+    },
+    "MLP·은닉층·폭·깊이": {
+      "status": "일부",
+      "resources": [
+        "video-VMj-3S1tku0",
+        "video-TCH_1BHY58I"
+      ]
+    },
+    "보편 근사 정리": {
+      "status": "없음",
+      "resources": [
+        "d2l-mlp"
+      ]
+    },
+    "순전파·계산 그래프": {
+      "status": "커버",
+      "resources": [
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "역전파 (손계산 예제)": {
+      "status": "커버",
+      "resources": [
+        "video-VMj-3S1tku0",
+        "video-YG15m2VwSjA",
+        "video-Ilg3gGewQ5U",
+        "video-tIeHLnjs5U8"
+      ]
+    },
+    "역방향 자동 미분·위상 순서": {
+      "status": "커버",
+      "resources": [
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "기울기 누적·zero_grad": {
+      "status": "커버",
+      "resources": [
+        "video-VMj-3S1tku0"
+      ]
+    },
+    "학습은 가중치를 바꾸고 추론은 안 바꿈": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-5",
+          "label": "5단계 목표 문구(3-token attention 손계산, 자료 없음)"
+        },
+        "weng-meta-learning"
+      ]
+    },
+    "초기화(Xavier/He)·대칭 깨기": {
+      "status": "없음",
+      "resources": [
+        "video-s2coXdufOzE",
+        "video-P6sfmUTpUmc"
+      ]
+    },
+    "기울기 소실·폭발": {
+      "status": "없음",
+      "resources": [
+        "video-qhXZsFVxGKo",
+        "video-P6sfmUTpUmc"
+      ]
+    },
+    "배치 정규화 vs 층 정규화": {
+      "status": "없음",
+      "resources": [
+        "video-tNIpEZLv_eg",
+        "video-P6sfmUTpUmc",
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "잔차 연결": {
+      "status": "없음",
+      "resources": [
+        "video-ZILIbUvp5lk",
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "드롭아웃·가중치 묶기": {
+      "status": "없음",
+      "resources": [
+        "video-D8PJAL-MZv8",
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "평균+로그분산 출력층": {
+      "status": "없음",
+      "resources": [
+        "deep-ensembles",
+        "beta-nll"
+      ]
+    },
+    "마스크": {
+      "status": "없음",
+      "resources": [
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "입력·목표 스케일링, 잔차 목표": {
+      "status": "없음",
+      "resources": [
+        "video-FDCfw-YqWTE"
+      ]
+    },
+    "학습되는 사전 토큰": {
+      "status": "없음",
+      "resources": [
+        "attentive-np"
+      ]
+    },
+    "귀납 편향": {
+      "status": "없음",
+      "resources": [
+        "d2l-inductive-bias",
+        "video-w6Pw4MOzMuo"
+      ]
+    },
+    "불변 vs 등변": {
+      "status": "없음",
+      "resources": [
+        "video-w6Pw4MOzMuo"
+      ]
+    },
+    "순열 불변·Deep Sets": {
+      "status": "없음",
+      "resources": [
+        "deep-sets"
+      ]
+    },
+    "Q·K·V Attention": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-5",
+          "label": "5단계 목표 문구(3-token attention 손계산, 자료 없음)"
+        },
+        "video-eMlx5fFNoYc",
+        "d2l-attention"
+      ]
+    },
+    "자기 vs 교차 Attention, 멀티헤드": {
+      "status": "없음",
+      "resources": [
+        "video-eMlx5fFNoYc",
+        "video-kCc8FmEb1nY"
+      ]
+    },
+    "위치 인코딩": {
+      "status": "없음",
+      "resources": [
+        "video-wjZofJX0v4M",
+        "d2l-transformer"
+      ]
+    },
+    "Transformer 블록과 정규화 위치": {
+      "status": "없음",
+      "resources": [
+        "video-kCc8FmEb1nY",
+        "d2l-transformer",
+        "pre-post-ln"
+      ]
+    },
+    "가우스 과정 → NP → ANP → CNP·TNP·Set Transformer": {
+      "status": "없음",
+      "resources": [
+        "distill-gp",
+        "neural-processes",
+        "attentive-np"
+      ]
+    },
+    "VAE·ELBO·재매개변수화": {
+      "status": "없음",
+      "resources": [
+        "weng-vae"
+      ]
+    },
+    "강화학습 기초·MDP": {
+      "status": "커버",
+      "resources": [
+        "video-2pWv7GOvuf0",
+        "video-lfHX2hHRMVQ",
+        "video-Nd1-UUMVfz4",
+        "sutton-barto"
+      ]
+    },
+    "Era of Experience": {
+      "status": "없음",
+      "resources": [
+        "era-of-experience"
+      ]
+    },
+    "월드 모델·모델 기반 계획": {
+      "status": "커버",
+      "resources": [
+        "video-ItMutbeOHtc"
+      ]
+    },
+    "설계 방법: 가설 → 부품 변경 → 절제 → 규모 확인": {
+      "status": "없음",
+      "resources": [
+        "lipton-ablation",
+        "video-P6sfmUTpUmc"
+      ]
+    },
+    "버킹엄 π·기호 회귀·신경-기호 혼합·PINN": {
+      "status": "일부",
+      "resources": [
+        "ai-feynman",
+        "pysr",
+        "video-fk2r8y5TfNY"
+      ]
+    },
+    "Bitter Lesson vs 대칭 내장": {
+      "status": "없음",
+      "resources": [
+        "video-w6Pw4MOzMuo",
+        "bitter-lesson"
+      ]
+    },
+    "곁가지: CNN·풀링, RNN·LSTM, 인코더-디코더": {
+      "status": "없음",
+      "resources": [
+        "d2l-inductive-bias",
+        "video-t3YJ5hKiMQ0"
+      ]
+    },
+    "알아만 두기: GNN, MoE, 확산 모델, NAS, 토큰화·사전학습·RLHF, 스케일링 법칙": {
+      "status": "일부",
+      "resources": [
+        {
+          "label": "Stanford CS229 LLM 구간(외부 링크)",
+          "ids": [
+            "stanford-evaluation",
+            "stanford-post-training"
+          ]
+        },
+        "scaling-kaplan"
+      ]
+    },
+    "Karpathy 레시피": {
+      "status": "없음",
+      "resources": [
+        "karpathy-recipe"
+      ]
+    },
+    "손실이 안 줄 때 사다리": {
+      "status": "없음",
+      "resources": [
+        "karpathy-recipe",
+        "tuning-playbook"
+      ]
+    },
+    "NaN·폭발": {
+      "status": "없음",
+      "resources": [
+        "video-qhXZsFVxGKo",
+        "tuning-playbook"
+      ]
+    },
+    "우리 코드에서 \"작은 배치 외우기\"": {
+      "status": "없음",
+      "resources": [
+        "karpathy-recipe"
+      ]
+    },
+    "공정한 비교": {
+      "status": "일부",
+      "resources": [
+        {
+          "exercise": "learning-phase-3",
+          "label": "3단계 실습(세계 단위 분할·seed 변동)"
+        },
+        {
+          "label": "8단계 Glorious 문서",
+          "ids": [
+            "discovery-limits",
+            "exp-054-plan",
+            "exp-054-result",
+            "exp-055-plan",
+            "exp-055-result",
+            "exp-056-plan",
+            "exp-056-result"
+          ]
+        },
+        "lipton-ablation",
+        "tuning-playbook"
+      ]
+    }
+  }
+}

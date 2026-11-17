@@ -25,6 +25,7 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
     const list=el('ol','learning-resources');
     for(const resource of phase.resources||[]){
       const row=el('li','learning-resource'),body=el('div','learning-resource-body');body.append(el('h4','',resource.title));if(resource.description)body.append(el('p','muted',resource.description));
+      if(resource.concepts?.length)body.append(el('p','muted learning-concepts',`신규 해설 영상 · 채우는 개념: ${resource.concepts.join(' · ')}`));
       if(resource.start!==undefined||resource.end!==undefined)body.append(el('p','muted',`선택 구간: ${resource.start??0}–${resource.end??'끝'}초`));
       const actions=el('div','learning-resource-actions');if(resource.lectureId)actions.append(button('강의 열기',()=>onOpen(resource)));actions.append(link('원문 자료 ↗',resource.url));
       const resourceId=resourceProgressId(roadmap,resource),controls=el('div','learning-resource-controls');

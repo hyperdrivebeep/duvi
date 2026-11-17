@@ -39,8 +39,9 @@ export function storedRecord(value){
   if(value.schemaVersion!==1)invalid();
   const result={...recordInput({...snapshot(value),id:value.id}),schemaVersion:1,revision:integer(value.revision,1),createdAt:date(value.createdAt),updatedAt:date(value.updatedAt),originalExplanation:text(value.originalExplanation)};
   result.history=unique(array(value.history,500).map(entry=>{
-    keys(entry,['revision','at','record']);
-    return {revision:integer(entry.revision,1,result.revision-1),at:date(entry.at),record:recordInput(entry.record)};
+    keys(entry,['revision','at','record','device']);
+    // device labels an edit made on another PC that a sync merge kept in history.
+    return {revision:integer(entry.revision,1,result.revision-1),at:date(entry.at),record:recordInput(entry.record),...(entry.device!==undefined&&{device:text(entry.device,80)})};
   }),row=>row.revision);
   result.reviews=unique(array(value.reviews,500).map(entry=>{
     keys(entry,['id','at','reflection','intervalDays','help','nextDueAt']);

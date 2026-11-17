@@ -4,13 +4,14 @@ import {LearningEditor} from './learning-editor.mjs';
 import {renderRoadmap,resourceAction} from './learning-map-view.mjs';
 import {renderRecords} from './learning-records-view.mjs';
 import {LearningBackupUI} from './learning-backup-ui.mjs';
+import {LearningSyncUI} from './learning-sync-ui.mjs';
 export function recordInput(record){return Object.fromEntries(['id','resourceId','lectureId',...RECORD_FIELDS,'help','anchor','reviewDueAt'].filter(key=>record[key]!==undefined).map(key=>[key,record[key]]));}
 export class LearningUI{
   constructor({api,capture,onOpen,onJump,onPrepare,onRestorePositions=()=>{},onStateChange=()=>{},getModel,openPanel,closeLibrary}){
     Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,onStateChange,getModel,openPanel,closeLibrary});this.state={revision:0,records:[],progress:{}};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
     this.dialog=document.getElementById('learningDialog');this.content=document.getElementById('learningContent');this.notice=document.getElementById('learningNotice');
-    this.editor=new LearningEditor(document.getElementById('learningQuestion'),{capture:()=>this.context(),onSave:record=>this.saveRecord(record),onJump,onTutor:body=>this.api('/api/learning/tutor',{...body,model:this.getModel()}),onConflict:async()=>{await this.refresh();return this.state.records.find(r=>r.id===this.editor.record?.id);}});
-    this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·복원'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
+    this.editor=new LearningEditor(document.getElementById('learningQuestion'),{capture:()=>this.context(),onSave:record=>this.saveRecord(record),onJump,onTutor:body=>this.api('/api/learning/tutor',{...body,model:this.getModel()}),onConflict:async()=>{await this.refresh();return this.state.records.find(r=>r.id===this.editor.record?.id);},lectureName:id=>this.lectureName(id)});
+    this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
     document.getElementById('openLearning').onclick=()=>this.open('roadmap');document.getElementById('openLearningMobile').onclick=()=>this.open('roadmap');
     document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{if(this.opener?.isConnected)this.opener.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
     this.completeButton=button('강의 완료',()=>{const current=this.capture();if(current)void this.complete(lectureResource(this.roadmap,current.lectureId,current.title)).catch(()=>{});},'learning-complete');this.completeButton.id='completeLecture';document.getElementById('openQuestion').before(this.completeButton);
@@ -18,6 +19,8 @@ export class LearningUI{
     this.resume=el('div','learning-resume');document.getElementById('openLearning').after(this.resume);
     this.renderPanel();
   }
+  /** The lecture title a learner recognises, instead of an internal id such as yt_VMj-3S1tku0. */
+  lectureName(id){const current=this.capture();return orderedResources(this.roadmap).find(r=>String(r.lectureId)===String(id))?.title||(current&&String(current.lectureId)===String(id)&&current.title)||`강의 ${id}`;}
   context(){const context=this.capture();if(!context)return null;const resource=orderedResources(this.roadmap).find(r=>String(r.lectureId)===String(context.lectureId));return {...context,resourceId:resource?.id||`lecture-${context.lectureId}`};}
   async refresh(){const [state,roadmap]=await Promise.all([this.api('/api/learning'),this.api('/api/learning/roadmap')]);if(!this.loaded||state.revision>=this.state.revision)this.state=state;this.roadmap=roadmap;this.loaded=true;this.sync();}
   sync(){this.renderPanel();this.updateRoadmap?.(this.state);this.onStateChange(this.roadmap,this.state.progress);const summary=completionSummary(this.roadmap,this.state.progress),next=nextResource(this.roadmap,this.state.progress);this.resume.replaceChildren(el('p','muted',`학습 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`));if(next){const action=resourceAction(next,`다음 · ${next.title}`,r=>this.openResource(r),'learning-resume-action');action.classList.add('learning-resume-action');this.resume.append(action);}else this.resume.append(button('✓ 계획 완료 · 복습하기',()=>this.open('review')));if(this.resourceError){const error=el('p','notice',this.resourceError);error.setAttribute('role','status');this.resume.append(error,button('로드맵에서 강의 준비',()=>this.open('roadmap')));}}
@@ -29,8 +32,8 @@ export class LearningUI{
   }
   select(view){if(!this.loaded)return;this.view=view;this.notice.textContent='';this.updateRoadmap=null;for(const tab of this.nav.children)tab.setAttribute('aria-pressed',String(tab.dataset.learningView===view));this.content.replaceChildren();
     if(view==='roadmap')this.updateRoadmap=renderRoadmap(this.content,{roadmap:this.roadmap,state:this.state,onOpen:resource=>this.openResource(resource),onProgress:(id,status)=>this.changeProgress(id,status),onPrepare:event=>this.prepare(event),onComplete:resource=>this.complete(resource)});
-    if(view==='records'||view==='review')renderRecords(this.content,{state:this.state,review:view==='review',onEdit:record=>this.edit(record),onJump:record=>this.jump(record),onReview:body=>this.review(body),onReload:()=>this.refresh()});
-    if(view==='backup')new LearningBackupUI(this.content,{api:this.api,onImported:async()=>{this.onRestorePositions();await this.refresh();await this.onPrepare();}});
+    if(view==='records'||view==='review')renderRecords(this.content,{state:this.state,review:view==='review',filter:this.recordFilter||'all',onFilter:filter=>{this.recordFilter=filter;this.select('records');},lectureName:id=>this.lectureName(id),onEdit:record=>this.edit(record),onJump:record=>this.jump(record),onReview:body=>this.review(body),onReload:()=>this.refresh()});
+    if(view==='backup'){new LearningBackupUI(this.content,{api:this.api,onImported:async()=>{this.onRestorePositions();await this.refresh();await this.onPrepare();}});new LearningSyncUI(this.content,{api:this.api,onImported:()=>this.refresh()});}
   }
   renderPanel(){
     const root=document.getElementById('learningStudy');root.replaceChildren(el('h3','','내 학습'),el('p','muted','시청 → 질문 → 내 설명 → 작은 실습 → 생각 수정 → 복습'));
@@ -44,7 +47,7 @@ export class LearningUI{
     if(!this.loaded)root.append(el('p','muted','학습 기록을 아직 불러오지 못했습니다.'),button('다시 불러오기',()=>this.init()));
     const local=this.state.records.filter(r=>String(r.lectureId)===String(this.capture()?.lectureId));
     root.append(el('h4','','이 강의의 기록'));if(!local.length)root.append(el('p','muted','아직 저장한 기록이 없습니다.'));
-    for(const record of local)root.append(button(record.title||record.question||'내 설명',()=>this.edit(record),'learning-panel-record'));
+    for(const record of local)root.append(button(record.question||record.title||'내 설명',()=>this.edit(record),'learning-panel-record'));
   }
   question(){this.openPanel('question');if(!this.editor.record)this.editor.newRecord();else this.editor.inputs.question.focus();}
   edit(record){if(this.dialog.open)this.dialog.close();this.openPanel('question');this.editor.open(record);}

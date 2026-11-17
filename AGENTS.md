@@ -52,3 +52,12 @@ reversible and separate from activity status, playback position and mastery.
 Never show reading-only curriculum phases as empty folders asking for videos.
 
 The user prefers a working, understandable task flow in the frontend and evidence from that flow. Start with the learner's first click and resulting action, not an API inventory or implementation explanation. For feature work, verify the actual UI at normal scale and a small viewport, including playback/caption continuity; document what was exercised and what remains unverified. Automated tests and source review supplement that evidence, but do not replace a browser observation or establish that the learner understood a lesson. Respect an explicitly limited documentation/integration assignment rather than changing another agent's UI or starting a server outside its scope.
+
+## Fullscreen and desktop scope
+
+On 2026-11-18 the user said the lecture fullscreen is the core screen ("거기가 핵심임")
+and limited this round to desktop (no phone design or QA). Verify feature work in
+fullscreen at 1280 and 1536 px: video and both caption regions without clipping or
+overlap, question entry beside the video with auto-pause, transcript seek, keyboard
+navigation, and time/draft kept across exit and re-entry. A YouTube iframe swallows
+pointer moves, so hidden fullscreen controls must stay reachable without them.

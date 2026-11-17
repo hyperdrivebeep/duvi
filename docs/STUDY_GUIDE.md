@@ -1,0 +1,1017 @@
+# 공부 가이드: 필요한 개념 체크리스트와 강의 목록
+
+> 이 문서는 `npm run docs:study-guide`로 만든다. 직접 고치지 말고 [개념 지도](CONCEPT_MAP.md), 로드맵 소스 [`src/learning-roadmap.mjs`](../src/learning-roadmap.mjs),
+> 개념-자료 대응표 [`scripts/study-guide-data.json`](../scripts/study-guide-data.json)을 고친 뒤 다시 만든다. 일정의 정본은 로드맵이다.
+> 로드맵 버전 3 · Glorious 정본 커밋 `a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4`. 개인 학습 기록은 담지 않는다.
+
+## 이 가이드를 쓰는 법
+
+비유하면 이 문서는 **요리책 맨 앞의 재료 체크리스트**다. 이미 집에 있는 재료(아는 개념)는 체크하고 넘어가고, 없는 재료만 사러(공부하러) 간다.
+
+1. 큰 분야 → 개념 순서로 읽는다. 개념마다 "왜 필요한가"가 이 프로젝트의 모델 설계와 어떻게 이어지는지 한 줄로 적혀 있다.
+2. 이미 아는 개념은 `[ ]`를 `[x]`로 바꿔 건너뛴다. **체크는 개인 사본(내 PC나 클라우드 메모)에서 한다.** 체크한 사본을 공개 Duvi 저장소에 올리지 않는다.
+3. 모르는 개념은 "영상"부터 본다. "앱에서 재생"은 Duvi 학습 로드맵의 해당 단계에서 열면 영어·한국어 자막과 시점 질문을 쓸 수 있다.
+4. 영상이 어렵거나 더 깊이 알고 싶으면 "읽기·실습"으로 간다. 각 자료 뒤의 "2B단계(10–13주)" 같은 표시가 로드맵에서 그 자료를 만나는 시기다.
+5. "직접 해 보기"는 그 단계의 손계산·코드 과제다. 영상만 보고 체크하지 말고 과제를 도움 없이 해 본 뒤 체크한다.
+
+"신규"는 로드맵 버전 3에서 읽기로만 배우던 개념을 채우려고 더한 해설 영상이다. 영상 제목과 존재·삽입 허용은 YouTube oEmbed로 확인했지만, 영상 전체를 보고 내용을 검수하지는 않았다.
+
+## 한눈에 보기
+
+개념 160개(R-019 2~9절), 연결된 로드맵 자료 227개, 그중 신규 해설 영상 58개.
+"영상 있음"은 앱에서 재생되는 영상이 하나 이상 연결된 개념, "읽기만"은 외부 읽기·실습 자료로만 연결된 개념이다. 전(v2)은 신규 영상을 빼고 센 값이다.
+
+| 분야 | 개념 | 영상 있음 (전 → 후) | 읽기만 (전 → 후) | 과제 문구만 |
+|---|---|---|---|---|
+| 수학 기초 A: 함수에서 기울기까지 | 25 | 21 → 25 | 4 → 0 | 0 |
+| 수학 기초 B: 벡터에서 텐서까지 | 22 | 20 → 22 | 2 → 0 | 0 |
+| 확률·통계·정보이론 | 34 | 19 → 34 | 15 → 0 | 0 |
+| 프로그래밍과 PyTorch | 16 | 6 → 16 | 10 → 0 | 0 |
+| 학습·손실·최적화·일반화 | 20 | 13 → 20 | 7 → 0 | 0 |
+| 신경망 핵심 | 21 | 17 → 21 | 4 → 0 | 0 |
+| 아키텍처: 구조에 어떤 가정을 넣나 | 17 | 12 → 17 | 5 → 0 | 0 |
+| 실무: 학습이 망가졌을 때와 공정한 비교 | 5 | 1 → 5 | 4 → 0 | 0 |
+| **합계** | 160 | 109 → 160 | 51 → 0 | 0 |
+
+## 수학 기초 A: 함수에서 기울기까지
+
+- [ ] **변수·수직선** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 파라미터·입력·하이퍼파라미터를 구별해 읽기
+  - 영상
+    - [Vectors | Chapter 1, Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs) (앱에서 재생) · 2단계(6–9주)
+  - MIT 6.100L 1–14강 · 1단계(1–5주): [1](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-1-version-2_mp4/) [2](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-2-multi-version-4_1_mp4/) [3](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-3-multi_mp4/) [4](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-4-multi_mp4/) [5](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-5-multi_mp4/) [6](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-6-multi-version-3_mp4/) [7](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-7-multi_mp4/) [8](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-8-version-2_mp4/) [9](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-9-version-2_mp4/) [10](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-10-version-3_1_mp4/) [11](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-11-version-2_mp4/) [12](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-12-multi-version-4_mp4/) [13](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/) [14](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-14-multi_mp4/)
+- [ ] **함수와 그래프** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 신경망·손실·공식 모두 함수다; 입력·출력 형태 점검
+  - 영상
+    - [The essence of calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM) (앱에서 재생) · 2단계(6–9주)
+- [ ] **일차함수·기울기** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 미분 = 국소 직선의 기울기; 선형층의 기본형
+  - 영상
+    - [The essence of calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM) (앱에서 재생) · 2단계(6–9주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **다항식** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 공식 구조 탐색의 기본 재료, BIC가 세는 계수
+  - 영상
+    - [Derivative formulas through geometry | Chapter 3, Essence of calculus](https://www.youtube.com/watch?v=S0_qX4VJhMQ) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **지수법칙·지수함수 eˣ** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: softmax·sigmoid·가우스 우도가 모두 exp; 단위 차원은 지수로 더해짐
+  - 영상
+    - [What's so special about Euler's number e? | Chapter 5, Essence of calculus](https://www.youtube.com/watch?v=m2MIpDrF7Es) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **로그** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 로그우도·교차 엔트로피·BIC(k ln n); 작은 확률의 언더플로 방지
+  - 영상
+    - [Logarithms | Logarithms | Algebra II | Khan Academy](https://www.youtube.com/watch?v=Z5myJ8dg_rM) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **시그마(Σ)** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 모든 손실은 데이터 점에 대한 합; Adam 편향 보정은 등비급수
+  - 영상
+    - [Sigma notation for sums | Sequences, series and induction | Precalculus | Khan Academy](https://www.youtube.com/watch?v=5jwXThH6fg4) (앱에서 재생, 4:27) · 2B단계(10–13주) · **신규**
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **극한(직관)** · 수준 ③ · v1 판정 일부
+  - 왜 필요한가: 미분·적분의 뜻을 이해하는 데만 필요
+  - 영상
+    - [The essence of calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM) (앱에서 재생) · 2단계(6–9주)
+    - [Limits, L'Hôpital's rule, and epsilon delta definitions | Chapter 7, Essence of calculus](https://www.youtube.com/watch?v=kfF40MiS7zA) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **미분계수·도함수** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: "이 손잡이를 조금 돌리면 손실이 얼마나 변하나"
+  - 영상
+    - [The essence of calculus](https://www.youtube.com/watch?v=WUvTyaaNkzM) (앱에서 재생) · 2단계(6–9주)
+    - [The paradox of the derivative | Chapter 2, Essence of calculus](https://www.youtube.com/watch?v=9vKqVkMQHKk) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **곱·합의 미분** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 손계산 역전파의 재료
+  - 영상
+    - [Visualizing the chain rule and product rule | Chapter 4, Essence of calculus](https://www.youtube.com/watch?v=YG15m2VwSjA) (앱에서 재생) · 2단계(6–9주)
+    - [Derivative formulas through geometry | Chapter 3, Essence of calculus](https://www.youtube.com/watch?v=S0_qX4VJhMQ) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **연쇄법칙(합성함수의 미분)** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 역전파 그 자체; 기울기 소실·폭발을 이해하는 열쇠
+  - 영상
+    - [Visualizing the chain rule and product rule | Chapter 4, Essence of calculus](https://www.youtube.com/watch?v=YG15m2VwSjA) (앱에서 재생) · 2단계(6–9주)
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+- [ ] **eˣ·ln x의 미분** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 손실의 미분, 우리 손실의 기울기 계산
+  - 영상
+    - [What's so special about Euler's number e? | Chapter 5, Essence of calculus](https://www.youtube.com/watch?v=m2MIpDrF7Es) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **편미분** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 기울기 벡터의 각 칸 = 가중치 하나에 대한 민감도
+  - 영상
+    - [Partial derivatives, introduction](https://www.youtube.com/watch?v=AXqhWeUEtQU) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **기울기 벡터(gradient)·최급강하** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 경사하강법의 방향; 고교 "기울기"와 다른 뜻(주의)
+  - 영상
+    - [Gradient](https://www.youtube.com/watch?v=tIpKfDc295M) (앱에서 재생) · 2B단계(10–13주)
+    - [Gradient descent, how neural networks learn | Deep Learning Chapter 2](https://www.youtube.com/watch?v=IHZwWFHWa-w) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [MLCC — Gradient descent](https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent) (읽기) · 3단계(14–17주)
+- [ ] **방향도함수** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: "기울기 = 최급 방향"의 근거, 방향별 수치 검사
+  - 영상
+    - [Directional derivative](https://www.youtube.com/watch?v=N_ZRcLheNv0) (앱에서 재생, 7:14) · 2B단계(10–13주) · **신규**
+  - 읽기·실습
+    - [d2l 22.4 — Multivariable Calculus](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) (읽기) · 2B단계(10–13주)
+- [ ] **야코비안·VJP** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 역전파 비용이 순전파 한 번 정도인 이유
+  - 영상
+    - [The Jacobian matrix](https://www.youtube.com/watch?v=bohL918kXQk) (앱에서 재생, 6:22) · 2B단계(10–13주) · **신규**
+  - 읽기·실습
+    - [d2l 22.4 — Multivariable Calculus](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) (읽기) · 2B단계(10–13주)
+- [ ] **헤시안·곡률** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 학습률 상한(η<2/λmax), BIC 유도(라플라스 근사)
+  - 영상
+    - [27. Positive Definite Matrices and Minima](https://www.youtube.com/watch?v=vF7eyJ2g3kU) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [d2l 22.4 — Multivariable Calculus](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) (읽기) · 2B단계(10–13주)
+- [ ] **테일러·선형 근사** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 경사하강법의 정당화, BIC의 2차 근사
+  - 영상
+    - [Taylor series | Chapter 11, Essence of calculus](https://www.youtube.com/watch?v=3d6DsjIBzJ4) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **볼록 함수** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 선형 계수 맞추기는 쉽고 신경망 학습은 어려운 이유
+  - 영상
+    - [Convexity 101 \[Optimization Bootcamp\]](https://www.youtube.com/watch?v=9WXVgQFFsDI) (앱에서 재생, 14:58) · 2B단계(10–13주) · **신규**
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **f'=0으로 최적화** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 최소제곱 해, 안장점 주의
+  - 영상
+    - [27. Positive Definite Matrices and Minima](https://www.youtube.com/watch?v=vF7eyJ2g3kU) (앱에서 재생) · 2B단계(10–13주)
+    - [Derivative formulas through geometry | Chapter 3, Essence of calculus](https://www.youtube.com/watch?v=S0_qX4VJhMQ) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **적분(넓이·누적)** · 수준 ②(개념 ①) · v1 판정 없음
+  - 왜 필요한가: 기댓값·주변우도·사후예측의 정의(개념만)
+  - 영상
+    - [Integration and the fundamental theorem of calculus | Chapter 8, Essence of calculus](https://www.youtube.com/watch?v=rfG8ce4nNh0) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **수치·기호·자동 미분** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 기울기 검사 도구, 공식 탐색의 상수 맞추기 방식 선택
+  - 영상
+    - [What is Automatic Differentiation?](https://www.youtube.com/watch?v=wG_nF1awSSY) (앱에서 재생, 14:25) · 5B단계(30–33주) · **신규**
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+  - 읽기·실습
+    - [PyTorch — Automatic Differentiation](https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **행렬 미적분·배치 규약** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 층 기울기 shape 점검, 논문 유도 읽기
+  - 영상
+    - [Building makemore Part 4: Becoming a Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **지수이동평균(EMA)·편향 보정** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 코드의 직접 구현 Adam(AE:147-150) 읽기
+  - 영상
+    - [Gradient Descent With Momentum (C2W2L06)](https://www.youtube.com/watch?v=k8fTYJPd3_I) (앱에서 재생) · 3B단계(18–21주)
+    - [Adam Optimization Algorithm (C2W2L08)](https://www.youtube.com/watch?v=JXQT_vxqwIs) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **exp·log의 수치 안전** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 로그분산 범위 제한(AE:141,183), BIC 가중치 softmax의 NaN 방지
+  - 영상
+    - [Building makemore Part 4: Becoming a Backprop Ninja](https://www.youtube.com/watch?v=q8SA3rM6ckI) (앱에서 재생) · 5B단계(30–33주)
+
+## 수학 기초 B: 벡터에서 텐서까지
+
+- [ ] **스칼라·벡터·행렬·텐서·shape** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 디버깅의 대부분이 shape 읽기 (batch, 측정점, 특징)
+  - 영상
+    - [Vectors | Chapter 1, Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs) (앱에서 재생) · 2단계(6–9주)
+    - [Linear transformations and matrices | Chapter 3, Essence of linear algebra](https://www.youtube.com/watch?v=kYB8IZa5AuE) (앱에서 재생) · 2단계(6–9주)
+  - 읽기·실습
+    - [PyTorch — Tensors](https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html) (읽기) · 5단계(26–29주)
+- [ ] **벡터 덧셈·스칼라배·선형결합** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 잔차 연결, Attention 출력, 앙상블 평균이 모두 선형결합
+  - 영상
+    - [Vectors | Chapter 1, Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs) (앱에서 재생) · 2단계(6–9주)
+    - [Linear combinations, span, and basis vectors | Chapter 2, Essence of linear algebra](https://www.youtube.com/watch?v=k7RM-ot2NWY) (앱에서 재생) · 2단계(6–9주)
+- [ ] **노름(길이)** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: weight decay, 기울기 클리핑, 정규화
+  - 영상
+    - [Vector dot product and vector length | Vectors and spaces | Linear Algebra | Khan Academy](https://www.youtube.com/watch?v=WNuIhXo39_k) (앱에서 재생, 9:10) · 2B단계(10–13주) · **신규**
+    - [Vectors | Chapter 1, Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs) (앱에서 재생) · 2단계(6–9주)
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **내적** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 모든 선형 뉴런과 Attention 점수의 계산
+  - 영상
+    - [Dot products and duality | Chapter 9, Essence of linear algebra](https://www.youtube.com/watch?v=LyGKycYT2v0) (앱에서 재생) · 2단계(6–9주)
+- [ ] **코사인 유사도** · 수준 ② · v1 판정 일부
+  - 왜 필요한가: 내적과 코사인 중 무엇을 쓸지 결정
+  - 영상
+    - [Cosine Similarity, Clearly Explained!!!](https://www.youtube.com/watch?v=e9U0QAFbfLI) (앱에서 재생, 10:14) · 2B단계(10–13주) · **신규**
+    - [Dot products and duality | Chapter 9, Essence of linear algebra](https://www.youtube.com/watch?v=LyGKycYT2v0) (앱에서 재생) · 2단계(6–9주)
+  - 읽기·실습
+    - [Mathematics for Machine Learning (교재)](https://mml-book.github.io/) (읽기) · 2B단계(10–13주)
+- [ ] **행렬-벡터 곱** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: Linear 층 y=Wx+b가 하는 일, W는 (출력,입력)
+  - 영상
+    - [Linear transformations and matrices | Chapter 3, Essence of linear algebra](https://www.youtube.com/watch?v=kYB8IZa5AuE) (앱에서 재생) · 2단계(6–9주)
+- [ ] **행렬곱·배치** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: shape 오류의 대부분; 점수=QKᵀ(AE:55)
+  - 영상
+    - [Linear transformations and matrices | Chapter 3, Essence of linear algebra](https://www.youtube.com/watch?v=kYB8IZa5AuE) (앱에서 재생) · 2단계(6–9주)
+    - [Matrix multiplication as composition | Chapter 4, Essence of linear algebra](https://www.youtube.com/watch?v=XkY2DOUCWMU) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [PyTorch — Tensors](https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html) (읽기) · 5단계(26–29주)
+- [ ] **전치·항등·역행렬** · 수준 ①(전치), ②(역) · v1 판정 없음
+  - 왜 필요한가: Kᵀ; 역행렬은 직접 만들지 말 것
+  - 영상
+    - [Inverse matrices, column space and null space | Chapter 7, Essence of linear algebra](https://www.youtube.com/watch?v=uQhTuRlWMxw) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **선형 사상 vs 아핀(편향)** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 편향이 하는 일: 원점 강제를 풀어 줌(d2l 3.1.1.1)
+  - 영상
+    - [But what is a neural network? | Deep learning chapter 1](https://www.youtube.com/watch?v=aircAruvnKk) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **비선형 없이 쌓으면 선형** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 활성화 함수가 필요한 이유
+  - 영상
+    - [Why Non-linear Activation Functions (C1W3L07)](https://www.youtube.com/watch?v=NkOv_k7r6no) (앱에서 재생, 5:36) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [d2l 5.1 — Multilayer Perceptrons](https://d2l.ai/chapter_multilayer-perceptrons/mlp.html) (읽기) · 5B단계(30–33주)
+- [ ] **기저·차원·랭크** · 수준 ② · v1 판정 일부
+  - 왜 필요한가: 임베딩 크기, 병목, 랭크 붕괴 진단
+  - 영상
+    - [Linear combinations, span, and basis vectors | Chapter 2, Essence of linear algebra](https://www.youtube.com/watch?v=k7RM-ot2NWY) (앱에서 재생) · 2단계(6–9주)
+    - [Inverse matrices, column space and null space | Chapter 7, Essence of linear algebra](https://www.youtube.com/watch?v=uQhTuRlWMxw) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **브로드캐스팅** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 조용한 shape 버그(B,N,1)+(B,N)→(B,N,N); 마스크 `mask[:,None,None,:]`(AE:56)
+  - 영상
+    - [Numpy Array Broadcasting In Python Explained](https://www.youtube.com/watch?v=oG1t3qlzq14) (앱에서 재생, 13:06) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Tensors](https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html) (읽기) · 5단계(26–29주)
+    - [PyTorch — Broadcasting semantics](https://docs.pytorch.org/docs/stable/notes/broadcasting.html) (읽기) · 5B단계(30–33주)
+- [ ] **텐서 연산: reshape vs transpose, keepdim 축 축약, cat vs expand** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 멀티헤드 분할(AE:43-45,59), 마스크 평균(NE:105-106)
+  - 영상
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [PyTorch — Tensors](https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html) (읽기) · 5단계(26–29주)
+    - [einops — basics](https://einops.rocks/1-einops-basics/) (읽기) · 5B단계(30–33주)
+- [ ] **소프트맥스·온도** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: Attention 가중치, BIC 가중치 = softmax(−BIC/2)
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+    - [Softmax Regression (C2W3L08)](https://www.youtube.com/watch?v=LLux1SW--oM) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **√d 스케일** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 코드 d=32(128/4헤드); 이유는 softmax 포화로 기울기가 사라지는 것(Vaswani 3.2.1)
+  - 영상
+    - [Attention in transformers, step-by-step | Deep Learning Chapter 6](https://www.youtube.com/watch?v=eMlx5fFNoYc) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [d2l 11.1 — Queries, Keys, and Values](https://d2l.ai/chapter_attention-mechanisms-and-transformers/queries-keys-values.html) (읽기) · 5C단계(34–37주)
+- [ ] **임베딩 두 가지** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 embed/qembed는 (b)(AE:90,93), 언어 모델은 (a)
+  - 영상
+    - [Building makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) (앱에서 재생) · 5B단계(30–33주)
+    - [Transformers, the tech behind LLMs | Deep Learning Chapter 5](https://www.youtube.com/watch?v=wjZofJX0v4M) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **최소제곱 = 직교사영, 의사역행렬** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 공식 상수 맞추기; 직접 역행렬 대신 lstsq
+  - 영상
+    - [16. Projection Matrices and Least Squares](https://www.youtube.com/watch?v=osh80YCg_GM) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+    - [MLCC — Loss](https://developers.google.com/machine-learning/crash-course/linear-regression/loss) (읽기) · 3단계(14–17주)
+- [ ] **릿지 항·조건수** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 최소제곱 해법이 릿지를 씀(model_growth.py:64-65); weight decay·MAP와 같은 생각
+  - 영상
+    - [Regularization (C2W1L04)](https://www.youtube.com/watch?v=6g0t3Phly2M) (앱에서 재생) · 3B단계(18–21주)
+    - [16. Projection Matrices and Least Squares](https://www.youtube.com/watch?v=osh80YCg_GM) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **양정부호 행렬·촐레스키** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 공분산·커널이 유효한지, 다변량 가우스 샘플링(gp_residual.py:33,43)
+  - 영상
+    - [27. Positive Definite Matrices and Minima](https://www.youtube.com/watch?v=vF7eyJ2g3kU) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **고유값·고유벡터** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 곡률, 반복 안정성, PCA
+  - 영상
+    - [Eigenvectors and eigenvalues | Chapter 14, Essence of linear algebra](https://www.youtube.com/watch?v=PFDu9oVAE-g) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **직교성·PCA·고차원 기하** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 잠재 표현 진단
+  - 영상
+    - [StatQuest: Principal Component Analysis (PCA), Step-by-Step](https://www.youtube.com/watch?v=FgakZw6K1QQ) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **SVD·행렬식·기저 변환** · 수준 ③ · v1 판정 없음
+  - 왜 필요한가: 이 프로젝트 코드에는 SVD 호출 0회
+  - 영상
+    - [Singular Value Decomposition (SVD): Overview](https://www.youtube.com/watch?v=gXbThCXjZFM) (앱에서 재생) · 2B단계(10–13주)
+    - [The determinant | Chapter 6, Essence of linear algebra](https://www.youtube.com/watch?v=Ip3X9LOh2dk) (앱에서 재생) · 2B단계(10–13주)
+
+## 확률·통계·정보이론
+
+- [ ] **빈도 확률 vs 믿음의 정도** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 공식·가중치에 확률을 붙이는 근거
+  - 영상
+    - [Bayes theorem, the geometry of changing beliefs](https://www.youtube.com/watch?v=HZGCoVF3YvM) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 1. Probability](https://allendowney.github.io/ThinkBayes2/chap01.html) (읽기) · 2단계(6–9주)
+- [ ] **조건부확률·독립** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 우도를 데이터 점별 합으로 쓰는 i.i.d. 가정
+  - 영상
+    - [Bayes theorem, the geometry of changing beliefs](https://www.youtube.com/watch?v=HZGCoVF3YvM) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 1. Probability](https://allendowney.github.io/ThinkBayes2/chap01.html) (읽기) · 2단계(6–9주)
+- [ ] **베이즈 정리** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 사후분포·BMA 가중치의 뿌리
+  - 영상
+    - [Bayes theorem, the geometry of changing beliefs](https://www.youtube.com/watch?v=HZGCoVF3YvM) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 2. Bayes’s Theorem](https://allendowney.github.io/ThinkBayes2/chap02.html) (읽기) · 2단계(6–9주)
+- [ ] **확률변수·밀도** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 회귀 NLL이 음수일 수 있는 이유
+  - 영상
+    - [Why π is in the normal distribution (beyond integral tricks)](https://www.youtube.com/watch?v=cy8r7WSuT1I) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 3. Distributions](https://allendowney.github.io/ThinkBayes2/chap03.html) (읽기) · 2단계(6–9주)
+- [ ] **베르누이·범주형·가우스 분포** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 출력 분포를 고르는 것 = 손실을 고르는 것
+  - 영상
+    - [Why π is in the normal distribution (beyond integral tricks)](https://www.youtube.com/watch?v=cy8r7WSuT1I) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 3. Distributions](https://allendowney.github.io/ThinkBayes2/chap03.html) (읽기) · 2단계(6–9주)
+    - [Think Bayes 4. Estimating Proportions](https://allendowney.github.io/ThinkBayes2/chap04.html) (읽기) · 2단계(6–9주)
+- [ ] **기댓값·분산·표준편차** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 앙상블 평균과 퍼짐, 미니배치 = 기댓값 추정
+  - 영상
+    - [But what is the Central Limit Theorem?](https://www.youtube.com/watch?v=zeJD6dqJ5lo) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 3. Distributions](https://allendowney.github.io/ThinkBayes2/chap03.html) (읽기) · 2단계(6–9주)
+- [ ] **공분산·상관** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 가우스 과정, 앙상블 구성원이 서로 닮으면 정보가 줄어듦
+  - 영상
+    - [Covariance, Clearly Explained!!!](https://www.youtube.com/watch?v=qtaqvPAeEJY) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **큰수의 법칙·중심극한정리** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 실험·샘플 수 계획, 오차 막대
+  - 영상
+    - [But what is the Central Limit Theorem?](https://www.youtube.com/watch?v=zeJD6dqJ5lo) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **몬테카를로** · 수준 ② · v1 판정 일부
+  - 왜 필요한가: 사후예측·정보 이득 추정, 앙상블 구성원 = 표본
+  - 영상
+    - [RL Course by David Silver - Lecture 4: Model-Free Prediction](https://www.youtube.com/watch?v=PnHCvfgC_ZA) (앱에서 재생) · 6단계(42–45주)
+    - [But what is the Central Limit Theorem?](https://www.youtube.com/watch?v=zeJD6dqJ5lo) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **우도·최대우도(MLE)** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 모든 손실의 공통 정의
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+    - [Maximum Likelihood, clearly explained!!!](https://www.youtube.com/watch?v=XepXtl9YKwc) (앱에서 재생) · 2B단계(10–13주)
+    - [In Statistics, Probability is not Likelihood.](https://www.youtube.com/watch?v=pYxNSUDSFH4) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 4. Estimating Proportions](https://allendowney.github.io/ThinkBayes2/chap04.html) (읽기) · 2단계(6–9주)
+- [ ] **음의 로그우도(NLL)** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: MSE·교차 엔트로피·우리 손실(AE:142)이 모두 NLL
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+- [ ] **가우스 잡음 → 제곱오차** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: MSE가 숨긴 가정(일정한 잡음)
+  - 영상
+    - [Maximum Likelihood, clearly explained!!!](https://www.youtube.com/watch?v=XepXtl9YKwc) (앱에서 재생) · 2B단계(10–13주)
+- [ ] **엔트로피·교차 엔트로피·KL** · 수준 ①(교차 엔트로피), ②(KL) · v1 판정 일부
+  - 왜 필요한가: 분류 손실의 근거, VAE·NP의 ELBO
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+    - [Entropy (for data science) Clearly Explained!!!](https://www.youtube.com/watch?v=YtebGVx-Fxw) (앱에서 재생) · 2B단계(10–13주)
+    - [Neural Networks Part 6: Cross Entropy](https://www.youtube.com/watch?v=6ArSys5qHAU) (앱에서 재생) · 3B단계(18–21주)
+    - [Solving Wordle using information theory](https://www.youtube.com/watch?v=v68zYyaEmEA) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [d2l 22.11 — Information Theory](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/information-theory.html) (읽기) · 2B단계(10–13주)
+  - 직접 해 보기: 4단계(22–25주)의 과제 — 4단계 실습(entropy·포함률·Brier)
+- [ ] **상호정보량·기대 정보 이득(BALD)** · 수준 ② · v1 판정 일부
+  - 왜 필요한가: 다음 실험 선택 점수
+  - 영상
+    - [Solving Wordle using information theory](https://www.youtube.com/watch?v=v68zYyaEmEA) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [Think Bayes 9. Decision Analysis](https://allendowney.github.io/ThinkBayes2/chap09.html) (읽기) · 4단계(22–25주)
+    - [Rainforth 외 — Modern Bayesian Experimental Design](https://arxiv.org/abs/2302.14545) (읽기) · 5D단계(38–41주)
+  - 직접 해 보기: 4단계(22–25주)의 과제 — 4단계 실습(entropy·포함률·Brier)
+- [ ] **우연적 vs 인식적 불확실성** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 분산 출력 vs 앙상블 불일치; 실험은 인식적 쪽을 쫓아야 함
+  - 영상
+    - [MIT 6.S191: Uncertainty in Deep Learning](https://www.youtube.com/watch?v=veYq6EWZyVc) (앱에서 재생, 50:08) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Kendall·Gal — What Uncertainties Do We Need?](https://arxiv.org/abs/1703.04977) (읽기) · 5D단계(38–41주)
+- [ ] **전분산 법칙** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 앙상블 공식 그대로(AE:198, 206-208)
+  - 영상
+    - [L13.7 Derivation of the Law of Total Variance](https://www.youtube.com/watch?v=mHonq7Gjjqg) (앱에서 재생, 4:54) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Lakshminarayanan 외 — Deep Ensembles](https://arxiv.org/abs/1612.01474) (읽기) · 5D단계(38–41주)
+- [ ] **보정·포함률과 폭** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 불확실성을 믿고 실험을 고르기 때문
+  - 영상
+    - [Probability Calibration : Data Science Concepts](https://www.youtube.com/watch?v=AunotauS5yI) (앱에서 재생, 10:23) · 5D단계(38–41주) · **신규**
+    - [A Tutorial on Conformal Prediction](https://www.youtube.com/watch?v=nql000Lu_iE) (앱에서 재생, 38:08) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Guo 외 — On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599) (읽기) · 5D단계(38–41주)
+    - [Angelopoulos·Bates — A Gentle Introduction to Conformal Prediction](https://arxiv.org/abs/2107.07511) (읽기) · 5D단계(38–41주)
+  - 직접 해 보기: 4단계(22–25주)의 과제 — 4단계 실습(entropy·포함률·Brier)
+- [ ] **사전·사후·MAP** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: weight decay = 가우스 사전, 릿지와 같은 생각
+  - 영상
+    - [Bayesian Maximum Aposteriori Estimation (MAP): Extending Maximum Likelihood Estimation](https://www.youtube.com/watch?v=xgfexqYxrDU) (앱에서 재생, 12:59) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Think Bayes 2. Bayes’s Theorem](https://allendowney.github.io/ThinkBayes2/chap02.html) (읽기) · 2단계(6–9주)
+    - [Think Bayes 3. Distributions](https://allendowney.github.io/ThinkBayes2/chap03.html) (읽기) · 2단계(6–9주)
+    - [Think Bayes 4. Estimating Proportions](https://allendowney.github.io/ThinkBayes2/chap04.html) (읽기) · 2단계(6–9주)
+    - [Rasmussen·Williams — GPML 2장 Regression](https://gaussianprocess.org/gpml/chapters/RW2.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **사후예측분포** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 앙상블 퍼짐이 무엇인지
+  - 영상
+    - [26 - Prior and posterior predictive distributions - an introduction](https://www.youtube.com/watch?v=R9NQY2Hyl14) (앱에서 재생, 5:44) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Rasmussen·Williams — GPML 2장 Regression](https://gaussianprocess.org/gpml/chapters/RW2.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **증거·베이즈 요인·오캄 인수** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 항을 늘린 공식이 지는 원리(MacKay 28장)
+  - 영상
+    - [Introducing Bayes factors and marginal likelihoods](https://www.youtube.com/watch?v=T-kMpA4z-7k) (앱에서 재생, 13:10) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [MacKay — ITILA 28장 Model Comparison and Occam's Razor](https://www.inference.org.uk/mackay/itprnn/ps/343.355.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **BIC·AIC** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 공식 비교; 가정: 넓은 사전·꽉 찬 헤시안(Bishop 4.4.1)
+  - 영상
+    - [Time Series Model Selection (AIC & BIC) : Time Series Talk](https://www.youtube.com/watch?v=McEN54l3EPU) (앱에서 재생, 9:42) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [MacKay — ITILA 28장 Model Comparison and Occam's Razor](https://www.inference.org.uk/mackay/itprnn/ps/343.355.pdf) (읽기) · 5D단계(38–41주)
+    - [Hoeting 외 — Bayesian Model Averaging: A Tutorial](https://www.stat.colostate.edu/~jah/papers/statsci.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **베이즈 모델 평균(BMA)** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 공식 평균(Hoeting 1999)
+  - 영상
+    - [UC Irvine CEE-290: Topic 6 (Model averaging)](https://www.youtube.com/watch?v=zwmi8VksxrQ) (앱에서 재생, 6:49) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Hoeting 외 — Bayesian Model Averaging: A Tutorial](https://www.stat.colostate.edu/~jah/papers/statsci.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **식별 가능성** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 이 프로젝트의 핵심 한계(비슷한 값을 내는 공식은 구별 불가)
+  - 영상
+    - [Ruth Baker: What Is Parameter Identifiability, Why Do We Need Identifiable...(October 16, 2025)](https://www.youtube.com/watch?v=_5is1F9tKTk) (앱에서 재생, 44:39) · 5D단계(38–41주) · **신규**
+  - Brady Neal 인과추론 1–6장 · 4단계(22–25주): [1](https://www.youtube.com/watch?v=CfzO4IEMVUk) [2](https://www.youtube.com/watch?v=q8x9aetyok0) [3](https://www.youtube.com/watch?v=Go4EkHN_PcA) [4](https://www.youtube.com/watch?v=dQeRqb0N6gs) [5](https://www.youtube.com/watch?v=z91LnTDyhtI) [6](https://www.bradyneal.com/Introduction_to_Causal_Inference-Dec17_2020-Neal.pdf)
+  - 읽기·실습
+    - [MacKay — ITILA 28장 Model Comparison and Occam's Razor](https://www.inference.org.uk/mackay/itprnn/ps/343.355.pdf) (읽기) · 5D단계(38–41주)
+  - 직접 해 보기: 7단계(46–49주)의 과제 — 7단계 실습(단위·판별 범위)
+- [ ] **후보 중 정답이 없을 때(오지정 모델)** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: EXP-062의 실패 원인
+  - 영상
+    - [Model misspecification explained in 3 minutes](https://www.youtube.com/watch?v=0KPsTDyf9DY) (앱에서 재생, 3:35) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Hoeting 외 — Bayesian Model Averaging: A Tutorial](https://www.stat.colostate.edu/~jah/papers/statsci.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **학습 분포 = 사전** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: NE:59-68의 세계 범위가 곧 사전
+  - 영상
+    - [TabPFN: Deep Learning for Tabular Data is Here! (Prof. Frank Hutter explains)](https://www.youtube.com/watch?v=MKu09syGgEk) (앱에서 재생, 17:05) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Müller 외 — Transformers Can Do Bayesian Inference (PFN)](https://arxiv.org/abs/2112.10510) (읽기) · 5C단계(34–37주)
+- [ ] **가우스 NLL의 함정** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 손실 그대로(Seitzer 2022)
+  - 영상
+    - [Understanding Probabilistic Neural Networks: The Gaussian Output Layer (Theory and Implementation)](https://www.youtube.com/watch?v=lEcQtnflYDc) (앱에서 재생, 17:20) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Seitzer 외 — On the Pitfalls of Heteroscedastic Uncertainty Estimation](https://arxiv.org/abs/2203.09168) (읽기) · 5D단계(38–41주)
+- [ ] **선택 편향·계통 오차** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 측정 가정 점검(R-017 첫 실습)
+  - Brady Neal 인과추론 1–6장 · 4단계(22–25주): [1](https://www.youtube.com/watch?v=CfzO4IEMVUk) [2](https://www.youtube.com/watch?v=q8x9aetyok0) [3](https://www.youtube.com/watch?v=Go4EkHN_PcA) [4](https://www.youtube.com/watch?v=dQeRqb0N6gs) [5](https://www.youtube.com/watch?v=z91LnTDyhtI) [6](https://www.bradyneal.com/Introduction_to_Causal_Inference-Dec17_2020-Neal.pdf)
+  - 직접 해 보기: 1단계(1–5주)의 과제 — 1단계 실습(선택 규칙)
+- [ ] **평가의 변동: 시드 간 구간·부트스트랩** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 구조 A/B 비교의 최소 조건
+  - 영상
+    - [Bootstrapping Main Ideas!!!](https://www.youtube.com/watch?v=Xz0x-8-cgaQ) (앱에서 재생, 9:27) · 3B단계(18–21주) · **신규**
+  - 읽기·실습
+    - [Lipton·Steinhardt — Troubling Trends in ML Scholarship](https://arxiv.org/abs/1807.03341) (읽기) · 3B단계(18–21주)
+  - 직접 해 보기: 3단계(14–17주)의 과제 — 3단계 실습(세계 단위 분할·seed 변동)
+- [ ] **가설검정·카이제곱·p값** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 우리 가정 점검; 반복 검정의 오경보는 원전 미확인
+  - 영상
+    - [Hypothesis Testing and The Null Hypothesis, Clearly Explained!!!](https://www.youtube.com/watch?v=0oc49DyA3hU) (앱에서 재생) · 3B단계(18–21주)
+    - [p-values: What they are and how to interpret them](https://www.youtube.com/watch?v=vemZtEM63GY) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **ROC·AUROC** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 낯섦 감지 평가(ood_guard.py:57-58)
+  - 영상
+    - [ROC and AUC, Clearly Explained!](https://www.youtube.com/watch?v=4jRBRDbJemM) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **가우스 과정** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: NP가 흉내 내는 기준 답(GPML 2장)
+  - 영상
+    - [Gaussian Processes : Data Science Concepts](https://www.youtube.com/watch?v=HA-VHNVbvwQ) (앱에서 재생, 24:47) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Distill — A Visual Exploration of Gaussian Processes](https://distill.pub/2019/visual-exploration-gaussian-processes/) (읽기) · 5D단계(38–41주)
+    - [Rasmussen·Williams — GPML 2장 Regression](https://gaussianprocess.org/gpml/chapters/RW2.pdf) (읽기) · 5D단계(38–41주)
+- [ ] **딥 앙상블·적정 점수 규칙** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 우리 앙상블, NLL로 평가하는 이유
+  - 영상
+    - [MIT 6.S191: Uncertainty in Deep Learning](https://www.youtube.com/watch?v=veYq6EWZyVc) (앱에서 재생, 50:08) · 5D단계(38–41주) · **신규**
+    - [SL - 11 Advanced Risk Minimization - 13 Proper Scoring Rules](https://www.youtube.com/watch?v=1nydD0QSnXk) (앱에서 재생, 34:52) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Lakshminarayanan 외 — Deep Ensembles](https://arxiv.org/abs/1612.01474) (읽기) · 5D단계(38–41주)
+  - 직접 해 보기: 4단계(22–25주)의 과제 — 4단계 실습(entropy·포함률·Brier)
+- [ ] **능동 학습·Box-Hill 판별 실험** · 수준 ② · v1 판정 일부
+  - 왜 필요한가: 실험 선택 규칙
+  - 영상
+    - [Design Better Experiments with Expected Information Gain](https://www.youtube.com/watch?v=wm1YSf45KVM) (앱에서 재생, 5:43) · 5D단계(38–41주) · **신규**
+    - [Tom Rainforth - Modern Bayesian Experimental Design | ML in PL 2024](https://www.youtube.com/watch?v=pgS0-xK6tIs) (앱에서 재생, 53:29) · 5D단계(38–41주) · **신규**
+    - [RL Course by David Silver - Lecture 9: Exploration and Exploitation](https://www.youtube.com/watch?v=sGuiWX07sKw) (앱에서 재생) · 6단계(42–45주)
+  - 읽기·실습
+    - [Think Bayes 9. Decision Analysis](https://allendowney.github.io/ThinkBayes2/chap09.html) (읽기) · 4단계(22–25주)
+    - [Rainforth 외 — Modern Bayesian Experimental Design](https://arxiv.org/abs/2302.14545) (읽기) · 5D단계(38–41주)
+- [ ] **분포 밖(OOD) 탐지, 사후예측 점검, 강건 우도, conformal** · 수준 ③ · v1 판정 없음
+  - 왜 필요한가: 탐험하는 에이전트의 안전장치
+  - 영상
+    - [Training and Testing on Different Distributions (C3W2L04)](https://www.youtube.com/watch?v=sfk5h0yC67o) (앱에서 재생, 10:56) · 3B단계(18–21주) · **신규**
+    - [A Tutorial on Conformal Prediction](https://www.youtube.com/watch?v=nql000Lu_iE) (앱에서 재생, 38:08) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Angelopoulos·Bates — A Gentle Introduction to Conformal Prediction](https://arxiv.org/abs/2107.07511) (읽기) · 5D단계(38–41주)
+    - [d2l 4.7 — Environment and Distribution Shift](https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html) (읽기) · 3B단계(18–21주)
+
+## 프로그래밍과 PyTorch
+
+- [ ] **프로그램·변수·자료형·리스트·딕셔너리·조건·반복·함수·클래스·모듈·예외** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 코드 읽기의 바탕; 신경망은 nn.Module을 상속한 클래스, 학습 루프는 for 반복
+  - MIT 6.100L 1–14강 · 1단계(1–5주): [1](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-1-version-2_mp4/) [2](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-2-multi-version-4_1_mp4/) [3](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-3-multi_mp4/) [4](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-4-multi_mp4/) [5](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-5-multi_mp4/) [6](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-6-multi-version-3_mp4/) [7](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-7-multi_mp4/) [8](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-8-version-2_mp4/) [9](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-9-version-2_mp4/) [10](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-10-version-3_1_mp4/) [11](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-11-version-2_mp4/) [12](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-12-multi-version-4_mp4/) [13](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/) [14](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-14-multi_mp4/)
+  - MIT 17–18강(클래스) · 5단계(26–29주): [1](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-17-version-2_mp4/) [2](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-18-multi-version-2_mp4/)
+  - 읽기·실습
+    - [MIT Finger Exercises](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/pages/finger-exercises/) (실습) · 1단계(1–5주)
+- [ ] **가상환경·uv·PyTorch CUDA 설치** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: CPU용 설치는 GPU를 안 씀; 재현의 시작
+  - 영상
+    - [Python Tutorial: VENV (Windows) - How to Use Virtual Environments with the Built-In venv Module](https://www.youtube.com/watch?v=APOPm01BVrk) (앱에서 재생, 17:10) · 5B단계(30–33주) · **신규**
+    - [Python Tutorial: UV - A Faster, All-in-One Package Manager to Replace Pip and Venv](https://www.youtube.com/watch?v=AMdG7IjgSPM) (앱에서 재생, 27:02) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [Python Tutorial 12 — Virtual Environments and Packages](https://docs.python.org/3/tutorial/venv.html) (읽기) · 5B단계(30–33주)
+    - [PyTorch — Get Started (설치 선택기)](https://pytorch.org/get-started/locally/) (읽기) · 5B단계(30–33주)
+- [ ] **NumPy 배열·인덱싱·벡터화·브로드캐스팅·복사 vs 뷰** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 텐서 연산의 원형; 뷰 수정이 원본을 바꿈
+  - 영상
+    - [Complete Python NumPy Tutorial (Creating Arrays, Indexing, Math, Statistics, Reshaping)](https://www.youtube.com/watch?v=GB9ByFAIAH4) (앱에서 재생, 58:41) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [NumPy — the absolute basics for beginners](https://numpy.org/doc/stable/user/absolute_beginners.html) (읽기) · 5B단계(30–33주)
+- [ ] **텐서·shape/dtype/device** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: "같은 장치여야 함", float32 vs float64(AE:172-180)
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+  - 읽기·실습
+    - [PyTorch — Tensors](https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html) (읽기) · 5단계(26–29주)
+- [ ] **자동 미분: requires_grad, backward, .grad, `torch.autograd.grad`** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 우리 코드는 backward 대신 autograd.grad를 씀(AE:143)
+  - 영상
+    - [The Fundamentals of Autograd](https://www.youtube.com/watch?v=M0fX15_-xrY) (앱에서 재생, 14:02) · 5B단계(30–33주) · **신규**
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+  - 읽기·실습
+    - [PyTorch — Automatic Differentiation](https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **detach·no_grad·리프 텐서** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 앙상블 추론(AE:178)과 갱신(AE:145)
+  - 영상
+    - [PyTorch Tutorial 03 - Gradient Calculation With Autograd](https://www.youtube.com/watch?v=DbeIqrwb_dE) (앱에서 재생, 15:54) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Automatic Differentiation](https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **nn.Module·Linear·Parameter·state_dict** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 파라미터 세기, 일부 고정, 체크포인트
+  - 영상
+    - [Building Models with PyTorch](https://www.youtube.com/watch?v=OSqIP-mOWOI) (앱에서 재생, 14:09) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Build the Neural Network](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **module(x) vs module.forward(x)** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 우리 코드는 forward를 직접 부름(동작 차이 주의)
+  - 영상
+    - [Building Models with PyTorch](https://www.youtube.com/watch?v=OSqIP-mOWOI) (앱에서 재생, 14:09) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Build the Neural Network](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **학습 루프** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 모든 구조 변경이 끼워지는 자리; 우리 루프는 표준과 다름(AE:135-151)
+  - 영상
+    - [The spelled-out intro to language modeling: building makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) (앱에서 재생) · 5단계(26–29주)
+    - [Building makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [PyTorch — Optimizing Model Parameters](https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **Dataset·DataLoader·에포크 vs 스텝** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 코드는 매 스텝 새 세계를 뽑아 에포크가 없음
+  - 영상
+    - [PyTorch Tutorial 09 - Dataset and DataLoader - Batch Training](https://www.youtube.com/watch?v=PXOzkkB5eH0) (앱에서 재생, 15:27) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Datasets & DataLoaders](https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **시드와 재현성** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 구조 비교의 공정성; 우리 코드는 시드가 편향 초기값을 고정 못 함(후속 과제)
+  - 영상
+    - [Pytorch Quick Tip: Reproducible Results and Deterministic Behavior](https://www.youtube.com/watch?v=1SZocGaCAr8) (앱에서 재생, 3:06) · 5B단계(30–33주) · **신규**
+  - 8단계 Glorious 문서 · 8단계(50–53주): [1](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md) [2](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md) [3](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md) [4](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md) [5](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md) [6](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md) [7](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md)
+  - 읽기·실습
+    - [PyTorch — Reproducibility](https://docs.pytorch.org/docs/stable/notes/randomness.html) (읽기) · 5B단계(30–33주)
+  - 직접 해 보기: 3단계(14–17주)의 과제 — 3단계 실습(세계 단위 분할·seed 변동)
+- [ ] **체크포인트 저장·불러오기** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 우리 캐시는 가중치만, 파일명에 설정 없음(후속 과제)
+  - 영상
+    - [PyTorch Tutorial 17 - Saving and Loading Models](https://www.youtube.com/watch?v=9L9jEOwRrCg) (앱에서 재생, 18:24) · 5B단계(30–33주) · **신규**
+  - 8단계 Glorious 문서 · 8단계(50–53주): [1](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md) [2](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md) [3](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md) [4](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md) [5](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md) [6](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md) [7](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md)
+  - 읽기·실습
+    - [PyTorch — Save and Load the Model](https://docs.pytorch.org/tutorials/beginner/basics/saveloadrun_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **GPU 비동기·수치 정밀도·프로파일링** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 속도·메모리 판단
+  - 영상
+    - [Five Ways To Increase Your Model Performance Using PyTorch Profiler](https://www.youtube.com/watch?v=Dicw8GDuEc8) (앱에서 재생, 3:01) · 5B단계(30–33주) · **신규**
+    - [Mixed Precision Training - Explained](https://www.youtube.com/watch?v=87GhCIQudEA) (앱에서 재생, 10:38) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [PyTorch — Get Started (설치 선택기)](https://pytorch.org/get-started/locally/) (읽기) · 5B단계(30–33주)
+- [ ] **실험 추적·git·pytest·타입 힌트** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: AI가 만든 diff를 검토하고 결과를 코드에 묶기
+  - 영상
+    - [Lecture 6: Version Control (git) (2020)](https://www.youtube.com/watch?v=2sjqTHE0zok) (앱에서 재생, 1:25:00) · 3B단계(18–21주) · **신규**
+    - [Please Learn How To Write Tests in Python… • Pytest Tutorial](https://www.youtube.com/watch?v=EgpLj86ZHFQ) (앱에서 재생, 33:10) · 3B단계(18–21주) · **신규**
+    - [Python Tutorial: Type Hints - From Basic Annotations to Advanced Generics](https://www.youtube.com/watch?v=RwH2UzC2rIo) (앱에서 재생, 40:59) · 3B단계(18–21주) · **신규**
+  - MIT 12–13강(테스트·예외) · 1단계(1–5주): [1](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-12-multi-version-4_mp4/) [2](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/)
+  - 읽기·실습
+    - [Google Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) (읽기) · 3B단계(18–21주)
+- [ ] **shape 점검: assert, einops, jaxtyping, einsum, bmm** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: Attention 코드 감사
+  - 영상
+    - [Einsum Is All You Need: NumPy, PyTorch and TensorFlow](https://www.youtube.com/watch?v=pkVwUVEHmfI) (앱에서 재생, 16:22) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [einops — basics](https://einops.rocks/1-einops-basics/) (읽기) · 5B단계(30–33주)
+- [ ] **트레이스백·pdb·breakpoint()** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: shape 오류 디버깅
+  - MIT 12–13강(테스트·예외) · 1단계(1–5주): [1](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-12-multi-version-4_mp4/) [2](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/)
+
+## 학습·손실·최적화·일반화
+
+- [ ] **모델·학습·데이터(특징·레이블)·학습 방식** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 구조(함수 족)와 학습(탐색)을 나눠 생각
+  - 영상
+    - [But what is a neural network? | Deep learning chapter 1](https://www.youtube.com/watch?v=aircAruvnKk) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **선형 회귀·최소제곱, 로지스틱·소프트맥스 회귀** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 모든 구조가 이겨야 할 기준선; 분류 손실은 MLP보다 먼저
+  - 영상
+    - [Softmax Regression (C2W3L08)](https://www.youtube.com/watch?v=LLux1SW--oM) (앱에서 재생) · 3B단계(18–21주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **손실 함수 고르기** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 평균만 맞출지 불확실성까지 맞출지
+  - 영상
+    - [Neural Networks Part 6: Cross Entropy](https://www.youtube.com/watch?v=6ArSys5qHAU) (앱에서 재생) · 3B단계(18–21주)
+    - [Maximum Likelihood, clearly explained!!!](https://www.youtube.com/watch?v=XepXtl9YKwc) (앱에서 재생) · 2B단계(10–13주)
+  - 읽기·실습
+    - [MLCC — Loss](https://developers.google.com/machine-learning/crash-course/linear-regression/loss) (읽기) · 3단계(14–17주)
+- [ ] **경험적 위험 최소화** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 학습 손실과 실제 성능의 차이
+  - 영상
+    - [Machine Learning Lecture 16 "Empirical Risk Minimization" -Cornell CS4780 SP17](https://www.youtube.com/watch?v=AkmPv2WEsHw) (앱에서 재생, 46:33) · 3B단계(18–21주) · **신규**
+  - 읽기·실습
+    - [d2l 4.7 — Environment and Distribution Shift](https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html) (읽기) · 3B단계(18–21주)
+- [ ] **경사하강법·학습률** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 처음 맞춰야 할 손잡이; "기울기 한 걸음"은 역전파보다 먼저
+  - 영상
+    - [Gradient descent, how neural networks learn | Deep Learning Chapter 2](https://www.youtube.com/watch?v=IHZwWFHWa-w) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [MLCC — Gradient descent](https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent) (읽기) · 3단계(14–17주)
+- [ ] **미니배치 SGD·배치 크기** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 메모리·잡음·학습률의 교환
+  - 영상
+    - [Mini Batch Gradient Descent (C2W2L01)](https://www.youtube.com/watch?v=4qJaSmvhxi8) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **모멘텀·RMSProp·Adam·AdamW** · 수준 ① (역전파 다음) · v1 판정 없음
+  - 왜 필요한가: 우리 코드의 직접 구현 Adam; Adam의 weight_decay ≠ AdamW
+  - 영상
+    - [Gradient Descent With Momentum (C2W2L06)](https://www.youtube.com/watch?v=k8fTYJPd3_I) (앱에서 재생) · 3B단계(18–21주)
+    - [RMSProp (C2W2L07)](https://www.youtube.com/watch?v=_e-LFe_igno) (앱에서 재생) · 3B단계(18–21주)
+    - [Adam Optimization Algorithm (C2W2L08)](https://www.youtube.com/watch?v=JXQT_vxqwIs) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **학습률 스케줄·워밍업·클리핑** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 코드는 선형 감쇠, 워밍업·클리핑 없음(AE:144)
+  - 영상
+    - [Learning Rate Decay (C2W2L09)](https://www.youtube.com/watch?v=QzulmoOg2JE) (앱에서 재생) · 3B단계(18–21주)
+  - 읽기·실습
+    - [Xiong 외 — On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745) (읽기) · 5C단계(34–37주)
+- [ ] **손실 지형·안장점·초기화** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 학습 정체 진단
+  - 영상
+    - [Weight Initialization in a Deep Network (C2W1L11)](https://www.youtube.com/watch?v=s2coXdufOzE) (앱에서 재생) · 5B단계(30–33주)
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **일반화·IID·과적합·과소적합·편향-분산** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 가장 기본적인 디버깅 기술
+  - 영상
+    - [Bias/Variance (C2W1L02)](https://www.youtube.com/watch?v=SjQyLhQIXSM) (앱에서 재생) · 3B단계(18–21주)
+  - 읽기·실습
+    - [MLCC — Datasets, generalization, and overfitting](https://developers.google.com/machine-learning/crash-course/overfitting) (읽기) · 3단계(14–17주)
+- [ ] **학습/검증/시험 분리·교차검증·누설** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 세계 족 단위로 분리해야 함
+  - 영상
+    - [Train/Dev/Test Sets (C2W1L01)](https://www.youtube.com/watch?v=1waHlpKiNyY) (앱에서 재생) · 3B단계(18–21주)
+  - 읽기·실습
+    - [MLCC — Datasets, generalization, and overfitting](https://developers.google.com/machine-learning/crash-course/overfitting) (읽기) · 3단계(14–17주)
+    - [Kapoor·Narayanan — Leakage and the reproducibility crisis](https://arxiv.org/abs/2207.07048) (읽기) · 3B단계(18–21주)
+  - 직접 해 보기: 3단계(14–17주)의 과제 — 3단계 실습(세계 단위 분할·seed 변동)
+- [ ] **정규화: L2·조기 종료·드롭아웃·증강** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 우리 코드엔 없음 → 매 스텝 새 세계라 외우기 위험이 작기 때문(설명 가능해야 함)
+  - 영상
+    - [Regularization (C2W1L04)](https://www.youtube.com/watch?v=6g0t3Phly2M) (앱에서 재생) · 3B단계(18–21주)
+    - [Dropout Regularization (C2W1L06)](https://www.youtube.com/watch?v=D8PJAL-MZv8) (앱에서 재생) · 3B단계(18–21주)
+  - 읽기·실습
+    - [MLCC — Datasets, generalization, and overfitting](https://developers.google.com/machine-learning/crash-course/overfitting) (읽기) · 3단계(14–17주)
+- [ ] **모델 용량·파라미터 수·이중 하강** · 수준 ① / ② · v1 판정 없음
+  - 왜 필요한가: 같은 파라미터 수 비교가 공정성 기준
+  - 영상
+    - [Bias/Variance (C2W1L02)](https://www.youtube.com/watch?v=SjQyLhQIXSM) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **하이퍼파라미터·무작위 탐색** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 구조 효과와 튜닝 효과 분리
+  - 영상
+    - [Tuning Process (C2W3L01)](https://www.youtube.com/watch?v=AXDByU3D1hA) (앱에서 재생, 7:11) · 3B단계(18–21주) · **신규**
+    - [Using an Appropriate Scale (C2W3L02)](https://www.youtube.com/watch?v=cSoK_6Rkbfg) (앱에서 재생, 8:51) · 3B단계(18–21주) · **신규**
+  - 읽기·실습
+    - [MLCC — Gradient descent](https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent) (읽기) · 3단계(14–17주)
+    - [Google Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) (읽기) · 3B단계(18–21주)
+- [ ] **평가 지표·적정 점수·보정** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: "더 좋은 구조"의 정의를 먼저 정함
+  - 영상
+    - [Probability Calibration : Data Science Concepts](https://www.youtube.com/watch?v=AunotauS5yI) (앱에서 재생, 10:23) · 5D단계(38–41주) · **신규**
+    - [SL - 11 Advanced Risk Minimization - 13 Proper Scoring Rules](https://www.youtube.com/watch?v=1nydD0QSnXk) (앱에서 재생, 34:52) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Guo 외 — On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599) (읽기) · 5D단계(38–41주)
+  - 직접 해 보기: 3단계(14–17주)의 과제 — 3단계 실습(세계 단위 분할·seed 변동)
+  - 직접 해 보기: 4단계(22–25주)의 과제 — 4단계 실습(entropy·포함률·Brier)
+- [ ] **절제 연구(ablation)** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: AI와 함께 구조를 바꿀 때의 핵심 방법
+  - 영상
+    - [Troubling Trends in ML Scholarship - Zachary Lipton](https://www.youtube.com/watch?v=A2Jtqi_oa2Y) (앱에서 재생, 40:03) · 3B단계(18–21주) · **신규**
+  - 읽기·실습
+    - [Lipton·Steinhardt — Troubling Trends in ML Scholarship](https://arxiv.org/abs/1807.03341) (읽기) · 3B단계(18–21주)
+- [ ] **분포 이동·OOD** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 가상 세계 → 새 세계
+  - 영상
+    - [Training and Testing on Different Distributions (C3W2L04)](https://www.youtube.com/watch?v=sfk5h0yC67o) (앱에서 재생, 10:56) · 3B단계(18–21주) · **신규**
+  - 읽기·실습
+    - [d2l 4.7 — Environment and Distribution Shift](https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html) (읽기) · 3B단계(18–21주)
+- [ ] **메타학습·상각 추론·PFN·맥락 내 학습** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 NP의 정체: 새 측정은 학습이 아니라 계산
+  - 영상
+    - [Marta Garnelo - Meta-Learning and Neural Processes](https://www.youtube.com/watch?v=q-4lo5luKgc) (앱에서 재생, 47:32) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Lilian Weng — Meta-Learning: Learning to Learn Fast](https://lilianweng.github.io/posts/2018-11-30-meta-learning/) (읽기) · 5C단계(34–37주)
+    - [Müller 외 — Transformers Can Do Bayesian Inference (PFN)](https://arxiv.org/abs/2112.10510) (읽기) · 5C단계(34–37주)
+- [ ] **기호 회귀·버킹엄 π·모델 선택 vs 평균** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 이 프로젝트의 기호 쪽 절반
+  - 영상
+    - [Miles Cranmer - The Next Great Scientific Theory is Hiding Inside a Neural Network (April 3, 2024)](https://www.youtube.com/watch?v=fk2r8y5TfNY) (앱에서 재생) · 7단계(46–49주)
+  - 읽기·실습
+    - [AI Feynman — 방법 부분](https://arxiv.org/abs/1905.11481) (읽기) · 7단계(46–49주)
+    - [Cranmer — PySR: Interpretable Machine Learning for Science](https://arxiv.org/abs/2305.01582) (읽기) · 7단계(46–49주)
+  - 직접 해 보기: 7단계(46–49주)의 과제 — 7단계 실습(단위·판별 범위)
+- [ ] **스케일링 법칙** · 수준 ③ · v1 판정 없음
+  - 왜 필요한가: 언어 모델 결과라 우리 규모에는 숫자가 아닌 질문만 옮김
+  - 영상
+    - [AI can't cross this line and we don't know why.](https://www.youtube.com/watch?v=5eqRuVp65eY) (앱에서 재생, 24:07) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Kaplan 외 — Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (읽기) · 5C단계(34–37주)
+    - [Hoffmann 외 — Training Compute-Optimal LLMs (Chinchilla)](https://arxiv.org/abs/2203.15556) (읽기) · 5C단계(34–37주)
+
+## 신경망 핵심
+
+- [ ] **가중치** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 학습이 바꾸는 것은 가중치뿐; 구조를 바꾼다는 것은 가중치가 몇 개이고 무엇을 잇는지 정하는 일. 우리 캐시가 state_dict(가중치)만 저장해도 동작이 복원됨(AE:219-224)
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+    - [But what is a neural network? | Deep learning chapter 1](https://www.youtube.com/watch?v=aircAruvnKk) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **편향** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 원점 강제를 풀어 줌; `bias=False`도 설계 선택
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+  - 읽기·실습
+    - [MLCC — Linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression) (읽기) · 3단계(14–17주)
+- [ ] **파라미터와 세기** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 코드만 보고 크기 예측. 우리 모델: Attention q,k,v,o 66,048 + 블록 132,480 ×4 + 입력·토큰·헤드 = 531,714, ×3 = 1,595,142
+  - 영상
+    - [Building makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [PyTorch — Build the Neural Network](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) (읽기) · 5B단계(30–33주)
+- [ ] **뉴런** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 층 = 같은 입력을 읽는 뉴런 여러 개
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+- [ ] **활성화 함수(ReLU·sigmoid·tanh·GELU)** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 비선형이 없으면 깊이가 무의미; 포화하면 기울기 소실
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+    - [But what is a neural network? | Deep learning chapter 1](https://www.youtube.com/watch?v=aircAruvnKk) (앱에서 재생) · 5B단계(30–33주)
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **MLP·은닉층·폭·깊이** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 첫 설계 손잡이; 우리 블록의 MLP는 2배 확장(AE:71-72,80-81)
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+    - [Building makemore Part 2: MLP](https://www.youtube.com/watch?v=TCH_1BHY58I) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **보편 근사 정리** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: "넓은 한 층이면 다 된다"는 오해 차단
+  - 영상
+    - [The Universal Approximation Theorem for neural networks](https://www.youtube.com/watch?v=Ijqkc7OLenI) (앱에서 재생, 6:25) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [d2l 5.1 — Multilayer Perceptrons](https://d2l.ai/chapter_multilayer-perceptrons/mlp.html) (읽기) · 5B단계(30–33주)
+- [ ] **순전파·계산 그래프** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 어떤 경로로 기울기가 흐르는지(detach, 마스크)
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+- [ ] **역전파 (손계산 예제)** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 옵티마이저가 쓰는 "기울기"가 정확히 이 숫자; 갈래에서는 기울기를 더함
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+    - [Visualizing the chain rule and product rule | Chapter 4, Essence of calculus](https://www.youtube.com/watch?v=YG15m2VwSjA) (앱에서 재생) · 2단계(6–9주)
+    - [Backpropagation, intuitively | Deep Learning Chapter 3](https://www.youtube.com/watch?v=Ilg3gGewQ5U) (앱에서 재생) · 5B단계(30–33주)
+    - [Backpropagation calculus | Deep Learning Chapter 4](https://www.youtube.com/watch?v=tIeHLnjs5U8) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **역방향 자동 미분·위상 순서** · 수준 ② · v1 판정 커버
+  - 왜 필요한가: 160만 개 가중치 학습이 가능한 이유
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+- [ ] **기울기 누적·zero_grad** · 수준 ① · v1 판정 커버
+  - 왜 필요한가: 우리 코드는 autograd.grad라 누적 없음
+  - 영상
+    - [The spelled-out intro to neural networks and backpropagation: building micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) (앱에서 재생) · 5단계(26–29주)
+- [ ] **학습은 가중치를 바꾸고 추론은 안 바꿈** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 우리 NP는 새 측정을 맥락으로 받아 적응(AE:166-177)
+  - 영상
+    - [\[1hr Talk\] Intro to Large Language Models](https://www.youtube.com/watch?v=zjkBMFhNj_g) (앱에서 재생, 59:48) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Lilian Weng — Meta-Learning: Learning to Learn Fast](https://lilianweng.github.io/posts/2018-11-30-meta-learning/) (읽기) · 5C단계(34–37주)
+  - 직접 해 보기: 5단계(26–29주)의 과제 — 5단계 목표 문구(3-token attention 손계산, 자료 없음)
+- [ ] **초기화(Xavier/He)·대칭 깨기** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: fan-in이 초기화 범위를 정함(AE:130); 폭을 바꾸면 범위도 바뀜
+  - 영상
+    - [Weight Initialization in a Deep Network (C2W1L11)](https://www.youtube.com/watch?v=s2coXdufOzE) (앱에서 재생) · 5B단계(30–33주)
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **기울기 소실·폭발** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 초기화·정규화·잔차·클리핑의 존재 이유
+  - 영상
+    - [Vanishing/Exploding Gradients (C2W1L10)](https://www.youtube.com/watch?v=qhXZsFVxGKo) (앱에서 재생) · 5B단계(30–33주)
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+- [ ] **배치 정규화 vs 층 정규화** · 수준 ①(층), ③(배치 원리) · v1 판정 없음
+  - 왜 필요한가: 우리는 층 정규화만 사용; 배치 정규화의 원리는 쟁점(아래)
+  - 영상
+    - [Normalizing Activations in a Network (C2W3L04)](https://www.youtube.com/watch?v=tNIpEZLv_eg) (앱에서 재생) · 5B단계(30–33주)
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **잔차 연결** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 깊게 쌓아도 학습됨; shape이 같아야 함
+  - 영상
+    - [C4W2L03 Resnets](https://www.youtube.com/watch?v=ZILIbUvp5lk) (앱에서 재생) · 5B단계(30–33주)
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **드롭아웃·가중치 묶기** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 우리 코드에는 둘 다 없음
+  - 영상
+    - [Dropout Regularization (C2W1L06)](https://www.youtube.com/watch?v=D8PJAL-MZv8) (앱에서 재생) · 3B단계(18–21주)
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **평균+로그분산 출력층** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 우리 헤드(AE:96,141,183)
+  - 영상
+    - [Understanding Probabilistic Neural Networks: The Gaussian Output Layer (Theory and Implementation)](https://www.youtube.com/watch?v=lEcQtnflYDc) (앱에서 재생, 17:20) · 5D단계(38–41주) · **신규**
+  - 읽기·실습
+    - [Lakshminarayanan 외 — Deep Ensembles](https://arxiv.org/abs/1612.01474) (읽기) · 5D단계(38–41주)
+    - [Seitzer 외 — On the Pitfalls of Heteroscedastic Uncertainty Estimation](https://arxiv.org/abs/2203.09168) (읽기) · 5D단계(38–41주)
+- [ ] **마스크** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 세계마다 측정 수가 다름(AE:56, NE:74-75); 전부 가려진 행은 균등 평균이 됨(점검 거리)
+  - 영상
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **입력·목표 스케일링, 잔차 목표** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: NE:24-27, NE:16, AE:104,139,182
+  - 영상
+    - [Normalizing Inputs (C2W1L09)](https://www.youtube.com/watch?v=FDCfw-YqWTE) (앱에서 재생) · 3B단계(18–21주)
+- [ ] **학습되는 사전 토큰** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 측정이 없을 때의 기본 예측(AE:91,105-106)
+  - 영상
+    - [Perceiver: General Perception with Iterative Attention (Google DeepMind Research Paper Explained)](https://www.youtube.com/watch?v=P_xeshTnPZg) (앱에서 재생, 29:36) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Kim 외 — Attentive Neural Processes](https://arxiv.org/abs/1901.05761) (읽기) · 5C단계(34–37주)
+
+## 아키텍처: 구조에 어떤 가정을 넣나
+
+- [ ] **귀납 편향** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 모든 설계의 첫 질문; 작은 데이터에서는 크기보다 중요
+  - 영상
+    - [ICLR 2021 Keynote - "Geometric Deep Learning: The Erlangen Programme of ML" - M Bronstein](https://www.youtube.com/watch?v=w6Pw4MOzMuo) (앱에서 재생) · 7단계(46–49주)
+  - 읽기·실습
+    - [d2l 7.1 — From Fully Connected Layers to Convolutions](https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html) (읽기) · 5C단계(34–37주)
+- [ ] **불변 vs 등변** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: "중간 층은 등변, 마지막 읽기는 불변"; 우리 모델은 측정 순서를 바꿔도 출력 변화 3.9e-07
+  - 영상
+    - [ICLR 2021 Keynote - "Geometric Deep Learning: The Erlangen Programme of ML" - M Bronstein](https://www.youtube.com/watch?v=w6Pw4MOzMuo) (앱에서 재생) · 7단계(46–49주)
+- [ ] **순열 불변·Deep Sets** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: NP 맥락 인코더의 원형; 위치 정보를 넣으면 안 됨
+  - 영상
+    - [Theoretical Foundations of Graph Neural Networks](https://www.youtube.com/watch?v=uF53xsT7mjc) (앱에서 재생, 1:12:20) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Zaheer 외 — Deep Sets](https://arxiv.org/abs/1703.06114) (읽기) · 5C단계(34–37주)
+- [ ] **Q·K·V Attention** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: ANP에서 목표 x가 질의, 측정이 열쇠·값
+  - 영상
+    - [Attention in transformers, step-by-step | Deep Learning Chapter 6](https://www.youtube.com/watch?v=eMlx5fFNoYc) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [d2l 11.1 — Queries, Keys, and Values](https://d2l.ai/chapter_attention-mechanisms-and-transformers/queries-keys-values.html) (읽기) · 5C단계(34–37주)
+  - 직접 해 보기: 5단계(26–29주)의 과제 — 5단계 목표 문구(3-token attention 손계산, 자료 없음)
+- [ ] **자기 vs 교차 Attention, 멀티헤드** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 누가 누구를 보는지가 배선 결정
+  - 영상
+    - [Attention in transformers, step-by-step | Deep Learning Chapter 6](https://www.youtube.com/watch?v=eMlx5fFNoYc) (앱에서 재생) · 5C단계(34–37주)
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+- [ ] **위치 인코딩** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 시퀀스에는 필요, 집합에는 넣으면 안 됨
+  - 영상
+    - [Transformers, the tech behind LLMs | Deep Learning Chapter 5](https://www.youtube.com/watch?v=wjZofJX0v4M) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [d2l 11.7 — The Transformer Architecture](https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html) (읽기) · 5C단계(34–37주)
+- [ ] **Transformer 블록과 정규화 위치** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 사전 정규화(우리, nanoGPT) vs 사후 정규화(원 논문): 워밍업 필요 여부가 다름
+  - 영상
+    - [Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [d2l 11.7 — The Transformer Architecture](https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html) (읽기) · 5C단계(34–37주)
+    - [Xiong 외 — On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745) (읽기) · 5C단계(34–37주)
+- [ ] **가우스 과정 → NP → ANP → CNP·TNP·Set Transformer** · 수준 ① / ② · v1 판정 없음
+  - 왜 필요한가: 우리 핵심 모델과 비교 대상
+  - 영상
+    - [Marta Garnelo - Meta-Learning and Neural Processes](https://www.youtube.com/watch?v=q-4lo5luKgc) (앱에서 재생, 47:32) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Distill — A Visual Exploration of Gaussian Processes](https://distill.pub/2019/visual-exploration-gaussian-processes/) (읽기) · 5D단계(38–41주)
+    - [Garnelo 외 — Neural Processes](https://arxiv.org/abs/1807.01622) (읽기) · 5C단계(34–37주)
+    - [Kim 외 — Attentive Neural Processes](https://arxiv.org/abs/1901.05761) (읽기) · 5C단계(34–37주)
+- [ ] **VAE·ELBO·재매개변수화** · 수준 ③ · v1 판정 없음
+  - 왜 필요한가: 잠재 경로 NP 학습; 연구 수준
+  - 영상
+    - [Variational Autoencoders](https://www.youtube.com/watch?v=9zKuYvjFFS8) (앱에서 재생, 15:05) · 5C단계(34–37주) · **신규**
+  - 읽기·실습
+    - [Lilian Weng — From Autoencoder to Beta-VAE](https://lilianweng.github.io/posts/2018-08-12-vae/) (읽기) · 5C단계(34–37주)
+- [ ] **강화학습 기초·MDP** · 수준 ② · v1 판정 커버
+  - 왜 필요한가: 실험 선택은 의사결정 문제
+  - 영상
+    - [RL Course by David Silver - Lecture 1: Introduction to Reinforcement Learning](https://www.youtube.com/watch?v=2pWv7GOvuf0) (앱에서 재생) · 6단계(42–45주)
+    - [RL Course by David Silver - Lecture 2: Markov Decision Process](https://www.youtube.com/watch?v=lfHX2hHRMVQ) (앱에서 재생) · 6단계(42–45주)
+    - [RL Course by David Silver - Lecture 3: Planning by Dynamic Programming](https://www.youtube.com/watch?v=Nd1-UUMVfz4) (앱에서 재생) · 6단계(42–45주)
+  - 읽기·실습
+    - [Sutton·Barto — Reinforcement Learning: An Introduction (2판)](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf) (읽기) · 6단계(42–45주)
+- [ ] **Era of Experience** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 프로젝트의 방향(입장문이지 구조 명세 아님)
+  - 영상
+    - [Is human data enough? | David Silver](https://www.youtube.com/watch?v=zzXyPGEtseI) (앱에서 재생, 49:31) · 6단계(42–45주) · **신규**
+  - 읽기·실습
+    - [Silver·Sutton — Welcome to the Era of Experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf) (읽기) · 6단계(42–45주)
+- [ ] **월드 모델·모델 기반 계획** · 수준 ② · v1 판정 커버
+  - 왜 필요한가: 우리 NP는 "실험실의 월드 모델"; LeCun의 JEPA와 구분
+  - 영상
+    - [RL Course by David Silver - Lecture 8: Integrating Learning and Planning](https://www.youtube.com/watch?v=ItMutbeOHtc) (앱에서 재생) · 6단계(42–45주)
+- [ ] **설계 방법: 가설 → 부품 변경 → 절제 → 규모 확인** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: AI와 함께 쓰는 방법 그 자체
+  - 영상
+    - [Building makemore Part 3: Activations & Gradients, BatchNorm](https://www.youtube.com/watch?v=P6sfmUTpUmc) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [Lipton·Steinhardt — Troubling Trends in ML Scholarship](https://arxiv.org/abs/1807.03341) (읽기) · 3B단계(18–21주)
+- [ ] **버킹엄 π·기호 회귀·신경-기호 혼합·PINN** · 수준 ① / ② · v1 판정 일부
+  - 왜 필요한가: 이 프로젝트의 기호 쪽
+  - 영상
+    - [Miles Cranmer - The Next Great Scientific Theory is Hiding Inside a Neural Network (April 3, 2024)](https://www.youtube.com/watch?v=fk2r8y5TfNY) (앱에서 재생) · 7단계(46–49주)
+  - 읽기·실습
+    - [AI Feynman — 방법 부분](https://arxiv.org/abs/1905.11481) (읽기) · 7단계(46–49주)
+    - [Cranmer — PySR: Interpretable Machine Learning for Science](https://arxiv.org/abs/2305.01582) (읽기) · 7단계(46–49주)
+- [ ] **Bitter Lesson vs 대칭 내장** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 쟁점(아래): (a) 데이터 형식의 대칭과 (b) 답에 대한 지식을 나눠 판단
+  - 영상
+    - [ICLR 2021 Keynote - "Geometric Deep Learning: The Erlangen Programme of ML" - M Bronstein](https://www.youtube.com/watch?v=w6Pw4MOzMuo) (앱에서 재생) · 7단계(46–49주)
+  - 읽기·실습
+    - [Sutton — The Bitter Lesson (PDF 사본)](https://www.cs.utexas.edu/~eunsol/courses/data/bitter_lesson.pdf) (읽기) · 6단계(42–45주)
+- [ ] **곁가지: CNN·풀링, RNN·LSTM, 인코더-디코더** · 수준 ② · v1 판정 없음
+  - 왜 필요한가: 우리 코드엔 없음. RNN은 Attention의 필수 선수가 아님(Karpathy는 RNN 없이 GPT로 감)
+  - 영상
+    - [Building makemore Part 5: Building a WaveNet](https://www.youtube.com/watch?v=t3YJ5hKiMQ0) (앱에서 재생) · 5C단계(34–37주)
+  - 읽기·실습
+    - [d2l 7.1 — From Fully Connected Layers to Convolutions](https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html) (읽기) · 5C단계(34–37주)
+- [ ] **알아만 두기: GNN, MoE, 확산 모델, NAS, 토큰화·사전학습·RLHF, 스케일링 법칙** · 수준 ③ · v1 판정 일부
+  - 왜 필요한가: 우리 코드에 대응 부품 없음
+  - 영상
+    - [\[1hr Talk\] Intro to Large Language Models](https://www.youtube.com/watch?v=zjkBMFhNj_g) (앱에서 재생, 59:48) · 5C단계(34–37주) · **신규**
+    - [A Visual Guide to Mixture of Experts (MoE) in LLMs](https://www.youtube.com/watch?v=sOPDGQjFcuM) (앱에서 재생, 19:44) · 5C단계(34–37주) · **신규**
+    - [But how do AI images and videos actually work? | Guest video by Welch Labs](https://www.youtube.com/watch?v=iv-5mZ_9CPY) (앱에서 재생, 37:20) · 5C단계(34–37주) · **신규**
+  - Stanford CS229 LLM 구간(외부 링크) · 5단계(26–29주): [1](https://www.youtube.com/watch?v=9vM4p9NN0Ts) [2](https://www.youtube.com/watch?v=9vM4p9NN0Ts)
+  - 읽기·실습
+    - [Kaplan 외 — Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (읽기) · 5C단계(34–37주)
+
+## 실무: 학습이 망가졌을 때와 공정한 비교
+
+- [ ] **Karpathy 레시피** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 시드 고정 → 단순화 → 초기 손실값 확인 → 기준선 → 작은 배치 하나 외우기 → 손실 감소 확인 → 한 번에 하나만 복잡하게
+  - 영상
+    - [Lecture 7: Troubleshooting Deep Neural Networks (Full Stack Deep Learning - Spring 2021)](https://www.youtube.com/watch?v=f1JRFu7X-c8) (앱에서 재생, 1:07:27) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [Karpathy — A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) (읽기) · 5B단계(30–33주)
+- [ ] **손실이 안 줄 때 사다리** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 초기 손실, 학습률, 기울기 비우기·갱신 순서, 기울기가 None/0인지, 데이터·레이블, 모드
+  - 영상
+    - [Lecture 7: Troubleshooting Deep Neural Networks (Full Stack Deep Learning - Spring 2021)](https://www.youtube.com/watch?v=f1JRFu7X-c8) (앱에서 재생, 1:07:27) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [Karpathy — A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) (읽기) · 5B단계(30–33주)
+    - [Google Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) (읽기) · 3B단계(18–21주)
+- [ ] **NaN·폭발** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 너무 큰 보폭, log(0), 0으로 나눔, fp16 넘침 → 기울기 노름 기록, 이상 탐지, 클리핑, 워밍업
+  - 영상
+    - [Vanishing/Exploding Gradients (C2W1L10)](https://www.youtube.com/watch?v=qhXZsFVxGKo) (앱에서 재생) · 5B단계(30–33주)
+  - 읽기·실습
+    - [Google Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) (읽기) · 3B단계(18–21주)
+- [ ] **우리 코드에서 "작은 배치 외우기"** · 수준 ① · v1 판정 없음
+  - 왜 필요한가: 매 스텝 새 세계를 뽑으므로 고정 배치를 따로 만들어야 함
+  - 영상
+    - [Lecture 7: Troubleshooting Deep Neural Networks (Full Stack Deep Learning - Spring 2021)](https://www.youtube.com/watch?v=f1JRFu7X-c8) (앱에서 재생, 1:07:27) · 5B단계(30–33주) · **신규**
+  - 읽기·실습
+    - [Karpathy — A Recipe for Training Neural Networks](https://karpathy.github.io/2019/04/25/recipe/) (읽기) · 5B단계(30–33주)
+- [ ] **공정한 비교** · 수준 ① · v1 판정 일부
+  - 왜 필요한가: 같은 데이터·예산·튜닝·시드 여러 개, 검증에서 결정, 시험은 한 번
+  - 영상
+    - [Troubling Trends in ML Scholarship - Zachary Lipton](https://www.youtube.com/watch?v=A2Jtqi_oa2Y) (앱에서 재생, 40:03) · 3B단계(18–21주) · **신규**
+  - 8단계 Glorious 문서 · 8단계(50–53주): [1](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md) [2](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md) [3](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md) [4](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md) [5](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md) [6](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md) [7](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md)
+  - 읽기·실습
+    - [Lipton·Steinhardt — Troubling Trends in ML Scholarship](https://arxiv.org/abs/1807.03341) (읽기) · 3B단계(18–21주)
+    - [Google Deep Learning Tuning Playbook](https://github.com/google-research/tuning_playbook) (읽기) · 3B단계(18–21주)
+  - 직접 해 보기: 3단계(14–17주)의 과제 — 3단계 실습(세계 단위 분할·seed 변동)
+
+## 확인 범위
+
+- 개념 이름·"왜 필요한가"·수준은 [개념 지도](CONCEPT_MAP.md)의 R-019 원문 표에서 그대로 가져왔다.
+- 개념별 자료는 R-020 3절 표(로드맵 v1 기준 판정과 보충 링크)와 로드맵 버전 3의 신규 영상 `concepts` 표시로 연결했다. 제목·과제 문구 기준의 대응이며 영상 내용 대조가 아니다.
+- 길이는 신규 영상만 2026-11-18 YouTube 검색 결과에서 기록했다. 다른 자료의 길이는 앱에서 처음 열 때 확인된다.
