@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {makeAnchor,anchorState,markdownEscape,recordMarkdown,PROGRESS,HELP,nextResource,firstLecture,dueRecords,validateRecord,FIRST_TWO_WEEKS,apiErrorMessage} from '../src/learning-model.mjs';
 import {browserKey,captureBrowser,parseBackup} from '../src/learning-backup-ui.mjs';
-import {recordInput,LearningUI} from '../src/learning-ui.mjs';
+import {recordInput,LearningUI,returnFocusTarget} from '../src/learning-ui.mjs';
 import {LearningEditor} from '../src/learning-editor.mjs';
 const cue={start:10,end:20,en:'A source <script>text</script>'};
 const lecture={number:1,alignmentRevision:'r1',cues:[cue]};
@@ -143,4 +143,13 @@ test('question auto-pause is on by default, can be turned off, and survives unre
 test('records and the editor name a lecture by its roadmap title, not by an internal id',()=>{
   const ui=Object.create(LearningUI.prototype);ui.roadmap={phases:[{resources:[{id:'video-x',lectureId:'yt_VMj-3S1tku0',title:'micrograd'}]}]};ui.capture=()=>({lectureId:'yt_other0000',title:'내가 가져온 강의'});
   assert.equal(ui.lectureName('yt_VMj-3S1tku0'),'micrograd');assert.equal(ui.lectureName('yt_other0000'),'내가 가져온 강의');assert.equal(ui.lectureName('9'),'강의 9');
+});
+
+test('closing the learning dialog returns focus to the re-rendered control that opened it',()=>{
+  const fresh={textContent:'전체 로드맵'},other={textContent:'복습할 기록 0개'},root={querySelectorAll:()=>[other,fresh]};
+  const live={isConnected:true};
+  assert.equal(returnFocusTarget({opener:live,label:'x',root}),live);
+  assert.equal(returnFocusTarget({opener:{isConnected:false},label:'전체 로드맵',root}),fresh);
+  assert.equal(returnFocusTarget({opener:{isConnected:false},label:'없는 버튼',root}),null);
+  assert.equal(returnFocusTarget({opener:null,label:undefined,root:null}),null);
 });

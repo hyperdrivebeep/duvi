@@ -1,7 +1,18 @@
+/** Typing a note beside the video must not pop the toolbar over the video on every keystroke. */
+export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true]');}
 export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
+  const captionRows=[...stage.querySelectorAll('.captions .caption-row')];
+  // Docked captions keep the tallest height seen in the current layout, so the video does not jump between sentences.
+  function holdCaptions(){
+    if(!entered||stage.dataset.captionPlacement!=='dock')return;
+    for(const row of captionRows){const height=row.getBoundingClientRect().height;if(height>parseFloat(row.style.minHeight||'0'))row.style.minHeight=`${height}px`;}
+  }
+  function resetCaptions(){for(const row of captionRows)row.style.minHeight='';requestAnimationFrame(holdCaptions);}
+  new MutationObserver(holdCaptions).observe(stage.querySelector('.captions'),{childList:true,characterData:true,subtree:true});
+  addEventListener('resize',resetCaptions);
   function isolate(active){
     if(active){
       for(let branch=stage;branch.parentElement;branch=branch.parentElement){
@@ -32,6 +43,7 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
     $('fullscreen').setAttribute('aria-label',active?'전체화면 종료':'자막 포함 전체화면');
     if(active){stage.focus({preventScroll:true});showControls();}
     else{clearTimeout(hideTimer);stage.classList.remove('controls-hidden');opener.focus({preventScroll:true});}
+    resetCaptions();
   }
   async function exit(){
     if(document.fullscreenElement===stage)await document.exitFullscreen();
@@ -52,7 +64,7 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
   });
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&entered&&!document.fullscreenElement){event.preventDefault();exit();}
-    if(entered)showControls();
+    if(entered&&revealsControls(event))showControls();
   });
   stage.addEventListener('pointermove',showControls,{passive:true});
   stage.addEventListener('pointerdown',showControls,{passive:true});
@@ -62,14 +74,14 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
   $('showStudyControls').onclick=()=>{showControls();$('captionPlacement').focus();};
   const size=stored('duvi-fullscreen-caption-size',22);
   $('captionSize').value=String([18,22,26,30].includes(size)?size:22);
-  const updateSize=()=>{stage.style.setProperty('--fullscreen-caption-size',$('captionSize').value+'px');persist('duvi-fullscreen-caption-size',Number($('captionSize').value));};
+  const updateSize=()=>{stage.style.setProperty('--fullscreen-caption-size',$('captionSize').value+'px');persist('duvi-fullscreen-caption-size',Number($('captionSize').value));resetCaptions();};
   $('captionSize').onchange=updateSize;updateSize();
   const placement=stored('duvi-caption-placement','dock');
   $('captionPlacement').value=['dock','bottom','top'].includes(placement)?placement:'dock';
-  const updatePlacement=()=>{stage.dataset.captionPlacement=$('captionPlacement').value;persist('duvi-caption-placement',$('captionPlacement').value);};
+  const updatePlacement=()=>{stage.dataset.captionPlacement=$('captionPlacement').value;persist('duvi-caption-placement',$('captionPlacement').value);resetCaptions();};
   $('captionPlacement').onchange=updatePlacement;updatePlacement();
   function transcript(open){
-    $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);
+    $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);resetCaptions();
     for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded',String(open));
     if(open)selectTab('transcript');
   }
@@ -80,7 +92,7 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
     if(name==='question')onQuestionOpen();
     if(name==='learning')onLearningOpen();
   }
-  function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
+  function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');resetCaptions();for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
   const tabs=[...document.querySelectorAll('[data-stage-tab]')];
   tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab);tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab);tabs[target].focus();}};});
   $('openQuestion').onclick=()=>openPanel('question');

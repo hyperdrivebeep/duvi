@@ -6,6 +6,11 @@ import {renderRecords} from './learning-records-view.mjs';
 import {LearningBackupUI} from './learning-backup-ui.mjs';
 import {LearningSyncUI} from './learning-sync-ui.mjs';
 export function recordInput(record){return Object.fromEntries(['id','resourceId','lectureId',...RECORD_FIELDS,'help','anchor','reviewDueAt'].filter(key=>record[key]!==undefined).map(key=>[key,record[key]]));}
+/** The panel re-renders while the dialog loads, so fall back to the re-created control with the same label. */
+export function returnFocusTarget({opener,label,root}){
+  if(opener?.isConnected)return opener;
+  return label&&root?[...root.querySelectorAll('button,a,summary')].find(node=>node.textContent===label)||null:null;
+}
 export class LearningUI{
   constructor({api,capture,onOpen,onJump,onPrepare,onRestorePositions=()=>{},onStateChange=()=>{},getModel,openPanel,closeLibrary}){
     Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,onStateChange,getModel,openPanel,closeLibrary});this.state={revision:0,records:[],progress:{}};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
@@ -13,7 +18,7 @@ export class LearningUI{
     this.editor=new LearningEditor(document.getElementById('learningQuestion'),{capture:()=>this.context(),onSave:record=>this.saveRecord(record),onJump,onTutor:body=>this.api('/api/learning/tutor',{...body,model:this.getModel()}),onConflict:async()=>{await this.refresh();return this.state.records.find(r=>r.id===this.editor.record?.id);},lectureName:id=>this.lectureName(id)});
     this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
     document.getElementById('openLearning').onclick=()=>this.open('roadmap');document.getElementById('openLearningMobile').onclick=()=>this.open('roadmap');
-    document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{if(this.opener?.isConnected)this.opener.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
+    document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{returnFocusTarget({opener:this.opener,label:this.openerLabel,root:document.getElementById(this.openerRootId)})?.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
     this.completeButton=button('강의 완료',()=>{const current=this.capture();if(current)void this.complete(lectureResource(this.roadmap,current.lectureId,current.title)).catch(()=>{});},'learning-complete');this.completeButton.id='completeLecture';document.getElementById('openQuestion').before(this.completeButton);
     this.completionNotice=el('span','learning-completion-notice');this.completionNotice.setAttribute('role','status');this.completeButton.after(this.completionNotice);
     this.resume=el('div','learning-resume');document.getElementById('openLearning').after(this.resume);
@@ -27,7 +32,7 @@ export class LearningUI{
   async openPhase(id){await this.open('roadmap');const section=[...this.content.querySelectorAll('[data-phase-id]')].find(node=>node.dataset.phaseId===id);if(section){section.open=true;section.querySelector('summary').focus();section.scrollIntoView({block:'start'});}}
   async init(){try{await this.refresh();}catch(error){this.panelNotice.textContent=error.message;}}
   async open(view='roadmap'){
-    this.opener=document.activeElement;this.closeLibrary();const stage=document.getElementById('stage');if(stage.classList.contains('study-focus')){stage.append(this.dialog);this.dialog.inert=false;}if(!this.dialog.open)this.dialog.showModal();this.view=view;this.content.replaceChildren(el('p','muted','학습 기록을 불러오는 중…'));this.notice.textContent='';
+    this.opener=document.activeElement;this.openerLabel=this.opener?.textContent;this.openerRootId=this.opener?.parentElement?.closest('[id]')?.id;this.closeLibrary();const stage=document.getElementById('stage');if(stage.classList.contains('study-focus')){stage.append(this.dialog);this.dialog.inert=false;}if(!this.dialog.open)this.dialog.showModal();this.view=view;this.content.replaceChildren(el('p','muted','학습 기록을 불러오는 중…'));this.notice.textContent='';
     try{await this.refresh();this.select(view);}catch(error){this.notice.textContent=error.message;this.content.replaceChildren(button('다시 불러오기',()=>this.open(view)));}
   }
   select(view){if(!this.loaded)return;this.view=view;this.notice.textContent='';this.updateRoadmap=null;for(const tab of this.nav.children)tab.setAttribute('aria-pressed',String(tab.dataset.learningView===view));this.content.replaceChildren();

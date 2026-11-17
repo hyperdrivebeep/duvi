@@ -100,3 +100,10 @@ Local-only evidence (excluded from Git): design-qa.md; qa/desktop-final.png; qa/
 - Chrome measured 66px rows / 33px line-height at 22px, and 90px / 45px at 30px.
   At 375x812 both language rows remain 66px apart from the 12px gutter.
 - Production build passed; no translation data or playback code changed.
+
+## True browser fullscreen QA — 2026-11-18
+
+- Headed Chrome with a temporary profile; the app's fullscreen button was clicked with a CDP mouse event and `document.fullscreenElement` became `#stage`. The Windows session was disconnected (no foreground window), so the browser window's own fullscreen state was set through CDP after the page request was granted. Native viewport 1536x864 (1920x1080 at 125%); 1280x720 and 1920x1080 were emulated inside that fullscreen state.
+- Observed: YouTube playback, auto-hide with top-edge, caption-area and keyboard reveal, question panel auto-pause with video and captions visible, own-explanation field, transcript seek while playing, arrow/Tab navigation, learning dialog (roadmap, records, review, backup/sync) inside fullscreen, exit via the app button and via `document.exitFullscreen()` keeping time and drafts, re-entry restoring the panel.
+- Fixed: docked captions resized the video on every sentence (now they reserve two lines and hold the tallest height seen per layout); 4-line captions at the largest size were clipped (rows now grow, dock capped at 65dvh); every keystroke in a note field re-showed the toolbar over the video; closing the learning dialog dropped focus to the page because the opener was re-rendered.
+- Korean caption text was a labelled synthetic fixture (no ChatGPT account in the isolated state). A physical Esc key press in a connected desktop session was not exercised.

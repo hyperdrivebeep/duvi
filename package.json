@@ -11,7 +11,7 @@
     "setup": "node scripts/setup.mjs",
     "prepare:learning": "node scripts/prepare-learning.mjs",
     "start": "node server.mjs",
-    "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/sentences.test.mjs \"backend/tests/learning*.test.mjs\" tests/library-ui.test.mjs \"tests/learning-ui*.test.mjs\" tests/media.test.mjs tests/study-guide.test.mjs tests/sites-worker.test.mjs",
+    "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/sentences.test.mjs \"backend/tests/learning*.test.mjs\" tests/library-ui.test.mjs \"tests/learning-ui*.test.mjs\" tests/media.test.mjs tests/study-guide.test.mjs tests/study-view.test.mjs tests/sites-worker.test.mjs",
     "pretest": "vite build && node scripts/prepare-sites-build.mjs",
     "docs:study-guide": "node scripts/study-guide.mjs"
   },

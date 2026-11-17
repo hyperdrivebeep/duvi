@@ -19,6 +19,9 @@
 /* Three lines fit about 99% of aligned lecture sentences even beside the question panel; two lines clipped most of them. */
 .study-focus .caption-row{scrollbar-gutter:auto;font-size:var(--fullscreen-caption-size,22px);line-height:1.5;max-height:4.5em;scroll-padding-block:0}
 .study-focus .caption-row+.caption-row{border:0;margin:0;padding:0}
+/* Docked captions reserve two lines (study-view.mjs then holds the tallest height seen) and grow instead of hiding a long sentence's last line. */
+.study-focus[data-caption-placement=dock] .caption-row{min-height:3em;max-height:none}
+.study-focus[data-caption-placement=dock]>.captions{max-height:65dvh;overflow:auto}
 .study-focus .english,.study-focus .korean{font-size:var(--fullscreen-caption-size,22px);line-height:1.5;letter-spacing:0;overflow-wrap:anywhere}
 .study-focus .english{color:#dce3ee}
 .study-focus .korean{color:#fff}
