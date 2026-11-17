@@ -37,7 +37,7 @@
 
 사용자가 강의를 이해하고, 그 설명의 관측·선택·변수·가정을 확인한 뒤,
 대안과 판별 실험을 제안하고 자신의 생각을 수정하는 능력을 키운다.
-[Glorious 북극성](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/00_DIRECTION/NORTH_STAR.md)을 지원한다.
+[Glorious 북극성](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/00_DIRECTION/NORTH_STAR.md)을 지원한다.
 
 폴더/재생목록/문장별 반복/영한 정렬 자막/집중 보기를 바탕으로 학습 기능을 확장한다.
 완강이나 AI의 긍정 판정을 과학적 이해와 동일하게 취급하지 않는다.
@@ -48,7 +48,7 @@
 첫 본강의는 Duvi “MIT Python 기초”의 Lecture 1. 그다음 Lecture 2, 3 순서.
 Stanford CS229 LLM 영상은 도입8분만 개관용으로 먼저 볼 수 있다.
 세부 강의 순서·첫2주·53주 편성·연장/통과 기준은
-[강의별 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)에 둔다.
+[강의별 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)에 둔다.
 앱의 `src/learning-roadmap.mjs`는 해당 정본의 URL/commit/확인일을 명시한 스냅샷이다.
 독립적인 새 일정을 만들지 않으며 정본 변경 시 출처 버전과 내용을 함께 갱신한다.
 확인 방식의 한계도 표시한다. 링크/제목 확인은 전체 영상 시청·자막 대조를 의미하지 않는다.
