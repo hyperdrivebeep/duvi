@@ -10,6 +10,8 @@
 
 버전 2(2026-11-17)는 Glorious Purpose의 [R-020 커리큘럼 대조](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/CURRICULUM_COVERAGE.md)에서 빠진 것으로 확인된 개념(편미분·행렬·우도, 학습 실무, 신경망 부품, Attention·Transformer·Neural Process, 불확실성·모델 비교)을 메우려고 2B·3B·5B·5C·5D 단계를 끼워 넣었습니다. 기존 1~8단계의 내용·순서·폴더는 그대로이고 주차만 뒤로 밀렸습니다.
 
+함께 보는 문서: 개념 하나하나의 뜻과 선수 개념은 [딥러닝 개념 지도](CONCEPT_MAP.md), 버전 2가 R-020의 빈 개념을 얼마나 채웠고 무엇이 남았는지는 [커리큘럼 재평가](CURRICULUM_EVALUATION.md)에 있습니다.
+
 ### 연결된 자료 수
 
 - 강의·영상 항목 99개 (같은 Stanford 강의의 서로 다른 구간은 별도 학습 항목으로 셈)
