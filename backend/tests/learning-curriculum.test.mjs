@@ -31,11 +31,14 @@ async function fixture(t) {
   return {root, library: new LectureLibrary({root, fetcher: denyNetwork, metadata: denyNetwork, playlistMetadata: denyNetwork})};
 }
 
-test('roadmap has eight ordered phases, numeric MIT entry point and prerequisite bridge', () => {
-  assert.deepEqual(ROADMAP.phases.map(p => p.id), Array.from({length: 8}, (_, i) => `learning-phase-${i + 1}`));
-  assert.deepEqual(ROADMAP.phases.map(p => p.weeks), ['1–5주', '6–9주', '10–13주', '14–17주', '18–21주', '22–25주', '26–29주', '30–33주']);
+const phaseIds = ['1', '2', '2b', '3', '3b', '4', '5', '5b', '5c', '5d', '6', '7', '8'].map(n => `learning-phase-${n}`);
+const phase5 = phaseIds.indexOf('learning-phase-5');
+
+test('roadmap keeps the original eight phase ids in order with five inserted phases, numeric MIT entry point and prerequisite bridge', () => {
+  assert.deepEqual(ROADMAP.phases.map(p => p.id), phaseIds);
+  assert.deepEqual(ROADMAP.phases.map(p => p.weeks), ['1–5주', '6–9주', '10–13주', '14–17주', '18–21주', '22–25주', '26–29주', '30–33주', '34–37주', '38–41주', '42–45주', '46–49주', '50–53주']);
   assert.deepEqual(ROADMAP.phases[0].resources.filter(r => r.lectureId).map(r => r.lectureId), mitKeys.slice(0, 14));
-  assert.deepEqual(ROADMAP.phases[4].resources.slice(0, 4).map(r => r.id), ['mit-17', 'mit-18', 'pytorch-tensors', 'video-VMj-3S1tku0']);
+  assert.deepEqual(ROADMAP.phases[phase5].resources.slice(0, 4).map(r => r.id), ['mit-17', 'mit-18', 'pytorch-tensors', 'video-VMj-3S1tku0']);
   assert.deepEqual(ROADMAP.firstTwoWeeks.sessions.map(item => item.session), Array.from({length: 10}, (_, i) => i + 1));
   const resources = ROADMAP.phases.flatMap(p => p.resources);
   assert.equal(new Set(resources.map(r => r.id)).size, resources.length);
@@ -55,9 +58,9 @@ test('preparation attaches ordered lessons without network and retains all 26 MI
   assert.equal(result.firstLectureId, '1');
   assert.equal(result.added, videoKeys.length);
   assert.equal(result.reused, 16);
-  assert.equal(result.folders.length, 8);
+  assert.equal(result.folders.length, phaseIds.length);
   assert.deepEqual(result.folders[0].lectureIds, mitKeys.slice(0, 14));
-  assert.deepEqual(result.folders[4].lectureIds, ['17', '18', 'yt_VMj-3S1tku0', 'yt_PaCmpygFfXo']);
+  assert.deepEqual(result.folders[phase5].lectureIds, ['17', '18', 'yt_VMj-3S1tku0', 'yt_PaCmpygFfXo']);
   assert.deepEqual((await library.folders.list()).folders[0].lectureIds, mitKeys);
   assert.deepEqual(await Promise.all(mitKeys.map(key => readFile(path.join(root, `data/${key}.json`), 'utf8'))), before);
   assert.equal((await library.list()).length, 26 + videoKeys.length);
@@ -113,7 +116,7 @@ test('simultaneous preparations and folder edits share serialization without dup
   const [a, b, user] = await Promise.all([prepareRoadmap(library), prepareRoadmap(library), library.folders.create('Concurrent user folder')]);
   assert.equal(a.added + b.added, videoKeys.length);
   const state = await library.folders.list();
-  assert.equal(state.folders.filter(f => f.id.startsWith('learning-phase-')).length, 8);
+  assert.equal(state.folders.filter(f => f.id.startsWith('learning-phase-')).length, phaseIds.length);
   assert.ok(state.folders.some(f => f.id === user.id));
   for (const phase of state.folders) assert.equal(new Set(phase.lectureIds).size, phase.lectureIds.length);
   assert.equal((await library.list()).length, 26 + videoKeys.length);

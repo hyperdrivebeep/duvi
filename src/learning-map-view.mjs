@@ -10,7 +10,7 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
     else hero.append(el('h3','','계획한 자료를 모두 완료했습니다'),el('p','muted','내 기록과 복습에서 새 문제에 다시 적용해 보세요. 완료 표시는 숙달 판정이 아닙니다.'));
     hero.append(button('강의 폴더 준비',onPrepare));
   });
-  const purpose=el('details','learning-phase');purpose.append(el('summary','','왜 이 순서로 배우나요? · Glorious Purpose'),el('p','learning-preserve','북극성은 인간의 삶을 바꿀 과학의 발전을 만드는 에이전트입니다. 지금 가진 데이터가 선택·측정·해석 과정에서 무엇을 놓치는지 묻고, 대안들을 구별할 증거를 만드는 연습부터 시작합니다. Python은 그 질문을 작은 실험으로 바꾸는 첫 도구입니다.'),el('p','learning-preserve','질문 → 내 설명 → 관측과 가정 구분 → 대안·판별 실험 → 결과에 따른 설명 수정. 처음에는 질문 한 줄이면 충분합니다.'),el('p','muted','8단계 순서: Python → 수학 → 머신러닝 검증 → 인과·불확실성 → 신경망·LLM → 강화학습·탐색 → 역학·기호 회귀 → 네 조건 비교 실습.'));
+  const purpose=el('details','learning-phase');purpose.append(el('summary','','왜 이 순서로 배우나요? · Glorious Purpose'),el('p','learning-preserve','북극성은 인간의 삶을 바꿀 과학의 발전을 만드는 에이전트입니다. 지금 가진 데이터가 선택·측정·해석 과정에서 무엇을 놓치는지 묻고, 대안들을 구별할 증거를 만드는 연습부터 시작합니다. Python은 그 질문을 작은 실험으로 바꾸는 첫 도구입니다.'),el('p','learning-preserve','질문 → 내 설명 → 관측과 가정 구분 → 대안·판별 실험 → 결과에 따른 설명 수정. 처음에는 질문 한 줄이면 충분합니다.'),el('p','muted','13단계 순서: Python → 수학 → 수학 보강 → 머신러닝 검증 → 학습 실무 → 인과·불확실성 → 신경망·LLM → 신경망 부품 → Attention·Transformer → 불확실성·모델 비교 → 강화학습·탐색 → 역학·기호 회귀 → 네 조건 비교 실습.'));
   const progressHelp=el('p','muted','진행률은 완료 표시한 자료 수입니다. 영상·읽기·실습을 모두 포함하며, 시청 시간이나 이해도를 뜻하지 않습니다. 완료는 ');progressHelp.append(el('span','learning-keep-phrase','취소할 수 있습니다.'));
   root.append(purpose,progressHelp);
   const source=roadmap.source,sourceLine=el('div','learning-source');

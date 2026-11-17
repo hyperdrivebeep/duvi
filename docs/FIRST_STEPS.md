@@ -2,11 +2,11 @@
 
 첫 본강의는 **MIT Python Lecture 1 → 2 → 3**이다. 1~14강을 먼저 배우고, 신경망 단계에서 17/18강을 거친 뒤 micrograd로 간다. 이미 있는 MIT 26개 강의를 다시 가져오지 않는다.
 
-일정의 정본은 [33주 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)이다. 앱 지도는 이 버전의 실행용 요약이며 별도 일정의 정본이 아니다. 주 10~12시간의 초기 편성이고 수행에 따라 연장한다.
+일정의 정본은 [53주 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)이다. 앱 지도는 이 버전의 실행용 요약이며 별도 일정의 정본이 아니다. 주 10~12시간의 초기 편성이고 수행에 따라 연장한다.
 
 ## 강의 준비
 
-학습 지도의 준비 동작은 기존 MIT 데이터를 재사용하고, 검증된 YouTube 강의의 제목·채널·주소만 등록한다. 폴더는 `learning-phase-1`부터 `learning-phase-8`까지다. 기존 폴더·강의·자막·번역·기록을 유지하고 같은 준비를 반복해도 강의를 중복 생성하지 않는다. 단계 안에서는 지정 강의가 먼저, 사용자가 추가한 강의가 뒤에 온다. 사용자가 바꾼 폴더 이름도 유지한다.
+학습 지도의 준비 동작은 기존 MIT 데이터를 재사용하고, 검증된 YouTube 강의의 제목·채널·주소만 등록한다. 폴더는 기존 `learning-phase-1`~`learning-phase-8`에 버전 2의 `learning-phase-2b`·`3b`·`5b`·`5c`·`5d`를 더한 13개다. 기존 폴더 ID는 바뀌지 않는다. 기존 폴더·강의·자막·번역·기록을 유지하고 같은 준비를 반복해도 강의를 중복 생성하지 않는다. 단계 안에서는 지정 강의가 먼저, 사용자가 추가한 강의가 뒤에 온다. 사용자가 바꾼 폴더 이름도 유지한다.
 
 관리용 CLI는 저장소 루트에서 실행한다. 서버가 같은 저장소를 수정하지 않는 상태에서 사용한다. API 경로는 서버가 사용하는 동일 `LectureLibrary` 인스턴스를 전달해야 동시 쓰기가 직렬화된다.
 

@@ -1,19 +1,21 @@
 # 학습 커리큘럼과 강의·자료 목록
 
-> Duvi 학습 로드맵 버전 1을 읽기 편하게 펼쳐 쓴 문서입니다. 단계 순서·영상·자료의 정본은 [앱의 학습 로드맵 소스](../src/learning-roadmap.mjs)와 [Glorious Purpose 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)입니다. 앱 정본 버전: `15e84dd2a58aebb67f0f2f0de4d648806525c805` (확인 기록 2026-11-16). 이 문서는 학습 기록이나 개인 완료 상태를 담지 않습니다.
+> Duvi 학습 로드맵 버전 2을 읽기 편하게 펼쳐 쓴 문서입니다. 단계 순서·영상·자료의 정본은 [앱의 학습 로드맵 소스](../src/learning-roadmap.mjs)와 [Glorious Purpose 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)입니다. 앱 정본 버전: `66dd0a5fe640849cdbecbe273fba95adbafb9edb` (확인 기록 2026-11-17). 이 문서는 학습 기록이나 개인 완료 상태를 담지 않습니다.
 
 ## 이 순서로 배우는 이유
 
-북극성은 [인간의 삶을 바꿀 과학의 발전을 만드는 에이전트](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/00_DIRECTION/NORTH_STAR.md)입니다. 데이터가 충분해 보여도 어떤 대상을 모았는지, 무엇을 측정했고, 어떤 표현과 가정으로 해석했는지에 따라 결론이 달라질 수 있다는 질문에서 출발합니다. 그래서 먼저 직접 작은 데이터를 만들고 계산하는 힘을 익힌 다음, 증거의 불확실성·예측 검증·인과 식별·모델 구조·탐색 정책을 차례로 배웁니다. 마지막에는 기존 설명을 유지할지, 자료를 재분석할지, 새로 측정할지, 아직 판단을 보류할지를 실제 문제에 적용합니다.
+북극성은 [인간의 삶을 바꿀 과학의 발전을 만드는 에이전트](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/00_DIRECTION/NORTH_STAR.md)입니다. 데이터가 충분해 보여도 어떤 대상을 모았는지, 무엇을 측정했고, 어떤 표현과 가정으로 해석했는지에 따라 결론이 달라질 수 있다는 질문에서 출발합니다. 그래서 먼저 직접 작은 데이터를 만들고 계산하는 힘을 익힌 다음, 증거의 불확실성·예측 검증·인과 식별·모델 구조·탐색 정책을 차례로 배웁니다. 마지막에는 기존 설명을 유지할지, 자료를 재분석할지, 새로 측정할지, 아직 판단을 보류할지를 실제 문제에 적용합니다.
 
-전체 일정은 초안 1–5주 → 6–9주 → 10–13주 → 14–17주 → 18–21주 → 22–25주 → 26–29주 → 30–33주입니다. 이는 고정된 졸업 기한이 아닙니다. 선수 지식과 직접 수행 여부에 따라 단계를 연장합니다. 영상 시청률·자기 완료 표시·AI의 칭찬으로 이해나 과학적 발견을 인증하지 않습니다.
+전체 일정은 초안 1–5주 → 6–9주 → 10–13주 → 14–17주 → 18–21주 → 22–25주 → 26–29주 → 30–33주 → 34–37주 → 38–41주 → 42–45주 → 46–49주 → 50–53주입니다. 이는 고정된 졸업 기한이 아닙니다. 선수 지식과 직접 수행 여부에 따라 단계를 연장합니다. 영상 시청률·자기 완료 표시·AI의 칭찬으로 이해나 과학적 발견을 인증하지 않습니다.
+
+버전 2(2026-11-17)는 Glorious Purpose의 [R-020 커리큘럼 대조](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/CURRICULUM_COVERAGE.md)에서 빠진 것으로 확인된 개념(편미분·행렬·우도, 학습 실무, 신경망 부품, Attention·Transformer·Neural Process, 불확실성·모델 비교)을 메우려고 2B·3B·5B·5C·5D 단계를 끼워 넣었습니다. 기존 1~8단계의 내용·순서·폴더는 그대로이고 주차만 뒤로 밀렸습니다.
 
 ### 연결된 자료 수
 
-- 강의·영상 항목 42개 (같은 Stanford 강의의 서로 다른 구간은 별도 학습 항목으로 셈)
-- 읽기 자료 23개
+- 강의·영상 항목 99개 (같은 Stanford 강의의 서로 다른 구간은 별도 학습 항목으로 셈)
+- 읽기 자료 69개
 - 연습 과제 1개
-- 합계 66개
+- 합계 169개
 
 ## 1. Python과 자료 생성 · 1–5주
 
@@ -44,7 +46,7 @@
 | 영상 | MIT 13. Exceptions and Assertions | 잘못된 입력과 계산할 수 없는 평균을 명시한다. | [열기](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/) |
 | 영상 | MIT 14. Dictionaries | 원본·선택 규칙·결과를 구분해 저장한다. | [열기](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-14-multi_mp4/) |
 | 실습 | MIT Finger Exercises | 본 강의 번호에 해당하는 연습을 풀고 원래 답·도움·수정 이유를 남긴다. | [열기](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/pages/finger-exercises/) |
-| 영상 | Stanford CS229 — Building LLMs (Yann Dubois) (0:00–8:00) | 선택 오리엔테이션 최대 8분. 현재 URL 접근 미확인으로 외부 링크만 제공. 어려우면 생략하고 MIT 1부터 시작한다. | [열기](https://www.youtube.com/watch?v=9vM4p9NN0Ts) |
+| 영상 | Stanford CS229 — Building LLMs (Yann Dubois) (0:00–8:00) | 선택 오리엔테이션 최대 8분. 현재 URL 접근 미확인으로 외부 링크만 제공. 어려우면 생략하고 MIT 1부터 시작한다. | [열기](https://www.youtube.com/watch?v=9vM4p9NN0Ts&t=0s) |
 
 ## 2. 수학·표본·베이즈 · 6–9주
 
@@ -71,7 +73,50 @@
 | 읽기 | Think Bayes 3. Distributions | 외부 교재. 작은 수로 계산한 뒤 코드로 확인하고 가정과 선택 규칙을 적는다. | [열기](https://allendowney.github.io/ThinkBayes2/chap03.html) |
 | 읽기 | Think Bayes 4. Estimating Proportions | 외부 교재. 작은 수로 계산한 뒤 코드로 확인하고 가정과 선택 규칙을 적는다. | [열기](https://allendowney.github.io/ThinkBayes2/chap04.html) |
 
-## 3. ML과 검증 · 10–13주
+## 2B. 수학 보강: 미분·행렬·분포 · 10–13주
+
+**목표:** 2단계의 벡터·연쇄법칙·베이즈 위에 편미분·기울기 벡터·행렬곱과 역행렬·고윳값·최대우도·엔트로피를 더해, 학습과 모델 비교에 쓰는 계산을 손으로 할 수 있게 한다.
+
+**왜 이 단계인가:** 2단계만으로는 학습 코드와 모델 비교를 읽을 수 없습니다. 편미분·기울기 벡터·행렬곱과 역행렬·고윳값·최대우도·엔트로피는 경사하강법, 최소제곱, BIC, 정보 이득의 바탕입니다. 고교 과정에서 배웠더라도 머신러닝에서 쓰는 뜻으로 다시 확인합니다.
+
+**직접 해 볼 일:** f(x,y)=x²y의 편미분과 기울기 벡터를 손으로 구하고 수치 미분과 비교한다. 2×2 행렬의 역행렬·고윳값을 계산한다. 세 점에 직선을 최소제곱으로 맞추고, 가우스 잡음에서 최대우도가 제곱오차가 되는 이유를 적는다.
+
+**다음 단계 전 확인:** 편미분·기울기 벡터·행렬곱 shape·최소제곱·우도·엔트로피를 작은 수로 설명한다. 막히면 해당 영상만 다시 보고 2주 연장한다.
+
+### 강의와 읽기·실습 자료
+
+| 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
+|---|---|---|---|
+| 영상 | The paradox of the derivative \| Chapter 2, Essence of calculus | 도함수를 "아주 작은 변화의 비율"로 다시 설명한다. | [열기](https://www.youtube.com/watch?v=9vKqVkMQHKk) |
+| 영상 | Derivative formulas through geometry \| Chapter 3, Essence of calculus | x², xⁿ, 곱의 미분을 그림으로 유도해 본다. | [열기](https://www.youtube.com/watch?v=S0_qX4VJhMQ) |
+| 영상 | What's so special about Euler's number e? \| Chapter 5, Essence of calculus | eˣ가 자기 자신의 도함수인 이유를 설명한다. | [열기](https://www.youtube.com/watch?v=m2MIpDrF7Es) |
+| 영상 | Logarithms \| Logarithms \| Algebra II \| Khan Academy | 로그가 곱을 합으로 바꾸는 것을 손계산한다. | [열기](https://www.youtube.com/watch?v=Z5myJ8dg_rM) |
+| 영상 | Limits, L'Hôpital's rule, and epsilon delta definitions \| Chapter 7, Essence of calculus | 극한은 직관만 잡고 엄밀 정의는 넘어가도 된다. | [열기](https://www.youtube.com/watch?v=kfF40MiS7zA) |
+| 영상 | Integration and the fundamental theorem of calculus \| Chapter 8, Essence of calculus | 적분을 넓이·누적으로 읽고 기댓값과 연결한다. | [열기](https://www.youtube.com/watch?v=rfG8ce4nNh0) |
+| 영상 | Taylor series \| Chapter 11, Essence of calculus | 한 점 근처를 직선·곡선으로 근사하고 경사하강법과 연결한다. | [열기](https://www.youtube.com/watch?v=3d6DsjIBzJ4) |
+| 영상 | Partial derivatives, introduction | 다른 입력을 고정하고 하나만 움직이는 편미분을 계산한다. | [열기](https://www.youtube.com/watch?v=AXqhWeUEtQU) |
+| 영상 | Gradient | 편미분을 모은 기울기 벡터를 만들고 고교 "기울기"와 구분한다. | [열기](https://www.youtube.com/watch?v=tIpKfDc295M) |
+| 읽기 | d2l 22.4 — Multivariable Calculus | 외부 교재. 기울기·야코비안·헤시안의 정의를 작은 예로 확인한다. | [열기](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html) |
+| 영상 | Matrix multiplication as composition \| Chapter 4, Essence of linear algebra | 행렬곱을 변환의 합성으로 읽고 shape 규칙을 확인한다. | [열기](https://www.youtube.com/watch?v=XkY2DOUCWMU) |
+| 영상 | Inverse matrices, column space and null space \| Chapter 7, Essence of linear algebra | 역행렬과 랭크, 되돌릴 수 없는 변환을 구분한다. | [열기](https://www.youtube.com/watch?v=uQhTuRlWMxw) |
+| 영상 | Eigenvectors and eigenvalues \| Chapter 14, Essence of linear algebra | 고유벡터를 방향이 안 바뀌는 벡터로 설명한다. | [열기](https://www.youtube.com/watch?v=PFDu9oVAE-g) |
+| 영상 | The determinant \| Chapter 6, Essence of linear algebra | 행렬식을 넓이 배율로 이해한다(알아만 두기). | [열기](https://www.youtube.com/watch?v=Ip3X9LOh2dk) |
+| 영상 | 16. Projection Matrices and Least Squares | 최소제곱을 사영으로 보고 공식 상수 맞추기와 연결한다. | [열기](https://www.youtube.com/watch?v=osh80YCg_GM) |
+| 영상 | 27. Positive Definite Matrices and Minima | 양정부호와 최솟값, 헤시안의 관계를 본다. | [열기](https://www.youtube.com/watch?v=vF7eyJ2g3kU) |
+| 영상 | Bayes theorem, the geometry of changing beliefs | 베이즈 갱신을 넓이 그림으로 다시 계산한다. | [열기](https://www.youtube.com/watch?v=HZGCoVF3YvM) |
+| 영상 | Why π is in the normal distribution (beyond integral tricks) | 정규분포의 모양과 분산의 의미를 정리한다. | [열기](https://www.youtube.com/watch?v=cy8r7WSuT1I) |
+| 영상 | But what is the Central Limit Theorem? | 평균의 오차가 1/√n로 줄어드는 이유를 설명한다. | [열기](https://www.youtube.com/watch?v=zeJD6dqJ5lo) |
+| 영상 | In Statistics, Probability is not Likelihood. | 확률과 우도(가능도)를 구분한다. | [열기](https://www.youtube.com/watch?v=pYxNSUDSFH4) |
+| 영상 | Maximum Likelihood, clearly explained!!! | 최대우도로 평균을 추정하고 제곱오차와 연결한다. | [열기](https://www.youtube.com/watch?v=XepXtl9YKwc) |
+| 영상 | Covariance, Clearly Explained!!! | 공분산 부호의 뜻을 작은 표로 계산한다. | [열기](https://www.youtube.com/watch?v=qtaqvPAeEJY) |
+| 영상 | Entropy (for data science) Clearly Explained!!! | 엔트로피를 평균 놀람으로 계산한다. | [열기](https://www.youtube.com/watch?v=YtebGVx-Fxw) |
+| 영상 | Solving Wordle using information theory | 정보량으로 다음 질문(측정)을 고르는 법을 본다. | [열기](https://www.youtube.com/watch?v=v68zYyaEmEA) |
+| 읽기 | d2l 22.11 — Information Theory | 외부 교재. 엔트로피·교차 엔트로피·KL을 같은 예로 계산한다. | [열기](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/information-theory.html) |
+| 읽기 | Mathematics for Machine Learning (교재) | 외부 교재. 막히는 개념의 장(선형대수 2–4장, 미적분 5장, 확률 6장)만 찾아 읽는다. | [열기](https://mml-book.github.io/) |
+| 영상 | StatQuest: Principal Component Analysis (PCA), Step-by-Step | 선택: 주성분분석을 단계별로 따라간다. | [열기](https://www.youtube.com/watch?v=FgakZw6K1QQ) |
+| 영상 | Singular Value Decomposition (SVD): Overview | 선택: 특이값 분해의 그림을 잡는다. | [열기](https://www.youtube.com/watch?v=gXbThCXjZFM) |
+
+## 3. ML과 검증 · 14–17주
 
 **목표:** 손실을 줄이는 예측과 새로운 원리를 발견한다는 주장을 구분한다.
 
@@ -90,7 +135,41 @@
 | 읽기 | MLCC — Gradient descent | 외부 모듈. 작은 선형 모델의 가중치를 한 번 갱신한다. | [열기](https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent) |
 | 읽기 | MLCC — Datasets, generalization, and overfitting | 외부 모듈. 분할·과적합을 배우고 세계/시점 단위 holdout과 연결한다. | [열기](https://developers.google.com/machine-learning/crash-course/overfitting) |
 
-## 4. 인과·정보·불확실성 · 14–17주
+## 3B. 학습 실무: 최적화·정규화·평가 · 18–21주
+
+**목표:** 모델을 실제로 학습시키고 공정하게 비교하는 도구(미니배치·모멘텀·Adam·학습률 감쇠·정규화·드롭아웃·검정·ROC·절제·누설)를 익힌다.
+
+**왜 이 단계인가:** 손실을 줄이는 법을 안 다음에는, 모델을 실제로 학습시키는 손잡이(미니배치·Adam·학습률·정규화)와 두 결과를 공정하게 비교하는 법(검정·ROC·절제·누설)을 알아야 실험 결과를 믿을지 판단할 수 있습니다.
+
+**직접 해 볼 일:** 작은 회귀 모델을 SGD와 Adam으로 학습해 학습/검증 곡선을 비교한다. L2·드롭아웃을 켜고 끄며 과적합을 진단하고, 한 부품만 바꾸고 시드를 여러 개 쓴 절제 표를 만든다.
+
+**다음 단계 전 확인:** 학습/검증 곡선을 보고 과소·과적합을 판단하고, 두 실행의 차이가 시드 변동보다 큰지 말한다. 누설 사례 하나를 찾는다.
+
+### 강의와 읽기·실습 자료
+
+| 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
+|---|---|---|---|
+| 영상 | Train/Dev/Test Sets (C2W1L01) | 학습/검증/시험 분리의 목적을 설명한다. | [열기](https://www.youtube.com/watch?v=1waHlpKiNyY) |
+| 영상 | Bias/Variance (C2W1L02) | 학습·검증 오차로 과소/과적합을 진단한다. | [열기](https://www.youtube.com/watch?v=SjQyLhQIXSM) |
+| 영상 | Regularization (C2W1L04) | L2 정규화가 가중치를 줄이는 방식을 본다. | [열기](https://www.youtube.com/watch?v=6g0t3Phly2M) |
+| 영상 | Dropout Regularization (C2W1L06) | 드롭아웃이 학습과 추론에서 다르게 동작하는 이유를 적는다. | [열기](https://www.youtube.com/watch?v=D8PJAL-MZv8) |
+| 영상 | Normalizing Inputs (C2W1L09) | 입력 스케일을 맞추면 학습이 쉬워지는 이유를 본다. | [열기](https://www.youtube.com/watch?v=FDCfw-YqWTE) |
+| 영상 | Mini Batch Gradient Descent (C2W2L01) | 미니배치 크기와 기울기 잡음의 관계를 정리한다. | [열기](https://www.youtube.com/watch?v=4qJaSmvhxi8) |
+| 영상 | Gradient Descent With Momentum (C2W2L06) | 지수이동평균으로 모멘텀을 손계산한다. | [열기](https://www.youtube.com/watch?v=k8fTYJPd3_I) |
+| 영상 | RMSProp (C2W2L07) | 파라미터마다 보폭을 바꾸는 RMSProp을 본다. | [열기](https://www.youtube.com/watch?v=_e-LFe_igno) |
+| 영상 | Adam Optimization Algorithm (C2W2L08) | Adam과 편향 보정을 우리 코드의 직접 구현과 비교한다. | [열기](https://www.youtube.com/watch?v=JXQT_vxqwIs) |
+| 영상 | Learning Rate Decay (C2W2L09) | 학습률을 줄여 가는 이유와 방법을 본다. | [열기](https://www.youtube.com/watch?v=QzulmoOg2JE) |
+| 영상 | Softmax Regression (C2W3L08) | 소프트맥스로 여러 클래스 확률을 만든다. | [열기](https://www.youtube.com/watch?v=LLux1SW--oM) |
+| 영상 | Neural Networks Part 6: Cross Entropy | 교차 엔트로피가 분류 손실인 이유를 정리한다. | [열기](https://www.youtube.com/watch?v=6ArSys5qHAU) |
+| 영상 | Hypothesis Testing and The Null Hypothesis, Clearly Explained!!! | 귀무가설과 검정의 논리를 설명한다. | [열기](https://www.youtube.com/watch?v=0oc49DyA3hU) |
+| 영상 | p-values: What they are and how to interpret them | p값이 말하는 것과 말하지 않는 것을 구분한다. | [열기](https://www.youtube.com/watch?v=vemZtEM63GY) |
+| 영상 | ROC and AUC, Clearly Explained! | ROC 곡선과 AUC를 계산하고 낯섦 감지 평가와 연결한다. | [열기](https://www.youtube.com/watch?v=4jRBRDbJemM) |
+| 읽기 | Kapoor·Narayanan — Leakage and the reproducibility crisis | 외부 논문. 누설 유형표를 읽고 우리 실험의 세계 단위 분리와 비교한다. | [열기](https://arxiv.org/abs/2207.07048) |
+| 읽기 | Lipton·Steinhardt — Troubling Trends in ML Scholarship | 외부 논문. 성능 향상의 원인을 부품이 아닌 튜닝에서 찾는 사례를 읽는다. | [열기](https://arxiv.org/abs/1807.03341) |
+| 읽기 | d2l 4.7 — Environment and Distribution Shift | 외부 교재. 공변량·레이블·개념 이동을 구분한다. | [열기](https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html) |
+| 읽기 | Google Deep Learning Tuning Playbook | 외부 가이드. 하이퍼파라미터를 바꾸는 순서와 공정한 비교 절차를 읽는다. | [열기](https://github.com/google-research/tuning_playbook) |
+
+## 4. 인과·정보·불확실성 · 22–25주
 
 **목표:** 관찰로 식별할 수 있는 것과 추가 개입이 필요한 것을 분리한다.
 
@@ -113,7 +192,7 @@
 | 읽기 | Brady Neal — 공식 강의·슬라이드 목록 | 각 도입 다음의 후속 절을 이 목록에서 선택한다. | [열기](https://www.bradyneal.com/causal-inference-course) |
 | 읽기 | Think Bayes 9. Decision Analysis | 외부 교재. 기대 효용과 정보의 가치를 계산한다. | [열기](https://allendowney.github.io/ThinkBayes2/chap09.html) |
 
-## 5. 신경망·LLM · 18–21주
+## 5. 신경망·LLM · 26–29주
 
 **목표:** MIT 17/18 → tensor → micrograd → makemore 순서. 문맥·posterior·후보·가중치·기억 중 무엇이 바뀌는지 구분한다.
 
@@ -136,7 +215,102 @@
 | 영상 | Stanford CS229 — Building LLMs (Yann Dubois) (59:54) | 정본 기록: 59:54 post-training, 1:02:24 SFT, 1:10:05/1:12:28 SFT 한계·RLHF. 시청 가능할 때 해당 절을 선택한다. | [열기](https://www.youtube.com/watch?v=9vM4p9NN0Ts&t=3594s) |
 | 읽기 | MIT 15–16 — 선택 보충: recursion | 재귀 그래프 순회를 직접 구현할 때만 15~16강을 별도 보충한다. | [열기](https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/video_galleries/lecture-videos/) |
 
-## 6. RL·탐색 · 22–25주
+## 5B. 신경망 설계의 부품 · 30–33주
+
+**목표:** micrograd와 makemore 1 다음으로 MLP·활성화·초기화·정규화 층·잔차·PyTorch 학습 루프를 익혀 우리 에이전트 코드를 줄 단위로 읽는다.
+
+**왜 이 단계인가:** micrograd는 원리를 보여 주지만, 우리 에이전트 코드는 PyTorch와 활성화·초기화·층 정규화·잔차로 이루어져 있습니다. 이 부품들을 알아야 AI가 바꾼 코드를 줄 단위로 읽고 학습이 망가졌을 때 원인을 짚을 수 있습니다.
+
+**직접 해 볼 일:** 작은 MLP를 PyTorch로 학습한다. 초기 손실을 미리 계산해 확인하고, 고정된 한 배치를 거의 0까지 외우게 한 뒤 실제 학습으로 넘어간다. 층 shape만 보고 파라미터 수를 계산하고 코드로 맞는지 본다.
+
+**다음 단계 전 확인:** 가중치·편향·활성화·초기화·잔차·층 정규화가 우리 코드(attentive_experimenter.py)의 몇 번째 줄에 있는지 찾고 각각의 역할을 설명한다.
+
+### 강의와 읽기·실습 자료
+
+| 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
+|---|---|---|---|
+| 읽기 | Python Tutorial 12 — Virtual Environments and Packages | 공식 문서. 프로젝트별 가상환경을 만든다. | [열기](https://docs.python.org/3/tutorial/venv.html) |
+| 읽기 | PyTorch — Get Started (설치 선택기) | 공식 문서. GPU용(CUDA) 빌드를 고르고 torch.cuda.is_available()을 확인한다. | [열기](https://pytorch.org/get-started/locally/) |
+| 읽기 | NumPy — the absolute basics for beginners | 공식 문서. 배열·shape·인덱싱·벡터화를 실행해 본다. | [열기](https://numpy.org/doc/stable/user/absolute_beginners.html) |
+| 읽기 | PyTorch — Broadcasting semantics | 공식 문서. (B,N,1)+(B,N)이 어떤 shape이 되는지 예측하고 확인한다. | [열기](https://docs.pytorch.org/docs/stable/notes/broadcasting.html) |
+| 읽기 | einops — basics | 외부 문서. reshape·transpose를 축 이름으로 다시 쓴다. | [열기](https://einops.rocks/1-einops-basics/) |
+| 영상 | But what is a neural network? \| Deep learning chapter 1 | 가중치·편향·뉴런·층을 그림으로 이해한다. | [열기](https://www.youtube.com/watch?v=aircAruvnKk) |
+| 영상 | Gradient descent, how neural networks learn \| Deep Learning Chapter 2 | 손실과 경사하강법으로 가중치가 바뀌는 과정을 본다. | [열기](https://www.youtube.com/watch?v=IHZwWFHWa-w) |
+| 영상 | Backpropagation, intuitively \| Deep Learning Chapter 3 | 역전파를 직관으로 이해한다. | [열기](https://www.youtube.com/watch?v=Ilg3gGewQ5U) |
+| 영상 | Backpropagation calculus \| Deep Learning Chapter 4 | 역전파를 연쇄법칙으로 손계산한다. | [열기](https://www.youtube.com/watch?v=tIeHLnjs5U8) |
+| 읽기 | PyTorch — Automatic Differentiation | 공식 문서. backward·.grad·no_grad를 실행한다. | [열기](https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html) |
+| 읽기 | PyTorch — Build the Neural Network | 공식 문서. nn.Module 안에서 가중치가 어디 있는지 확인하고 파라미터 수를 센다. | [열기](https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html) |
+| 읽기 | PyTorch — Datasets & DataLoaders | 공식 문서. 배치를 만들고 shape를 찍는다. | [열기](https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html) |
+| 읽기 | PyTorch — Optimizing Model Parameters | 공식 문서. 순전파→손실→역전파→갱신 다섯 줄을 쓴다. | [열기](https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html) |
+| 읽기 | PyTorch — Save and Load the Model | 공식 문서. state_dict를 저장하고 다시 불러온다. | [열기](https://docs.pytorch.org/tutorials/beginner/basics/saveloadrun_tutorial.html) |
+| 읽기 | PyTorch — Reproducibility | 공식 문서. 시드가 무엇을 고정하고 무엇은 못 하는지 적는다. | [열기](https://docs.pytorch.org/docs/stable/notes/randomness.html) |
+| 영상 | Building makemore Part 2: MLP | MLP, 임베딩, 학습/검증 분리를 코드로 따라 한다. | [열기](https://www.youtube.com/watch?v=TCH_1BHY58I) |
+| 영상 | Building makemore Part 3: Activations & Gradients, BatchNorm | 활성화·기울기 통계와 배치 정규화로 학습 건강을 진단한다. | [열기](https://www.youtube.com/watch?v=P6sfmUTpUmc) |
+| 영상 | Building makemore Part 4: Becoming a Backprop Ninja | 텐서 단위 역전파를 직접 써 본다. | [열기](https://www.youtube.com/watch?v=q8SA3rM6ckI) |
+| 영상 | Weight Initialization in a Deep Network (C2W1L11) | 초기화 크기가 학습을 좌우하는 이유를 본다. | [열기](https://www.youtube.com/watch?v=s2coXdufOzE) |
+| 영상 | Vanishing/Exploding Gradients (C2W1L10) | 깊어질수록 기울기가 사라지거나 폭발하는 이유를 본다. | [열기](https://www.youtube.com/watch?v=qhXZsFVxGKo) |
+| 영상 | Normalizing Activations in a Network (C2W3L04) | 층 출력을 정규화하는 생각을 배우고 층 정규화와 비교한다. | [열기](https://www.youtube.com/watch?v=tNIpEZLv_eg) |
+| 영상 | C4W2L03 Resnets | 잔차 연결 x + F(x)가 깊은 학습을 돕는 이유를 본다. | [열기](https://www.youtube.com/watch?v=ZILIbUvp5lk) |
+| 읽기 | d2l 5.1 — Multilayer Perceptrons | 외부 교재. 비선형 없이 층을 쌓으면 한 층과 같아지는 이유를 확인한다. | [열기](https://d2l.ai/chapter_multilayer-perceptrons/mlp.html) |
+| 읽기 | Karpathy — A Recipe for Training Neural Networks | 외부 글. 시드 고정→초기 손실 확인→한 배치 외우기 순서를 체크리스트로 만든다. | [열기](https://karpathy.github.io/2019/04/25/recipe/) |
+
+## 5C. Attention·Transformer·집합 모델 · 34–37주
+
+**목표:** 귀납 편향에서 출발해 Deep Sets → Attention → Transformer 블록 → Neural Process → Attentive NP로 이어지는 우리 에이전트의 핵심 구조를 이해한다.
+
+**왜 이 단계인가:** 우리 에이전트의 핵심 모델은 측정 묶음을 Attention으로 읽는 Neural Process입니다. 귀납 편향에서 Deep Sets, Attention, Transformer 블록, NP, ANP로 이어지는 흐름을 알아야 그 구조를 바꾸자는 제안을 평가할 수 있습니다.
+
+**직접 해 볼 일:** 3-token Attention을 손으로 계산한 뒤 마스크를 포함해 코드로 구현한다. 측정 순서를 바꿔도 출력이 같은지 확인하고, 위치 정보를 넣으면 무엇이 깨지는지 본다.
+
+**다음 단계 전 확인:** 우리 모델에서 질의·열쇠·값이 각각 무엇인지, 사전 정규화를 쓰는 이유, 평균 풀링 대신 Attention을 쓴 이유를 설명한다.
+
+### 강의와 읽기·실습 자료
+
+| 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
+|---|---|---|---|
+| 읽기 | d2l 7.1 — From Fully Connected Layers to Convolutions | 외부 교재. 귀납 편향과 불변·등변을 구분한다. | [열기](https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html) |
+| 읽기 | Zaheer 외 — Deep Sets | 외부 논문. 순서 없는 집합을 읽는 함수의 꼴을 이해한다. | [열기](https://arxiv.org/abs/1703.06114) |
+| 영상 | Transformers, the tech behind LLMs \| Deep Learning Chapter 5 | Transformer의 전체 흐름(임베딩→Attention→MLP)을 본다. | [열기](https://www.youtube.com/watch?v=wjZofJX0v4M) |
+| 영상 | Attention in transformers, step-by-step \| Deep Learning Chapter 6 | Q·K·V Attention과 √d 스케일을 손계산한다. | [열기](https://www.youtube.com/watch?v=eMlx5fFNoYc) |
+| 읽기 | d2l 11.1 — Queries, Keys, and Values | 외부 교재. Attention을 부드러운 사전 조회로 이해한다. | [열기](https://d2l.ai/chapter_attention-mechanisms-and-transformers/queries-keys-values.html) |
+| 읽기 | d2l 11.7 — The Transformer Architecture | 외부 교재. 블록의 네 부품(Attention·MLP·잔차·층 정규화)을 그린다. | [열기](https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html) |
+| 영상 | Let's build GPT: from scratch, in code, spelled out. | 작은 GPT를 따라 만들며 마스크·잔차·층 정규화를 확인한다. | [열기](https://www.youtube.com/watch?v=kCc8FmEb1nY) |
+| 읽기 | Xiong 외 — On Layer Normalization in the Transformer Architecture | 외부 논문. 층 정규화 위치와 워밍업의 관계를 읽는다. | [열기](https://arxiv.org/abs/2002.04745) |
+| 읽기 | Garnelo 외 — Neural Processes | 외부 논문. 측정 묶음을 받아 함수 분포를 내는 모델을 이해한다. | [열기](https://arxiv.org/abs/1807.01622) |
+| 읽기 | Kim 외 — Attentive Neural Processes | 외부 논문. 평균 병목을 Attention으로 푼 이유를 우리 기록과 비교한다. | [열기](https://arxiv.org/abs/1901.05761) |
+| 읽기 | Müller 외 — Transformers Can Do Bayesian Inference (PFN) | 외부 논문. 학습용 세계를 뽑는 방식이 곧 사전이라는 점을 읽는다. | [열기](https://arxiv.org/abs/2112.10510) |
+| 읽기 | Lilian Weng — Meta-Learning: Learning to Learn Fast | 외부 글. 시험 때 가중치는 고정이고 맥락만 바뀌는 학습을 정리한다. | [열기](https://lilianweng.github.io/posts/2018-11-30-meta-learning/) |
+| 읽기 | Lilian Weng — From Autoencoder to Beta-VAE | 선택. 잠재 변수와 ELBO를 알아만 둔다. | [열기](https://lilianweng.github.io/posts/2018-08-12-vae/) |
+| 영상 | Building makemore Part 5: Building a WaveNet | 선택: 계층 구조(합성곱 계열) 설계를 본다. | [열기](https://www.youtube.com/watch?v=t3YJ5hKiMQ0) |
+| 읽기 | Kaplan 외 — Scaling Laws for Neural Language Models | 알아만 두기. 언어 모델의 결과이며 우리 규모에 숫자로 옮기지 않는다. | [열기](https://arxiv.org/abs/2001.08361) |
+| 읽기 | Hoffmann 외 — Training Compute-Optimal LLMs (Chinchilla) | 알아만 두기. Kaplan과 무엇이 다른지만 적는다. | [열기](https://arxiv.org/abs/2203.15556) |
+
+## 5D. 불확실성·모델 비교·실험 설계 · 38–41주
+
+**목표:** 무엇을 모르는지 수치로 표시하고(우연적/인식적 불확실성, 보정, 앙상블), 공식 후보를 비교하고(증거·BIC·BMA·가우스 과정), 다음 측정을 고르는(정보 이득) 방법을 익힌다.
+
+**왜 이 단계인가:** 발견 에이전트는 무엇을 모르는지 수치로 말하고, 공식 후보를 비교하고, 다음 측정을 골라야 합니다. 불확실성·보정·앙상블·BIC·BMA·가우스 과정·정보 이득이 그 도구이며, 학습 범위 밖 과신(EXP-063)처럼 그 한계도 함께 배웁니다.
+
+**직접 해 볼 일:** 세 후보 공식의 BIC를 계산해 가중치를 정규화한다. 앙상블 예측을 구성원 분산 평균 + 평균들의 분산으로 나누고, 포함률과 폭을 함께 보고한다. 후보들이 가장 갈리는 측정을 고른다.
+
+**다음 단계 전 확인:** 우리 앙상블 공식(전분산 법칙)과 BIC 가중치를 손으로 재현하고, 학습 범위 밖에서 구간이 과신하는 이유(EXP-063)를 설명한다.
+
+### 강의와 읽기·실습 자료
+
+| 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
+|---|---|---|---|
+| 읽기 | Kendall·Gal — What Uncertainties Do We Need? | 외부 논문. 줄지 않는 잡음과 데이터로 줄어드는 무지를 구분한다. | [열기](https://arxiv.org/abs/1703.04977) |
+| 읽기 | Lakshminarayanan 외 — Deep Ensembles | 외부 논문. 평균·분산을 내는 앙상블과 적정 점수 규칙을 읽는다. | [열기](https://arxiv.org/abs/1612.01474) |
+| 읽기 | Seitzer 외 — On the Pitfalls of Heteroscedastic Uncertainty Estimation | 외부 논문. 가우스 NLL의 함정을 읽고 EXP-063 결과와 비교한다. | [열기](https://arxiv.org/abs/2203.09168) |
+| 읽기 | Guo 외 — On Calibration of Modern Neural Networks | 외부 논문. 보정과 온도 스케일링을 읽는다. | [열기](https://arxiv.org/abs/1706.04599) |
+| 읽기 | Angelopoulos·Bates — A Gentle Introduction to Conformal Prediction | 외부 논문. 분포 가정 없는 포함 보장과 그 전제(교환 가능성)를 적는다. | [열기](https://arxiv.org/abs/2107.07511) |
+| 읽기 | Distill — A Visual Exploration of Gaussian Processes | 외부 글. 데이터에서 멀수록 분산이 커지는 모습을 확인한다. | [열기](https://distill.pub/2019/visual-exploration-gaussian-processes/) |
+| 읽기 | Rasmussen·Williams — GPML 2장 Regression | 외부 교재. 예측 평균·분산 공식을 작은 예로 계산한다. | [열기](https://gaussianprocess.org/gpml/chapters/RW2.pdf) |
+| 읽기 | MacKay — ITILA 28장 Model Comparison and Occam's Razor | 외부 교재. 유연한 모델이 증거에서 불리한 이유(오캄 인수)를 읽는다. | [열기](https://www.inference.org.uk/mackay/itprnn/ps/343.355.pdf) |
+| 읽기 | Hoeting 외 — Bayesian Model Averaging: A Tutorial | 외부 논문. BIC 가중치와 모델 간 분산을 읽는다. | [열기](https://www.stat.colostate.edu/~jah/papers/statsci.pdf) |
+| 읽기 | Rainforth 외 — Modern Bayesian Experimental Design | 외부 논문. 기대 정보 이득으로 다음 실험을 고르는 틀을 읽는다. | [열기](https://arxiv.org/abs/2302.14545) |
+
+## 6. RL·탐색 · 42–45주
 
 **목표:** David Silver 1→2→3→4→5→8→9의 필요한 절을 보며 자료 수집 정책을 시험한다.
 
@@ -158,8 +332,11 @@
 | 영상 | RL Course by David Silver - Lecture 8: Integrating Learning and Planning | 학습한 전이 모델로 계획하고 실제 경험과 구분한다. | [열기](https://www.youtube.com/watch?v=ItMutbeOHtc) |
 | 영상 | RL Course by David Silver - Lecture 9: Exploration and Exploitation | 무작위·정보 선택·강제 탐색을 같은 예산으로 비교한다. | [열기](https://www.youtube.com/watch?v=sGuiWX07sKw) |
 | 읽기 | David Silver — 강의 슬라이드와 Easy21 | 외부 공식 자료. 필요한 강의 절과 표 기반 실습을 연결한다. | [열기](https://www.davidsilver.uk/teaching/) |
+| 읽기 | Sutton·Barto — Reinforcement Learning: An Introduction (2판) | 외부 교재(강의용 사본). Silver 강의와 같은 개념을 필요한 장만 찾아 읽는다. | [열기](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf) |
+| 읽기 | Silver·Sutton — Welcome to the Era of Experience | 외부 글. 프로젝트의 방향을 준 입장문이며 구조 명세가 아님을 구분한다. | [열기](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf) |
+| 읽기 | Sutton — The Bitter Lesson (PDF 사본) | 외부 글. 원문 사이트는 https 인증서 오류라 사본을 연결했다. 대칭을 넣을지 말지의 쟁점을 적는다. | [열기](https://www.cs.utexas.edu/~eunsol/courses/data/bitter_lesson.pdf) |
 
-## 7. 역학·변수·기호 회귀 · 26–29주
+## 7. 역학·변수·기호 회귀 · 46–49주
 
 **목표:** 벡터·뉴턴·스프링/진동을 통해 단위, 표현과 판별 가능한 관측 범위를 연결한다.
 
@@ -178,8 +355,11 @@
 | 영상 | 7.1 Pushing Pulling and Tension | 힘의 전달을 그린 뒤 공식 역학 자료에서 스프링·진동으로 이어간다. | [열기](https://www.youtube.com/watch?v=RBaBEjzMr4E) |
 | 읽기 | MIT 8.01SC — Chapter 23: Simple Harmonic Motion | 외부 교재. 질량-스프링의 힘·진동수·단위를 확인한다. | [열기](https://ocw.mit.edu/courses/8-01sc-classical-mechanics-fall-2016/mit8_01scs22_chapter23.pdf) |
 | 읽기 | AI Feynman — 방법 부분 | 외부 저자 논문. 차원 분석·변수 변환·기호 회귀의 가정을 읽는다. 원문 PMC는 접근 확인 중 브라우저 검사를 반환했다. | [열기](https://arxiv.org/abs/1905.11481) |
+| 읽기 | Cranmer — PySR: Interpretable Machine Learning for Science | 외부 논문. 공식 모양 탐색과 복잡도 벌점을 읽는다. | [열기](https://arxiv.org/abs/2305.01582) |
+| 영상 | Miles Cranmer - The Next Great Scientific Theory is Hiding Inside a Neural Network (April 3, 2024) | 신경망에서 기호 공식을 뽑아내는 흐름과 한계를 본다. | [열기](https://www.youtube.com/watch?v=fk2r8y5TfNY) |
+| 영상 | ICLR 2021 Keynote - "Geometric Deep Learning: The Erlangen Programme of ML" - M Bronstein | 대칭·불변·등변으로 구조를 설계하는 관점을 본다. | [열기](https://www.youtube.com/watch?v=w6Pw4MOzMuo) |
 
-## 8. 네 조건 비교 실습 · 30–33주
+## 8. 네 조건 비교 실습 · 50–53주
 
 **목표:** 기존 설명 유지·재분석·새 측정·보류가 각각 적절한 상황을 구분한다.
 
@@ -193,13 +373,13 @@
 
 | 종류 | 제목 | 이 자료에서 할 일 | 자료 열기 |
 |---|---|---|---|
-| 읽기 | 데이터 한계와 발견 연구 노트 | 공개 URL은 404. 제공된 glorious-purpose-reference/PROJECT_WIKI/10_RESEARCH의 로컬 사본 또는 저장소 접근 권한이 필요하다. 연구 주장·관측·한계를 분리한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md) |
-| 읽기 | EXP-054 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md) |
-| 읽기 | EXP-054 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md) |
-| 읽기 | EXP-055 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md) |
-| 읽기 | EXP-055 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md) |
-| 읽기 | EXP-056 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md) |
-| 읽기 | EXP-056 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/15e84dd2a58aebb67f0f2f0de4d648806525c805/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md) |
+| 읽기 | 데이터 한계와 발견 연구 노트 | 공개 URL은 404. 제공된 glorious-purpose-reference/PROJECT_WIKI/10_RESEARCH의 로컬 사본 또는 저장소 접근 권한이 필요하다. 연구 주장·관측·한계를 분리한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md) |
+| 읽기 | EXP-054 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md) |
+| 읽기 | EXP-054 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md) |
+| 읽기 | EXP-055 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md) |
+| 읽기 | EXP-055 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md) |
+| 읽기 | EXP-056 PLAN | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md) |
+| 읽기 | EXP-056 RESULT | 공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다. | [열기](https://github.com/hyperdrivebeep/glorious-purpose/blob/66dd0a5fe640849cdbecbe273fba95adbafb9edb/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md) |
 
 ## 첫 2주: 주 10시간을 2시간씩 나누는 예시
 
@@ -220,7 +400,7 @@
 
 ## 자료 확인 범위와 주의점
 
-이 목록은 2026-11-16에 기록된 Duvi 로드맵 스냅샷을 그대로 정리합니다. 확인 기록: 제공된 로컬 정본과 공식 강의 목록/YouTube 제목·채널 확인. Glorious 공개 URL은 HTTP 404로 로컬 사본 또는 저장소 접근 권한 필요. 전체 영상 시청·자막 대조 아님. Stanford 구간은 정본의 기존 기록을 인용하며 현재 접근은 미확인.
+이 목록은 2026-11-17에 기록된 Duvi 로드맵 버전 2 스냅샷을 그대로 정리합니다. 확인 기록: 버전 2(2026-11-17): Glorious R-020 대조에서 빠진 개념을 메우는 2B·3B·5B·5C·5D 단계 추가, 추가 영상 57개는 oEmbed 제목·채널, 읽기 자료는 HTTP 200으로 확인. 버전 1: 제공된 로컬 정본과 공식 강의 목록/YouTube 제목·채널 확인. Glorious 공개 URL은 HTTP 404로 로컬 사본 또는 저장소 접근 권한 필요. 전체 영상 시청·자막 대조 아님. Stanford 구간은 정본의 기존 기록을 인용하며 현재 접근은 미확인.
 
 각 항목의 링크는 원 출처를 가리킵니다. 링크 등록이나 제목 확인이 전체 영상 시청, 자막 검수, 모든 링크의 현재 접근 가능성을 뜻하지는 않습니다. Stanford 영상은 지정한 일부 구간만 선택 항목으로 연결되어 있고 접근이 확인되지 않은 상태입니다. Glorious Purpose의 내부 문서 링크는 저장소 접근 권한이 필요할 수 있습니다. 링크가 열리지 않으면 해당 저장소의 같은 경로에 있는 원문을 사용하세요.
 
