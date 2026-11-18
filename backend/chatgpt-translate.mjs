@@ -31,7 +31,13 @@ export function parseTranslation(text,ids){
   }
   return result;
 }
-export async function consumeResponse(response){
+export const RESPONSES_URL='https://api.openai.com/v1/responses';
+/** One streamed Responses request on the learner's ChatGPT subscription; translation, tutor and chat share it. */
+export function streamResponse(fetcher,{token,signal,body}){
+  return fetcher(RESPONSES_URL,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},signal,body:JSON.stringify({model:body.model,store:false,stream:true,...body})});
+}
+/** Reads a Responses event stream; onDelta receives each text fragment as it arrives. */
+export async function consumeResponse(response,{onDelta}={}){
   if(!response.ok)throw await apiError(response);
   if(!response.body)throw new AppError('ChatGPT 응답 스트림이 없습니다.','missing_stream',502);
   const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='',text='',complete=false;const eventTypes=new Set();
@@ -40,7 +46,7 @@ export async function consumeResponse(response){
     if(!data||data==='[DONE]')return;
     let event;try{event=JSON.parse(data);}catch{throw new AppError('ChatGPT 응답을 읽지 못했습니다.','invalid_stream',502);}
     if(typeof event.type==='string'&&eventTypes.size<30)eventTypes.add(event.type);
-    if(event.type==='response.output_text.delta')text+=event.delta||'';
+    if(event.type==='response.output_text.delta'){text+=event.delta||'';if(event.delta)onDelta?.(event.delta);}
     if(event.type==='response.completed'){
       if(event.response?.status&&event.response.status!=='completed')throw new AppError('ChatGPT 응답이 완료되지 않았습니다.','incomplete_stream',502);
       complete=true;
@@ -110,7 +116,7 @@ export class TranslationService{
       try{const saved=JSON.parse(await readFile(checkpointFile,'utf8'));if(saved.sourceHash===sourceHash&&saved.model===job.model&&saved.alignmentVersion===ALIGNMENT_VERSION)checkpoint=saved;}catch(error){if(error.code!=='ENOENT')throw error;}
       const result=await alignSentences(lecture,async input=>{
         const token=await this.auth.token(job.accountId);
-        const response=await this.fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},signal:AbortSignal.any([job.controller.signal,AbortSignal.timeout(180000)]),body:JSON.stringify({model:job.model,store:false,stream:true,...(/^gpt-[56]/.test(job.model)?{reasoning:{effort:'low'}}:{}),instructions:SENTENCE_INSTRUCTIONS,input:[{role:'user',content:JSON.stringify(input)}]})});
+        const response=await streamResponse(this.fetch,{token,signal:AbortSignal.any([job.controller.signal,AbortSignal.timeout(180000)]),body:{model:job.model,...(/^gpt-[56]/.test(job.model)?{reasoning:{effort:'low'}}:{}),instructions:SENTENCE_INSTRUCTIONS,input:[{role:'user',content:JSON.stringify(input)}]}});
         return consumeResponse(response);
       },{checkpoint,batchSize:600,concurrency:3,signal:job.controller.signal,onProgress:async progress=>{
         await atomicJSON(checkpointFile,{...progress,sourceHash,model:job.model,alignmentVersion:ALIGNMENT_VERSION});
@@ -138,7 +144,7 @@ export class TranslationService{
         // Keep groups contiguous for coherent before/after context, up to 20 cues.
         while(pending.length&&ids.length<20&&chars<4500){if(ids.length&&pending[0]!==ids.at(-1)+1)break;const id=pending.shift();ids.push(id);chars+=lecture.cues[id].en.length;}
         const token=await this.auth.token(job.accountId);
-        const response=await this.fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},signal:AbortSignal.any([job.controller.signal,AbortSignal.timeout(180000)]),body:JSON.stringify({model:job.model,store:false,stream:true,instructions:INSTRUCTIONS,input:[{role:'user',content:JSON.stringify(makeBatch(lecture,ids))}]})});
+        const response=await streamResponse(this.fetch,{token,signal:AbortSignal.any([job.controller.signal,AbortSignal.timeout(180000)]),body:{model:job.model,instructions:INSTRUCTIONS,input:[{role:'user',content:JSON.stringify(makeBatch(lecture,ids))}]}});
         const translated=parseTranslation(await consumeResponse(response),ids);
         if(job.controller.signal.aborted)throw new DOMException('Stopped','AbortError');
         const updatedAt=new Date().toISOString();for(const [id,ko]of Object.entries(translated))cache.translations[id]={ko,model:job.model,updatedAt};
