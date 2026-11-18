@@ -8,6 +8,8 @@ import * as v from './learning-validation.mjs';
 
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 async function read(file,fallback){try{return JSON.parse(await readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT')return fallback;throw error;}}
+// Numeric file order keeps lectures 1, 2, ... 10 in sequence, so a fallback folder built from it matches the sidebar.
+const byName=(a,b)=>a.localeCompare(b,'en',{numeric:true});
 async function names(directory){try{return await readdir(directory);}catch(error){if(error.code==='ENOENT')return [];throw error;}}
 function merge(local,incoming,key,replace){const rows=new Map(local.map(row=>[key(row),row]));for(const row of incoming)if(replace||!rows.has(key(row)))rows.set(key(row),row);return [...rows.values()];}
 export class LearningBackup{
@@ -28,11 +30,11 @@ export class LearningBackup{
   busy(){if(this.translations?.starting||this.translations?.job?.status==='running'||this.library?.playlistPending||this.library?.pending?.size||this.library?.captionRequests?.size)throw new AppError('강의 또는 번역 작업이 끝난 뒤 백업을 다시 시도하세요.','busy',409);}
   async capture(){
     this.busy();const learning=await this.store.read(),library=[],translations=[];
-    for(const directory of ['data','library'])for(const name of (await names(path.join(this.root,directory))).sort()){
+    for(const directory of ['data','library'])for(const name of (await names(path.join(this.root,directory))).sort(byName)){
       if(!/\.json$/.test(name))continue;const key=name.slice(0,-5);
       if((directory==='data'&&/^(?:[1-9]|1[0-9]|2[0-6])$/.test(key))||(directory==='library'&&/^yt_[A-Za-z0-9_-]{11}$/.test(key)))library.push(await read(path.join(this.root,directory,name),null));
     }
-    for(const name of (await names(path.join(this.root,'translations'))).sort())if(/^(?:[1-9]|1[0-9]|2[0-6]|yt_[A-Za-z0-9_-]{11})\.json$/.test(name))translations.push(await read(path.join(this.root,'translations',name),null));
+    for(const name of (await names(path.join(this.root,'translations'))).sort(byName))if(/^(?:[1-9]|1[0-9]|2[0-6]|yt_[A-Za-z0-9_-]{11})\.json$/.test(name))translations.push(await read(path.join(this.root,'translations',name),null));
     const mitIds=library.filter(row=>!String(row.number).startsWith('yt_')).map(row=>String(row.number));
     const folders=(await read(path.join(this.root,'library','folders.json'),{folders:mitIds.length?[{id:'mit-python',name:'MIT Python 기초',lectureIds:mitIds}]:[]})).folders;
     return backup({schemaVersion:1,exportedAt:new Date(this.now()).toISOString(),learning,library,folders,translations},{project:true});

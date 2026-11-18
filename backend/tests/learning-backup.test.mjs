@@ -91,3 +91,14 @@ test('replacement import invalidates old record revisions for both edits and tut
   let calls=0;const tutor=new LearningTutor({store,library,auth:{state:{activeId:'active'},models:async()=>{calls++;return [];}}});
   await assert.rejects(tutor.ask({recordId:old.id,recordRevision:old.revision,mode:'hint',model:'test'}),{code:'revision_conflict'});assert.equal(calls,0);
 });
+test('restoring into a fresh install without folders.json keeps MIT lectures in numeric order',async t=>{
+  const source=await fixture(t,{seed:false}),target=await fixture(t,{seed:false}),numbers=[1,2,3,9,10,11,12];
+  for(const {root} of [source,target]){
+    for(const number of numbers)await atomicJSON(path.join(root,`data/${number}.json`),{number,title:`Lecture ${number}`,videoUrl:`https://ocw.mit.edu/${number}.mp4`,cues:[{start:0,end:3,en:'Hello.'}]});
+    await atomicJSON(path.join(root,'data/catalog.json'),numbers.map(number=>({number,title:`Lecture ${number}`})));
+  }
+  const exported=await source.service.export();assert.deepEqual(exported.folders[0].lectureIds,numbers.map(String));
+  const preview=await target.service.preview({backup:exported});await target.service.commit({revision:0,token:preview.token,mode:'merge'});
+  assert.deepEqual((await target.library.folders.list()).folders[0].lectureIds,numbers.map(String));
+  assert.deepEqual((await target.service.export()).library.map(row=>row.number),numbers);
+});
