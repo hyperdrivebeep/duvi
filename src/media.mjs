@@ -16,7 +16,7 @@ export class MediaPlayer extends EventTarget{
     setInterval(()=>{if(this.type==='youtube'&&this.ready)this.dispatchEvent(new Event('timeupdate'));},200);
   }
   async load(lecture){
-    const version=++this.version;this.pause();this.ready=false;this.seekUntil=0;this.pauseAfterSeek=false;this.pendingNativeSeek=null;this.pendingYoutubeSeek=null;this.started=false;this.lastError='';
+    const version=++this.version;this.pause();this.ready=false;this.seekUntil=0;this.heldFrom=null;this.pauseAfterSeek=false;this.pendingNativeSeek=null;this.pendingYoutubeSeek=null;this.started=false;this.lastError='';
     if(this.youtube){this.youtube.destroy();this.youtube=null;}
     this.type=lecture.player==='youtube'?'youtube':'native';this.native.hidden=this.type==='youtube';this.container.hidden=this.type!=='youtube';
     if(this.type==='native'){this.native.poster=lecture.youtubeId?`https://i.ytimg.com/vi/${lecture.youtubeId}/hqdefault.jpg`:'';this.native.src=lecture.videoUrl;return;}
@@ -26,13 +26,21 @@ export class MediaPlayer extends EventTarget{
       const timeout=setTimeout(()=>reject(new Error('YouTube 재생 준비가 지연됩니다. 원본 링크에서 영상 상태를 확인하세요.')),20000);
       this.youtube=new YT.Player(placeholder,{width:'100%',height:'100%',videoId:lecture.youtubeId,playerVars:{origin:location.origin,playsinline:1,fs:0,rel:0,cc_lang_pref:'en'},events:{
         onReady:()=>{clearTimeout(timeout);if(version===this.version)this.ready=true;resolve();},
-        onStateChange:event=>{if(version!==this.version)return;if(event.data===1){this.started=true;if(this.pendingYoutubeSeek!=null){const target=this.pendingYoutubeSeek;this.pendingYoutubeSeek=null;this.seekTarget=target;this.seekUntil=Date.now()+900;this.youtube.seekTo(target,true);}if(this.pauseAfterSeek){this.pauseAfterSeek=false;this.youtube.pauseVideo();}}this.dispatchEvent(new Event('timeupdate'));},
+        onStateChange:event=>{if(version!==this.version)return;if(event.data===1){this.started=true;if(this.pendingYoutubeSeek!=null){const target=this.pendingYoutubeSeek;this.pendingYoutubeSeek=null;this.seekTarget=target;this.seekUntil=Date.now()+900;this.youtube.seekTo(target,true);}if(this.pauseAfterSeek){this.pauseAfterSeek=false;if(Date.now()<this.seekUntil)this.youtube.pauseVideo();}}this.dispatchEvent(new Event('timeupdate'));},
         onError:event=>{clearTimeout(timeout);this.lastError=`YouTube에서 이 영상을 재생할 수 없습니다 (코드 ${event.data}). 원본 링크에서 확인하세요.`;this.dispatchEvent(new Event('error'));resolve();}
       }});
     });
   }
-  get currentTime(){return this.type==='native'?(this.pendingNativeSeek??this.native.currentTime):(this.pendingYoutubeSeek??(Date.now()<this.seekUntil?this.seekTarget:this.youtube?.getCurrentTime?.()||0));}
-  set currentTime(value){if(this.type==='native'){if(this.native.readyState<2||!this.native.seekable.length)this.pendingNativeSeek=value;else{this.pendingNativeSeek=null;this.native.currentTime=value;}}else{if(!this.started){this.pendingYoutubeSeek=value;return;}this.pauseAfterSeek=this.paused;this.seekTarget=value;this.seekUntil=Date.now()+900;this.youtube?.seekTo?.(value,true);}}
+  get currentTime(){
+    if(this.type==='native')return this.pendingNativeSeek??this.native.currentTime;
+    if(this.pendingYoutubeSeek!=null)return this.pendingYoutubeSeek;
+    if(Date.now()<this.seekUntil)return this.seekTarget;
+    const reported=this.youtube?.getCurrentTime?.()||0;
+    // A paused YouTube player keeps reporting the old time after seekTo until playback resumes; trust the seek until it moves.
+    if(this.heldFrom!=null&&this.paused&&Math.abs(reported-this.heldFrom)<0.5)return this.seekTarget;
+    this.heldFrom=null;return reported;
+  }
+  set currentTime(value){if(this.type==='native'){if(this.native.readyState<2||!this.native.seekable.length)this.pendingNativeSeek=value;else{this.pendingNativeSeek=null;this.native.currentTime=value;}}else{if(!this.started){this.pendingYoutubeSeek=value;return;}this.pauseAfterSeek=this.paused;this.heldFrom=this.paused?this.youtube?.getCurrentTime?.()??null:null;this.seekTarget=value;this.seekUntil=Date.now()+900;this.youtube?.seekTo?.(value,true);}}
   get duration(){return this.type==='native'?this.native.duration:this.youtube?.getDuration?.()||0;}
   get seeking(){return this.type==='native'?(this.pendingNativeSeek!=null||this.native.seeking):Date.now()<this.seekUntil;}
   get paused(){return this.type==='native'?this.native.paused:this.youtube?.getPlayerState?.()!==1;}
