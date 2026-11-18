@@ -35,7 +35,7 @@ async function fixture(t,{seed=true,...options}={}){
 test('whitelisted export round trips lectures, ordered folders, aligned translations and learning to an empty directory',async t=>{
   const source=await fixture(t),target=await fixture(t,{seed:false}),exported=await source.service.export();
   const serialized=JSON.stringify(exported);for(const value of ['do-not-export','folder-secret','translation-secret','cache-secret','auth-file-secret','access_token','apiKey','refresh_token','extraLocalData'])assert.equal(serialized.includes(value),false);
-  const preview=await target.service.preview({backup:exported});assert.deepEqual(preview.counts,{records:1,progress:0,lectures:1,folders:1,translations:1});assert.deepEqual(preview.conflicts.records,[]);
+  const preview=await target.service.preview({backup:exported});assert.deepEqual(preview.counts,{records:1,chats:0,progress:0,lectures:1,folders:1,translations:1});assert.deepEqual(preview.conflicts.records,[]);
   const state=await target.service.commit({revision:0,token:preview.token,mode:'merge'});assert.equal(state.records[0].explanation,'original');
   const restored=await target.service.export();assert.deepEqual(restored.library,exported.library);assert.deepEqual(restored.folders,exported.folders);assert.deepEqual(restored.translations,exported.translations);
   assert.equal((await target.library.list())[0].title,'Fixture lecture');assert.equal((await target.library.folders.list()).folders[0].lectureIds[0],'1');

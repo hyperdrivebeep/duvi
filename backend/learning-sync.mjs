@@ -38,8 +38,16 @@ export function mergeRecord(local,incoming,{localDevice,incomingDevice}){
   const first=time(local.createdAt)<=time(incoming.createdAt)?local:incoming;
   return {record:{...winner,revision:top+2,history,reviews,reviewDueAt:later(local.reviewDueAt,incoming.reviewDueAt),createdAt:first.createdAt,originalExplanation:first.originalExplanation},result:'conflict'};
 }
+/** Chat messages are never edited, so two copies of a thread merge into the union of their messages. */
+export function mergeThread(local,incoming){
+  const messages=new Map(local.messages.map(row=>[row.id,row]));
+  for(const row of incoming.messages){const mine=messages.get(row.id);if(!mine||(!mine.recordId&&row.recordId))messages.set(row.id,row);}
+  const merged={...local,title:local.title||incoming.title,createdAt:time(incoming.createdAt)<time(local.createdAt)?incoming.createdAt:local.createdAt,updatedAt:later(local.updatedAt,incoming.updatedAt),
+    messages:[...messages.values()].sort((a,b)=>time(a.at)-time(b.at)).slice(-v.CHAT_LIMITS.messages)};
+  return {thread:merged,changed:JSON.stringify(merged)!==JSON.stringify(local)};
+}
 export function mergeLearning(current,incoming,devices){
-  const summary={added:0,updated:0,kept:0,same:0,conflicts:[],progressAdded:0,progressUpdated:0};
+  const summary={added:0,updated:0,kept:0,same:0,conflicts:[],progressAdded:0,progressUpdated:0,chatsAdded:0,chatsUpdated:0};
   const records=new Map(current.records.map(row=>[row.id,row]));
   for(const row of incoming.records){
     const local=records.get(row.id);if(!local){records.set(row.id,row);summary.added++;continue;}
@@ -52,7 +60,12 @@ export function mergeLearning(current,incoming,devices){
     if(!local){progress[key]=row;summary.progressAdded++;}
     else if(time(row.updatedAt)>time(local.updatedAt)){progress[key]={...row,revision:Math.max(local.revision,row.revision)};summary.progressUpdated++;}
   }
-  return {learning:{...current,records:[...records.values()],progress},summary};
+  const chats=new Map(current.chats.map(row=>[row.id,row]));
+  for(const row of incoming.chats){
+    const local=chats.get(row.id);if(!local){chats.set(row.id,row);summary.chatsAdded++;continue;}
+    const {thread,changed}=mergeThread(local,row);chats.set(row.id,thread);if(changed)summary.chatsUpdated++;
+  }
+  return {learning:{...current,records:[...records.values()],progress,chats:[...chats.values()]},summary};
 }
 
 export class LearningSync{
@@ -129,7 +142,7 @@ export class LearningSync{
       const merged=mergeLearning(current,entry.peer.learning,{localDevice:entry.localDevice,incomingDevice:entry.peer.deviceName});summary=merged.summary;
       // Recovery copy of the state right before this explicitly confirmed merge.
       await this.writer(this.before,structuredClone(current));
-      current.records=merged.learning.records;current.progress=merged.learning.progress;
+      current.records=merged.learning.records;current.progress=merged.learning.progress;current.chats=merged.learning.chats;
     }).then(state=>{this.tokens.delete(body.token);return {state,summary};});
   }
 }

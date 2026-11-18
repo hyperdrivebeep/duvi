@@ -5,6 +5,11 @@ export const MAX_BYTES=16*1024*1024;
 export const TEXT_FIELDS=['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'];
 export const HELP=['none','hint','partial','full'];
 export const STATUSES=['not_started','watching','practicing','explained','reviewed'];
+/** Version 2 added per-lecture chat threads; version 1 files migrate to an empty chat list. */
+export const SCHEMA_VERSION=2;
+export const CHAT_LIMITS=Object.freeze({threads:2000,messages:500,question:4000,answer:16000});
+export const CHAT_STATUSES=['complete','stopped','interrupted'];
+export function emptyState(){return {schemaVersion:SCHEMA_VERSION,revision:0,records:[],progress:{},settings:{},chats:[]};}
 export function invalid(message='학습 데이터 형식을 확인하세요.'){throw new AppError(message,'invalid_learning',400);}
 export function object(value){if(!value||Array.isArray(value)||typeof value!=='object'||![Object.prototype,null].includes(Object.getPrototypeOf(value)))invalid();return value;}
 export function keys(value,allowed){object(value);if(Object.keys(value).some(key=>!allowed.includes(key)))invalid('허용되지 않은 학습 데이터 필드가 있습니다.');return value;}
@@ -24,18 +29,20 @@ export function anchor(value){
   const result={lectureId:lectureId(value.lectureId),seconds:number(value.seconds),sourceText:text(value.sourceText??''),translation:text(value.translation??''),alignmentRevision:value.alignmentRevision==null?null:text(value.alignmentRevision,160),cueStart:value.cueStart==null?null:number(value.cueStart),cueEnd:value.cueEnd==null?null:number(value.cueEnd)};
   if(result.cueStart!==null&&result.cueEnd!==null&&result.cueStart>=result.cueEnd)invalid();return result;
 }
+// aiAnswer is a tutor reply saved from a chat; it is kept apart from the learner's own fields and only present when set.
+const aiAnswer=value=>value.aiAnswer?{aiAnswer:text(value.aiAnswer,CHAT_LIMITS.answer)}:{};
 export function recordInput(value){
-  keys(value,['id','resourceId','lectureId',...TEXT_FIELDS,'help','anchor','reviewDueAt']);
+  keys(value,['id','resourceId','lectureId',...TEXT_FIELDS,'aiAnswer','help','anchor','reviewDueAt']);
   const result={resourceId:id(value.resourceId),lectureId:value.lectureId==null?null:lectureId(value.lectureId)};
   if(value.id!==undefined)result.id=id(value.id);
   for(const field of TEXT_FIELDS)result[field]=text(value[field]??'',field==='title'?300:12000);
-  result.help=choice(value.help??'none',HELP);result.anchor=anchor(value.anchor);result.reviewDueAt=date(value.reviewDueAt??null,true);
+  Object.assign(result,aiAnswer(value));result.help=choice(value.help??'none',HELP);result.anchor=anchor(value.anchor);result.reviewDueAt=date(value.reviewDueAt??null,true);
   if(result.anchor&&result.lectureId&&result.anchor.lectureId!==result.lectureId)invalid('강의와 출처 구간이 일치하지 않습니다.');
   return result;
 }
-export function snapshot(record){return Object.fromEntries(['resourceId','lectureId',...TEXT_FIELDS,'help','anchor','reviewDueAt'].map(key=>[key,record[key]]));}
+export function snapshot(record){return {...Object.fromEntries(['resourceId','lectureId',...TEXT_FIELDS,'help','anchor','reviewDueAt'].map(key=>[key,record[key]])),...aiAnswer(record)};}
 export function storedRecord(value){
-  keys(value,['id','resourceId','lectureId',...TEXT_FIELDS,'help','anchor','reviewDueAt','schemaVersion','revision','createdAt','updatedAt','originalExplanation','history','reviews']);
+  keys(value,['id','resourceId','lectureId',...TEXT_FIELDS,'aiAnswer','help','anchor','reviewDueAt','schemaVersion','revision','createdAt','updatedAt','originalExplanation','history','reviews']);
   if(value.schemaVersion!==1)invalid();
   const result={...recordInput({...snapshot(value),id:value.id}),schemaVersion:1,revision:integer(value.revision,1),createdAt:date(value.createdAt),updatedAt:date(value.updatedAt),originalExplanation:text(value.originalExplanation)};
   result.history=unique(array(value.history,500).map(entry=>{
@@ -49,8 +56,20 @@ export function storedRecord(value){
   }),row=>row.id);
   return result;
 }
+export function chatMessage(value){
+  keys(value,['id','role','text','at','seconds','model','status','recordId']);
+  const role=choice(value.role,['user','assistant']);
+  const result={id:id(value.id),role,text:text(value.text,role==='user'?CHAT_LIMITS.question:CHAT_LIMITS.answer),at:date(value.at),seconds:number(value.seconds),model:text(value.model??'',200)};
+  if(value.status!==undefined)result.status=choice(value.status,CHAT_STATUSES);
+  if(value.recordId!==undefined)result.recordId=id(value.recordId);
+  return result;
+}
+export function chatThread(value){
+  keys(value,['id','lectureId','title','createdAt','updatedAt','messages']);
+  return {id:id(value.id),lectureId:lectureId(value.lectureId),title:text(value.title??'',120),createdAt:date(value.createdAt),updatedAt:date(value.updatedAt),messages:unique(array(value.messages,CHAT_LIMITS.messages).map(chatMessage),row=>row.id)};
+}
 export function state(value){
-  keys(value,['schemaVersion','revision','records','progress','settings']);if(value.schemaVersion!==1)invalid('지원하지 않는 학습 데이터 버전입니다.');
+  keys(value,['schemaVersion','revision','records','progress','settings','chats']);if(![1,SCHEMA_VERSION].includes(value.schemaVersion))invalid('지원하지 않는 학습 데이터 버전입니다. Duvi를 최신 버전으로 업데이트하세요.');
   const progress={};object(value.progress);if(Object.keys(value.progress).length>2000)invalid();
   for(const [key,row]of Object.entries(value.progress)){
     id(key);keys(row,['status','updatedAt','revision','completed']);progress[key]={status:choice(row.status,STATUSES),updatedAt:date(row.updatedAt),revision:integer(row.revision,1)};
@@ -58,5 +77,6 @@ export function state(value){
   }
   // Version 1 has no writable global preferences; browser playback settings stay local.
   keys(value.settings,[]);
-  return bounded({schemaVersion:1,revision:integer(value.revision),records:unique(array(value.records).map(storedRecord),row=>row.id),progress,settings:{}});
+  const chats=unique(array(value.chats??[],CHAT_LIMITS.threads).map(chatThread),row=>row.id);
+  return bounded({schemaVersion:SCHEMA_VERSION,revision:integer(value.revision),records:unique(array(value.records).map(storedRecord),row=>row.id),progress,settings:{},chats});
 }

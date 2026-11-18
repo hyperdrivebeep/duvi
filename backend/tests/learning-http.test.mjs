@@ -31,7 +31,7 @@ test('learning HTTP enforces session, origin, CSRF and JSON; roundtrip remains u
   assert.equal((await post('/api/learning/records',null)).status,400);
   assert.equal((await post('/api/learning/records',{padding:'x'.repeat(2300001)})).status,413);
   assert.equal((await fetch(base+'/api/learning/records',{method:'POST',headers,body:'{broken'})).status,400);
-  const initial=await (await fetch(base+'/api/learning',{headers})).json();assert.deepEqual(initial,{schemaVersion:1,revision:0,records:[],progress:{},settings:{}});
+  const initial=await (await fetch(base+'/api/learning',{headers})).json();assert.deepEqual(initial,{schemaVersion:2,revision:0,records:[],progress:{},settings:{},chats:[]});
   const create=await post('/api/learning/records',{revision:0,record});assert.equal(create.status,200);const saved=await create.json();
   const race=await Promise.all(['watching','explained'].map(status=>post('/api/learning/progress',{revision:1,resourceId:'mit-01',status})));assert.deepEqual(race.map(row=>row.status).sort(),[200,409]);
   const tutor=await post('/api/learning/tutor',{recordId:saved.records[0].id,recordRevision:saved.records[0].revision,mode:'hint',model:'test'});assert.equal(tutor.status,401);assert.equal((await tutor.json()).error.code,'not_connected');

@@ -43,7 +43,7 @@ test('a question saved on one PC reaches the other through the folder, without l
   assert.deepEqual(await readdir(folder), [`duvi-sync-${a.id}.json`]);
   const file = JSON.parse(await readFile(path.join(folder, exported.file), 'utf8'));
   assert.deepEqual(Object.keys(file).sort(), ['deviceId', 'deviceName', 'exportedAt', 'format', 'learning', 'schemaVersion']);
-  assert.deepEqual(Object.keys(file.learning).sort(), ['progress', 'records', 'revision', 'schemaVersion', 'settings']);
+  assert.deepEqual(Object.keys(file.learning).sort(), ['chats', 'progress', 'records', 'revision', 'schemaVersion', 'settings']);
 
   assert.deepEqual((await b.sync.get()).peers.map(peer => [peer.deviceName, peer.records]), [['home-pc', 1]]);
   const {plan, state: merged, summary} = await pull(b, a);
