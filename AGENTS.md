@@ -61,3 +61,11 @@ fullscreen at 1280 and 1536 px: video and both caption regions without clipping 
 overlap, question entry beside the video with auto-pause, transcript seek, keyboard
 navigation, and time/draft kept across exit and re-entry. A YouTube iframe swallows
 pointer moves, so hidden fullscreen controls must stay reachable without them.
+
+On 2026-11-18 the user asked for real-time answers while watching, "like using GPT
+as a side chat", instead of a question that is only saved. Keep the 질문하기 chat
+beside the video (normal and fullscreen) streaming answers through the learner's own
+ChatGPT connection, with conversations kept per lecture in local learning state.
+The answer is labelled as an AI suggestion and becomes a learning record only when
+the learner presses 기록으로 저장. `DUVI_CHAT_MOCK=1` is a QA-only stand-in and
+must never be enabled by default or reported as real answer quality.

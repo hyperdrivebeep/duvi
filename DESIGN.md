@@ -267,3 +267,42 @@ progress-mobile-player, progress-mobile-roadmap, progress-tablet-roadmap,
 progress-fullscreen-controls, progress-mobile-copy, progress-mobile-library,
 progress-mobile-error and progress-mobile-retry (JPEG). The paragraph/compact-list
 fixes have fresh affected captures; unchanged surfaces retain their earlier captures.
+
+## 12. Real-time side chat (2026-11-18)
+
+User task: get an answer while watching, "like using GPT as a side chat". The
+saved-only question form and the one-shot tutor inside the record editor did not
+answer in place. C11 adds a **질문하기** tab beside the video in normal view and true
+fullscreen; the existing editor tab is renamed **기록** and keeps its behaviour.
+The toolbar's 질문하기 button opens the chat tab.
+
+Anatomy, top to bottom: conversation select (latest thread of this lecture first,
+plus a new-conversation entry) and 새 대화; model select from the account's model
+catalog and the 보낼 때 영상 멈추기 toggle (on by default); the message log (the only
+scroller in the panel, role=log); a status notice; the composer (auto-growing
+textarea up to 160px, 보내기 / 멈추기 in the same slot); one line naming what is sent.
+Messages: learner turns right-aligned on the selected surface, tutor turns labelled
+"AI 튜터 · 제안" on the soft surface with the model name, a stopped/interrupted tag
+in the existing notice colour, and 복사 / 기록으로 저장 (or ✓ 기록에 저장됨 · 열린 질문 보기).
+Each turn shows its playback time as a chip; [mm:ss] inside an answer becomes a chip
+too, and every chip seeks the video. The empty state offers three starter questions.
+Dark fullscreen variants reuse #090b10/#141922/#203652/#232e40 and focus #75a6f0.
+
+Behaviour: Enter sends, Shift+Enter breaks a line, Enter that confirms a Korean IME
+syllable does neither. Text streams in as it arrives; the log follows only while the
+reader is near its end. Typing, clicking and scrolling inside the panel never reveal
+the fullscreen controls (the panel is excluded from the reveal rule since 22482e5).
+Captions keep their full height beside the panel. No decorative animation.
+
+Storage: learning state v2 adds `chats` (threads per lecture, messages with role,
+text, time, playback seconds, model, stop status and linked record). Version 1 files
+migrate to an empty list; backup counts and merges threads; folder sync merges a
+thread as the union of both PCs' messages. A saved answer becomes a record with the
+learner's question, an empty own explanation, `aiAnswer` kept apart from the
+learner fields, help level "full", and a review the next day.
+
+Evidence: isolated server with the explicit `DUVI_CHAT_MOCK=1` test provider, the
+micrograd lecture, headed Chrome with a temporary profile, true fullscreen through a
+real click at 1280, 1536 and 1920. Captures are local files in
+`../fs-qa-shots/side-chat/` and are not committed. Real ChatGPT answers, their
+quality and latency were not observed.
