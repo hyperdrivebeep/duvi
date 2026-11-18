@@ -19,9 +19,20 @@ async function readJSON(req,limit=2300000){
   const chunks=[];let bytes=0;for await(const chunk of req){bytes+=chunk.length;if(bytes>limit)throw new AppError('요청이 너무 큽니다.','too_large',413);chunks.push(chunk);}const body=Buffer.concat(chunks).toString('utf8');
   try{return JSON.parse(body||'{}');}catch{throw new AppError('요청 형식이 올바르지 않습니다.','invalid_json');}
 }
-export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101}){
+/** Streams one chat turn as server-sent events; failures before the first event still return a JSON error. */
+async function streamChat(req,res,chat,body){
+  const closed=new AbortController();res.on('close',()=>{if(!res.writableEnded)closed.abort();});
+  const send=(event,data)=>{
+    if(!res.headersSent){res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','X-Accel-Buffering':'no'});res.flushHeaders();}
+    if(!res.writableEnded)res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+  try{await chat.ask(body,{onEvent:send,signal:closed.signal});}
+  catch(error){if(!res.headersSent)throw error;send('error',{message:error instanceof AppError?error.message:'답변을 저장하지 못했습니다. 다시 질문해 주세요.',code:error.code||'internal'});}
+  res.end();
+}
+export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider}){
   const base=`http://127.0.0.1:${port}`,sessions=new Map();
-  const learning=new LearningService({root,auth,translations,library});
+  const learning=new LearningService({root,auth,translations,library,chatProvider});
   const cookieName=`mit_session_${port}`;
   function session(req,res,create=false){
     let sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);
@@ -68,6 +79,10 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
         if(req.method==='GET'&&pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
         if(req.method==='GET'&&pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
         if(req.method==='POST'&&pathname==='/api/learning/tutor'){await learning.withAssets(()=>undefined);json(res,200,await learning.tutor.ask(body));return;}
+        // A streamed answer can take minutes, so it waits for pending restores but does not hold the asset gate.
+        if(req.method==='POST'&&pathname==='/api/learning/chat'){await learning.withAssets(()=>undefined);await streamChat(req,res,learning.chat,body);return;}
+        if(req.method==='POST'&&pathname==='/api/learning/chat/stop'){json(res,200,learning.chat.stop(body));return;}
+        if(req.method==='GET'&&pathname==='/api/learning/chat/models'){json(res,200,{models:await learning.chat.models()});return;}
         await learning.withAssets(async()=>{
         if(req.method==='GET'){
           if(pathname==='/api/learning'){json(res,200,await learning.store.get());return;}
@@ -83,6 +98,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/learning/records'){json(res,200,await learning.store.saveRecord(body));return;}
           if(pathname==='/api/learning/progress'){json(res,200,await learning.store.setProgress(body));return;}
           if(pathname==='/api/learning/review'){json(res,200,await learning.store.review(body));return;}
+          if(pathname==='/api/learning/chat/record'){json(res,200,await learning.chat.saveRecord(body));return;}
           if(pathname==='/api/learning/import/preview'){json(res,200,await learning.backup.preview(body));return;}
           if(pathname==='/api/learning/import'){json(res,200,await learning.backup.commit(body));return;}
           if(pathname==='/api/learning/sync/folder'){json(res,200,await learning.sync.setFolder(body));return;}
