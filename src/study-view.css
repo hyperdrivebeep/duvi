@@ -31,6 +31,8 @@
 .study-focus.controls-hidden>.toolbar{visibility:hidden;pointer-events:none}
 /* A YouTube iframe swallows pointer moves, so a transparent band at the top edge brings the hidden controls back. */
 .study-focus.controls-hidden::after{content:'';position:absolute;z-index:4;top:0;left:0;right:0;height:72px}
+/* The band covers only the video column: over the notes panel it would swallow taps on the panel tabs and close button. */
+.study-focus.has-transcript.controls-hidden::after{right:320px}
 .study-focus .toolbar button,.study-focus .toolbar select,.study-focus .study-controls-handle{min-height:44px;background:#232e40;color:#fff;border-color:#ffffff26}
 .study-focus .toolbar button:hover,.study-focus .study-controls-handle:hover{background:#34445d}
 .study-focus .sentence-controls{gap:6px}
@@ -61,6 +63,7 @@
 @media(max-width:700px){
   .stage.study-focus.has-transcript{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto 30dvh}
   .study-focus.has-transcript>.transcript-panel{grid-column:1;grid-row:3;border-left:0;border-top:1px solid #ffffff26}
+  .study-focus.has-transcript.controls-hidden::after{right:0}
   .study-focus>.captions{padding:6px 12px}
   .study-focus>.toolbar{left:6px;top:6px;right:58px;padding:6px}
   .study-focus .study-controls-handle{top:6px;right:6px}
