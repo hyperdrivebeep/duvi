@@ -116,7 +116,7 @@ test('a saved answer becomes one open learning record anchored at the question t
   const events=await ask(chat,{text:'왜 0부터 세나요?'}),thread=events.at(-1).data.thread,answer=thread.messages[1];
   const {state,recordId}=await chat.saveRecord({threadId:thread.id,messageId:answer.id});
   const record=state.records.find(row=>row.id===recordId);
-  assert.deepEqual([record.question,record.explanation,record.aiAnswer,record.resourceId,record.lectureId],['왜 0부터 세나요?','','AI 답변','mit-1','1']);
+  assert.deepEqual([record.question,record.explanation,record.aiAnswer,record.resourceId,record.lectureId,record.help],['왜 0부터 세나요?','','AI 답변','mit-1','1','full']);
   assert.deepEqual(record.anchor,{lectureId:'1',seconds:102,sourceText:'Sentence 20.',translation:'문장 20.',alignmentRevision:null,cueStart:100,cueEnd:105});
   assert.ok(Date.parse(record.reviewDueAt)>Date.now());
   assert.equal(state.chats[0].messages[1].recordId,recordId);
@@ -128,11 +128,11 @@ test('the chat route streams server-sent events with the explicit mock provider 
   const start=async(port,options)=>{const server=createServer({root,library,translations:{publicJob:()=>null,cache:async()=>({translations:{}})},port,...options});await new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
     const base=`http://127.0.0.1:${port}`,session=await fetch(base+'/api/session'),cookie=session.headers.get('set-cookie').split(';')[0],{csrf}=await session.json();
     return (route,body)=>fetch(base+route,{method:body?'POST':'GET',headers:{Cookie:cookie,Origin:base,'Content-Type':'application/json','X-CSRF-Token':csrf},body:body&&JSON.stringify(body)});};
-  const offline=await start(6197,{auth:{state:{activeId:null},publicState:()=>({accounts:[]})}});
+  const offline=await start(6192,{auth:{state:{activeId:null},publicState:()=>({accounts:[]})}});
   const refused=await offline('/api/learning/chat',{lectureId:'1',seconds:3,text:'질문',model:'m'});
   assert.equal(refused.status,401);assert.equal((await refused.json()).error.code,'not_connected');
   assert.equal((await offline('/api/learning/chat/models')).status,401);
-  const mocked=await start(6198,{auth:{state:{activeId:null},publicState:()=>({accounts:[]})},chatProvider:createMockChatProvider({delayMs:0,chunk:40})});
+  const mocked=await start(6191,{auth:{state:{activeId:null},publicState:()=>({accounts:[]})},chatProvider:createMockChatProvider({delayMs:0,chunk:40})});
   const {models}=await (await mocked('/api/learning/chat/models')).json();assert.match(models[0].name,/실제 ChatGPT 아님/);
   const response=await mocked('/api/learning/chat',{lectureId:'1',seconds:3,text:'모의 질문',model:models[0].id});
   assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/^text\/event-stream/);
