@@ -2,6 +2,11 @@
 export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true],.transcript-panel');}
 /** Keyboard focus in the toolbar holds fullscreen controls open; focus a mouse click leaves on a toolbar button (대본, 질문하기) does not. */
 export function holdsControls(active){return !!active&&(active.matches(':focus-visible')||!active.matches('button'));}
+/** Hiding the toolbar would drop the focus a click left on its button, and that focusout reveals the toolbar again; move focus to the stage first. */
+export function hideControls(stage,toolbar,handle){
+  if(toolbar.contains(document.activeElement))stage.focus({preventScroll:true});
+  stage.classList.add('controls-hidden');handle.setAttribute('aria-expanded','false');
+}
 export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
@@ -33,7 +38,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
     $('showStudyControls').setAttribute('aria-expanded','true');
     if(entered)hideTimer=setTimeout(()=>{
       if((toolbar.contains(document.activeElement)&&holdsControls(document.activeElement))||toolbar.matches(':hover'))return;
-      stage.classList.add('controls-hidden');$('showStudyControls').setAttribute('aria-expanded','false');
+      hideControls(stage,toolbar,$('showStudyControls'));
     },2500);
   }
   function setActive(active){
