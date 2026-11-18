@@ -1,5 +1,5 @@
-/** Typing a note beside the video must not pop the toolbar over the video on every keystroke. */
-export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true]');}
+/** Typing a note, or clicking and pointing in the notes panel beside the video, must not pop the toolbar over the video. */
+export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true],.transcript-panel');}
 export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
@@ -66,8 +66,9 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
     if(event.key==='Escape'&&entered&&!document.fullscreenElement){event.preventDefault();exit();}
     if(entered&&revealsControls(event))showControls();
   });
-  stage.addEventListener('pointermove',showControls,{passive:true});
-  stage.addEventListener('pointerdown',showControls,{passive:true});
+  const revealFromPointer=event=>{if(revealsControls(event))showControls();};
+  stage.addEventListener('pointermove',revealFromPointer,{passive:true});
+  stage.addEventListener('pointerdown',revealFromPointer,{passive:true});
   toolbar.addEventListener('focusin',showControls);
   toolbar.addEventListener('focusout',showControls);
   toolbar.addEventListener('pointerleave',showControls);
