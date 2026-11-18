@@ -1,5 +1,7 @@
 /** Typing a note, or clicking and pointing in the notes panel beside the video, must not pop the toolbar over the video. */
 export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true],.transcript-panel');}
+/** Keyboard focus in the toolbar holds fullscreen controls open; focus a mouse click leaves on a toolbar button (대본, 질문하기) does not. */
+export function holdsControls(active){return !!active&&(active.matches(':focus-visible')||!active.matches('button'));}
 export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
@@ -30,7 +32,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
     clearTimeout(hideTimer);stage.classList.remove('controls-hidden');
     $('showStudyControls').setAttribute('aria-expanded','true');
     if(entered)hideTimer=setTimeout(()=>{
-      if(toolbar.contains(document.activeElement)||toolbar.matches(':hover'))return;
+      if((toolbar.contains(document.activeElement)&&holdsControls(document.activeElement))||toolbar.matches(':hover'))return;
       stage.classList.add('controls-hidden');$('showStudyControls').setAttribute('aria-expanded','false');
     },2500);
   }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {revealsControls} from '../src/study-view.mjs';
+import {revealsControls,holdsControls} from '../src/study-view.mjs';
 
 const target=matches=>({target:{closest:selector=>matches(selector)?{}:null}});
 test('typing in a note field keeps fullscreen controls hidden; other keys reveal them',()=>{
@@ -16,4 +16,11 @@ test('the top-edge reveal band leaves the notes panel column uncovered',async()=
 });
 test('pointing or clicking in the notes panel keeps fullscreen controls hidden',()=>{
   assert.equal(revealsControls(target(selector=>selector.includes('.transcript-panel'))),false);
+});
+test('only keyboard focus or a non-button control in the toolbar holds fullscreen controls open',()=>{
+  const focused=({tag,visible})=>({matches:selector=>selector===':focus-visible'?visible:selector==='button'&&tag==='button'});
+  assert.equal(holdsControls(focused({tag:'button',visible:false})),false);
+  assert.equal(holdsControls(focused({tag:'button',visible:true})),true);
+  assert.equal(holdsControls(focused({tag:'select',visible:false})),true);
+  assert.equal(holdsControls(null),false);
 });
