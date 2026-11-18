@@ -110,9 +110,11 @@ frontend implementation; absence of either is not a passing score.
 Evidence update: 2026-11-17. Browser outcomes below were observed in Chrome QA
 on the isolated 6110 fixture; installation was checked on the live 6103 app.
 Artifact filenames below refer to the local work folder
-`../learning-evidence/`. Screenshots and logs are not committed to this public
-repository and are not available through GitHub-relative links. Only official
-source URLs are clickable; local artifacts are listed as inline filenames.
+`../learning-evidence/`. Those 2026-11-17 screenshots and logs are not committed to
+this public repository and are not available through GitHub-relative links. Only
+official source URLs are clickable; local artifacts are listed as inline filenames.
+Later redacted desktop QA evidence (fullscreen, typing, top strip, side chat and its
+follow-ups, 2026-11-18/19) is committed under [docs/qa-evidence](docs/qa-evidence/README.md).
 The active 6103 server has 57 lectures,
 10 folders and 0 learner records. The fixture's 2 QA records are not live learner
 data. Live entry evidence is `user-before-entry.jpg`

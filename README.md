@@ -183,6 +183,7 @@ npm run build
 인증/PKCE, 토큰 검증, 번역 응답·중단·재개, 자막 파싱, HTTP 요청 보호, 재생 위치 복원과
 학습 저장·백업·로드맵 관련 테스트를 포함합니다. 실제 브라우저 검증 범위와 미검증 항목은
 [TEST-RESULTS.md](TEST-RESULTS.md), 학습 기능의 확인 범위는 [학습·탐구 설계](docs/LEARNING_DESIGN.md)를 참고하세요.
+전체화면·질문하기 QA에서 찍은 화면과 측정값(개인정보를 가린 WebP)은 [QA 증거](docs/qa-evidence/README.md)에 있습니다.
 
 ## 선택적 AI 학습 도움
 

@@ -1,0 +1,66 @@
+{
+  "before": {
+    "tag": "before",
+    "port": 6142,
+    "fs": {
+      "fs": "stage",
+      "w": 1536,
+      "h": 864
+    },
+    "hiddenBefore": true,
+    "shownByTopEdge": true,
+    "clickAt": {
+      "x": 1217.5,
+      "y": 43.20000076293945
+    },
+    "active": {
+      "id": "",
+      "focusVisible": true
+    },
+    "panel": {
+      "x": 1376,
+      "y": 432,
+      "open": true,
+      "w": 320
+    },
+    "firstHiddenMs": 2668,
+    "finalHidden": true,
+    "samples": "0:V 256:V 507:V 906:V 1157:V 1409:V 1661:V 1913:V 2164:V 2416:V 2668:H 2920:H 3171:H 3423:H 3675:H 3927:H 4179:H",
+    "shots": {
+      "a": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-before-a-0.5s-after-toolbar-click.webp",
+      "b": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-before-b-4s-after-toolbar-click.webp"
+    }
+  },
+  "after": {
+    "tag": "after",
+    "port": 6141,
+    "fs": {
+      "fs": "stage",
+      "w": 1536,
+      "h": 864
+    },
+    "hiddenBefore": true,
+    "shownByTopEdge": true,
+    "clickAt": {
+      "x": 1217.5,
+      "y": 43.20000076293945
+    },
+    "active": {
+      "id": "",
+      "focusVisible": true
+    },
+    "panel": {
+      "x": 1376,
+      "y": 432,
+      "open": true,
+      "w": 320
+    },
+    "firstHiddenMs": 2675,
+    "finalHidden": true,
+    "samples": "0:V 258:V 510:V 913:V 1165:V 1417:V 1668:V 1921:V 2173:V 2424:V 2675:H 2927:H 3179:H 3430:H 3682:H 3934:H 4185:H",
+    "shots": {
+      "a": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-after-a-0.5s-after-toolbar-click.webp",
+      "b": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-after-b-4s-after-toolbar-click.webp"
+    }
+  }
+}

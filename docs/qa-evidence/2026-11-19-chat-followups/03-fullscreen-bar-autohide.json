@@ -1,0 +1,92 @@
+{
+  "scenario": "true fullscreen 1536x864; bar hidden; pointer to top edge reveals bar; real CDP mouse click on toolbar button 대본 (#studyTranscript); pointer moved into the opened panel; bar state sampled every 250 ms for 6 s plus every class change (MutationObserver, ms after click)",
+  "builds": {
+    "before": "490cb99 (port 6142)",
+    "pushed-251f6c9": "4278912 = origin/main incl. 251f6c9 (port 6143)",
+    "fixed": "working tree with the follow-up fix (port 6141)"
+  },
+  "before": {
+    "tag": "before",
+    "port": 6142,
+    "fs": {
+      "fs": "stage",
+      "w": 1536,
+      "h": 864
+    },
+    "hiddenBefore": true,
+    "shownByTopEdge": true,
+    "clickAt": {
+      "x": 1309.6000003814697,
+      "y": 43.20000076293945
+    },
+    "activeAfterClick": {
+      "id": "studyTranscript",
+      "focusVisible": false,
+      "inToolbar": true
+    },
+    "finalHidden": false,
+    "samples": "0:V 252:V 503:V 891:V 1142:V 1394:V 1645:V 1897:V 2148:V 2400:V 2652:V 2904:V 3155:V 3407:V 3658:V 3910:V 4161:V 4559:V 4811:V 5062:V 5313:V 5565:V 5817:V",
+    "classFlipsMs": "8667:V 8669:V 8671:V 8717:V 8724:V",
+    "activeAtEnd": "studyTranscript",
+    "shots": {
+      "a": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-before-a-0.5s-after-transcript-click.webp",
+      "b": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-before-b-4s-after-transcript-click.webp"
+    }
+  },
+  "fixed": {
+    "tag": "fixed",
+    "port": 6141,
+    "fs": {
+      "fs": "stage",
+      "w": 1536,
+      "h": 864
+    },
+    "hiddenBefore": true,
+    "shownByTopEdge": true,
+    "clickAt": {
+      "x": 1309.6000003814697,
+      "y": 43.20000076293945
+    },
+    "activeAfterClick": {
+      "id": "studyTranscript",
+      "focusVisible": false,
+      "inToolbar": true
+    },
+    "finalHidden": true,
+    "samples": "0:V 252:V 504:V 894:V 1146:V 1397:V 1649:V 1900:V 2152:V 2404:V 2655:H 2906:H 3162:H 3414:H 3669:H 3920:H 4172:H 4561:H 4812:H 5064:H 5315:H 5567:H 5818:H",
+    "classFlipsMs": "8690:V 8692:V 8694:V 8751:V 8759:V 2486:H 4989:H",
+    "activeAtEnd": "stage",
+    "shots": {
+      "a": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-fixed-a-0.5s-after-transcript-click.webp",
+      "b": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-fixed-b-4s-after-transcript-click.webp"
+    }
+  },
+  "pushed": {
+    "tag": "pushed-251f6c9",
+    "port": 6143,
+    "fs": {
+      "fs": "stage",
+      "w": 1536,
+      "h": 864
+    },
+    "hiddenBefore": true,
+    "shownByTopEdge": true,
+    "clickAt": {
+      "x": 1309.6000003814697,
+      "y": 43.20000076293945
+    },
+    "activeAfterClick": {
+      "id": "studyTranscript",
+      "focusVisible": false,
+      "inToolbar": true
+    },
+    "finalHidden": true,
+    "samples": "0:V 251:V 503:V 888:V 1140:V 1392:V 1643:V 1895:V 2147:V 2399:V 2654:V 2906:V 3157:V 3409:V 3661:V 3913:V 4164:V 4552:V 4804:V 5055:H 5307:H 5559:H 5810:H",
+    "classFlipsMs": "8679:V 8680:V 8682:V 8720:V 8728:V 2482:H 2503:V 5019:H",
+    "activeAtEnd": "BODY",
+    "shots": {
+      "a": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-pushed-251f6c9-a-0.5s-after-transcript-click.webp",
+      "b": "<qa-work>/fs-qa-shots/chat-followups/03-fs1536-pushed-251f6c9-b-4s-after-transcript-click.webp"
+    }
+  }
+}

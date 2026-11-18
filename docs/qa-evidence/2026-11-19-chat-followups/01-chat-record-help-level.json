@@ -1,0 +1,62 @@
+{
+  "scenario": "port 6141 (df99a47 working tree, includes bd7a3bb): open 질문하기, real click on 기록으로 저장 under the newest mock answer, then 열린 질문 보기 and 전체. Help labels read from the records view DOM; help field read from backend/learning/state.json of this isolated clone.",
+  "earlierScreenshot": {
+    "file": "fs-qa-shots/side-chat/11b-fs1536-open-question-ai-answer.webp",
+    "modified": "2026-11-19T00:17:31+09:00",
+    "bd7a3bbCommitted": "2026-11-19T00:23:32+09:00",
+    "conclusion": "taken 6 minutes before bd7a3bb was committed, so it shows the pre-fix help level"
+  },
+  "marked": 9,
+  "notice": "질문과 답변을 학습 기록으로 저장했습니다. 열린 질문과 내일 복습에 나타납니다. 열린 질문 보기",
+  "open": {
+    "where": "learningDialog",
+    "tabs": [
+      "학습 로드맵=false",
+      "내 기록=true",
+      "복습=false",
+      "백업·동기화=false",
+      "전체 2=false",
+      "열린 질문 2=true"
+    ],
+    "helpLabels": [
+      "The spelled-out intro to neural networks and backpropagation: building micrograd · 00:06 · 전체 설명 사용",
+      "The spelled-out intro to neural networks and backpropagation: building micrograd · 00:04 · 전체 설명 사용"
+    ],
+    "openTags": 0
+  },
+  "all": {
+    "where": "learningDialog",
+    "tabs": [
+      "학습 로드맵=false",
+      "내 기록=true",
+      "복습=false",
+      "백업·동기화=false",
+      "전체 2=true",
+      "열린 질문 2=false"
+    ],
+    "helpLabels": [
+      "The spelled-out intro to neural networks and backpropagation: building micrograd · 00:06 · 전체 설명 사용",
+      "The spelled-out intro to neural networks and backpropagation: building micrograd · 00:04 · 전체 설명 사용"
+    ],
+    "openTags": 0
+  },
+  "shots": [
+    "<qa-work>/fs-qa-shots/chat-followups/01-normal-1536-a-chat-answer-saved.webp",
+    "<qa-work>/fs-qa-shots/chat-followups/01-normal-1536-b-open-questions-full-help.webp",
+    "<qa-work>/fs-qa-shots/chat-followups/01-normal-1536-c-records-all-full-help.webp"
+  ],
+  "stateRecords": [
+    {
+      "id": "c3f6efa0",
+      "question": "방금 부분을 쉬운 말로 설명해 줘",
+      "help": "full",
+      "hasAiAnswer": true
+    },
+    {
+      "id": "1457a87d",
+      "question": "방금 부분을 쉬운 말로 설명해 줘",
+      "help": "full",
+      "hasAiAnswer": true
+    }
+  ]
+}

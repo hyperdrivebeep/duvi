@@ -1,0 +1,181 @@
+{
+  "scenario": "YouTube lecture yt_VMj-3S1tku0. Play/pause by real CDP clicks on the YouTube frame, each confirmed from the app clock. Normal view: question sent while playing (보낼 때 영상 멈추기 on), then play ~7 s, pause, real click on the question's time chip; #clock (the app's reading of the player time, whole seconds) at 0.3/1.5/3 s; then play on the frame and read ~4 s later. Repeated in true fullscreen 1536x864 with the chat panel beside the video.",
+  "builds": {
+    "before": "490cb99 (port 6142, without a9d9f19)",
+    "after": "df99a47 working tree (port 6141; src/media.mjs identical to a9d9f19)"
+  },
+  "after": {
+    "tag": "after",
+    "port": 6141,
+    "normal": {
+      "chip": "00:04",
+      "pausedAt": "00:11 / 145:52",
+      "at03": "00:04 / 145:52",
+      "at15": "00:04 / 145:52",
+      "at3": "00:04 / 145:52",
+      "resumed": "00:08 / 145:52",
+      "chipShownWhilePaused": true,
+      "playContinuesFromChip": true,
+      "shots": [
+        "<qa-work>/fs-qa-shots/chat-followups/02-normal-1536-after-a-paused-after-chip.webp",
+        "<qa-work>/fs-qa-shots/chat-followups/02-normal-1536-after-b-resumed.webp"
+      ]
+    },
+    "fullscreen": {
+      "fs": {
+        "fs": "stage",
+        "w": 1536,
+        "h": 864
+      },
+      "chip": "00:04",
+      "pausedAt": "00:16 / 145:52",
+      "at03": "00:04 / 145:52",
+      "at15": "00:04 / 145:52",
+      "at3": "00:04 / 145:52",
+      "resumed": "00:08 / 145:52",
+      "chipShownWhilePaused": true,
+      "playContinuesFromChip": true,
+      "shots": [
+        "<qa-work>/fs-qa-shots/chat-followups/02-fs-1536-after-a-paused-after-chip.webp",
+        "<qa-work>/fs-qa-shots/chat-followups/02-fs-1536-after-b-resumed.webp"
+      ]
+    },
+    "log": [
+      {
+        "step": "normal: playing before question",
+        "clock": "00:04 / 145:51"
+      },
+      {
+        "step": "normal: question answered (auto-paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: played ~7 s, paused (played=true paused=true)",
+        "clock": "00:11 / 145:52"
+      },
+      {
+        "step": "normal: 0.3 s after chip click (still paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: 1.5 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: 3 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: ~4 s after pressing play on the frame (play confirmed=true)",
+        "clock": "00:08 / 145:52"
+      },
+      {
+        "step": "fs: played ~7 s, paused (played=true paused=true)",
+        "clock": "00:16 / 145:52"
+      },
+      {
+        "step": "fs: 0.3 s after chip click (still paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: 1.5 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: 3 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: ~4 s after pressing play on the frame (play confirmed=true)",
+        "clock": "00:08 / 145:52"
+      }
+    ]
+  },
+  "before": {
+    "tag": "before",
+    "port": 6142,
+    "normal": {
+      "chip": "00:04",
+      "pausedAt": "00:11 / 145:52",
+      "at03": "00:04 / 145:52",
+      "at15": "00:04 / 145:52",
+      "at3": "00:04 / 145:52",
+      "resumed": "00:08 / 145:52",
+      "chipShownWhilePaused": true,
+      "playContinuesFromChip": true,
+      "shots": [
+        "<qa-work>/fs-qa-shots/chat-followups/02-normal-1536-before-a-paused-after-chip.webp",
+        "<qa-work>/fs-qa-shots/chat-followups/02-normal-1536-before-b-resumed.webp"
+      ]
+    },
+    "fullscreen": {
+      "fs": {
+        "fs": "stage",
+        "w": 1536,
+        "h": 864
+      },
+      "chip": "00:04",
+      "pausedAt": "00:16 / 145:52",
+      "at03": "00:04 / 145:52",
+      "at15": "00:04 / 145:52",
+      "at3": "00:04 / 145:52",
+      "resumed": "00:08 / 145:52",
+      "chipShownWhilePaused": true,
+      "playContinuesFromChip": true,
+      "shots": [
+        "<qa-work>/fs-qa-shots/chat-followups/02-fs-1536-before-a-paused-after-chip.webp",
+        "<qa-work>/fs-qa-shots/chat-followups/02-fs-1536-before-b-resumed.webp"
+      ]
+    },
+    "log": [
+      {
+        "step": "normal: playing before question",
+        "clock": "00:04 / 145:51"
+      },
+      {
+        "step": "normal: question answered (auto-paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: played ~7 s, paused (played=true paused=true)",
+        "clock": "00:11 / 145:52"
+      },
+      {
+        "step": "normal: 0.3 s after chip click (still paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: 1.5 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: 3 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "normal: ~4 s after pressing play on the frame (play confirmed=true)",
+        "clock": "00:08 / 145:52"
+      },
+      {
+        "step": "fs: played ~7 s, paused (played=true paused=true)",
+        "clock": "00:16 / 145:52"
+      },
+      {
+        "step": "fs: 0.3 s after chip click (still paused)",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: 1.5 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: 3 s after chip click",
+        "clock": "00:04 / 145:52"
+      },
+      {
+        "step": "fs: ~4 s after pressing play on the frame (play confirmed=true)",
+        "clock": "00:08 / 145:52"
+      }
+    ]
+  }
+}

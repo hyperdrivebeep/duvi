@@ -107,3 +107,12 @@ Local-only evidence (excluded from Git): design-qa.md; qa/desktop-final.png; qa/
 - Observed: YouTube playback, auto-hide with top-edge, caption-area and keyboard reveal, question panel auto-pause with video and captions visible, own-explanation field, transcript seek while playing, arrow/Tab navigation, learning dialog (roadmap, records, review, backup/sync) inside fullscreen, exit via the app button and via `document.exitFullscreen()` keeping time and drafts, re-entry restoring the panel.
 - Fixed: docked captions resized the video on every sentence (now they reserve two lines and hold the tallest height seen per layout); 4-line captions at the largest size were clipped (rows now grow, dock capped at 65dvh); every keystroke in a note field re-showed the toolbar over the video; closing the learning dialog dropped focus to the page because the opener was re-rendered.
 - Korean caption text was a labelled synthetic fixture (no ChatGPT account in the isolated state). A physical Esc key press in a connected desktop session was not exercised.
+
+## Side-chat follow-up QA — 2026-11-19
+
+- Same headed-Chrome, temporary-profile, true-fullscreen method as above; builds 490cb99 (before), 4278912 (pushed follow-ups) and df99a47 compared on separate isolated servers with `DUVI_CHAT_MOCK=1`.
+- A side-chat answer saved with 기록으로 저장 shows 전체 설명 사용 in 내 기록 and 열린 질문 (state `help: "full"`). The earlier 도움 없이 capture predates bd7a3bb by six minutes.
+- Time-chip seek on a paused YouTube lecture held the chip time and resumed from it in normal view and fullscreen on both builds; the pre-fix symptom did not reproduce in this sequence.
+- After a real click on the fullscreen 대본 button, 251f6c9 hid the bar at 2.5 s but the focus the hide dropped revealed it again 21 ms later. df99a47 moves focus to the stage before hiding; the bar then stays hidden.
+- A backup taken without folders.json and restored into an empty install lists MIT lectures 1, 2, 3 … 26 (before c222cc2: 1, 10, 11 …).
+- Redacted evidence: [docs/qa-evidence/2026-11-19-chat-followups](docs/qa-evidence/2026-11-19-chat-followups/README.md).

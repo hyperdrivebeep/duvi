@@ -31,7 +31,7 @@ transcript in an optional right panel, auto-hide controls, offer an overlay opti
 and do not insist on a fixed subtitle position. Preserve aligned sentence pairs
 and the playing media when toggling layouts.
 
-The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this app in a public GitHub repository. Use Duvi for the product name and 내 강의 for its lecture library. Keep credentials, imported lecture data, generated translations, logs, and local build artifacts out of Git. Preserve the existing local vault path so branding changes do not disconnect accounts.
+The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this app in a public GitHub repository. Use Duvi for the product name and 내 강의 for its lecture library. Keep credentials, imported lecture data, generated translations, logs, and local build artifacts out of Git. Redacted QA evidence may be committed under docs/qa-evidence (user decision 2026-11-19); personal data, credentials, lecture/translation data and raw logs stay out. Preserve the existing local vault path so branding changes do not disconnect accounts.
 
 ## Learning and discovery direction
 
