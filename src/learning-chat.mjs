@@ -14,7 +14,7 @@ export class ChatPanel{
     const root=this.root;root.classList.add('learning-chat');
     const head=el('div','chat-head');
     this.threadSelect=el('select');this.threadSelect.setAttribute('aria-label','이 강의의 대화');this.threadSelect.addEventListener('change',()=>{this.threadId=this.threadSelect.value||null;this.notice.textContent='';this.renderLog();});
-    this.newButton=button('새 대화',()=>{this.threadId=null;this.notice.textContent='';this.render();this.input.focus();});
+    this.newButton=button('새 대화',()=>{this.threadId=null;this.startNew=true;this.notice.textContent='';this.render();this.input.focus();});
     head.append(this.threadSelect,this.newButton);
     const options=el('div','chat-options');
     this.modelSelect=el('select');this.modelSelect.setAttribute('aria-label','답변 모델');this.modelSelect.append(new Option('모델 불러오는 중…',''));
@@ -37,8 +37,8 @@ export class ChatPanel{
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
   open(){this.sync();void this.loadModels();this.input.focus({preventScroll:true});}
-  /** A newly opened lecture shows its most recent conversation. */
-  sync(){const lectureId=this.capture()?.lectureId;if(lectureId!==this.lectureId){this.lectureId=lectureId;this.threadId=this.threads()[0]?.id||null;}this.render();}
+  /** A newly opened lecture, or a panel whose threads just loaded, shows the most recent conversation unless the learner chose 새 대화. */
+  sync(){const lectureId=this.capture()?.lectureId;if(lectureId!==this.lectureId){this.lectureId=lectureId;this.startNew=false;this.threadId=null;}if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;this.render();}
   threads(){return lectureThreads(this.getState().chats,this.lectureId);}
   thread(){return this.threads().find(row=>row.id===this.threadId)||null;}
   render(){
@@ -120,7 +120,7 @@ export class ChatPanel{
   }
   onEvent(event,data){
     const live=this.streaming;if(!live)return;
-    if(event==='start'){this.applyThread(data.thread,data.revision);live.started=true;live.threadId=data.thread.id;if(this.lectureId===data.thread.lectureId)this.threadId=data.thread.id;this.render();}
+    if(event==='start'){this.applyThread(data.thread,data.revision);live.started=true;live.threadId=data.thread.id;if(this.lectureId===data.thread.lectureId){this.threadId=data.thread.id;this.startNew=false;}this.render();}
     if(event==='delta'){
       live.text+=data.text;if(!this.streamText)return;
       const stick=this.log.scrollHeight-this.log.scrollTop-this.log.clientHeight<80;this.fill(this.streamText,live.text);if(stick)this.log.scrollTop=this.log.scrollHeight;

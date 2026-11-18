@@ -112,7 +112,7 @@ export class LearningChat{
     else onEvent('done',{status,thread:saved.thread,revision:saved.revision});
   }
   stop(body){v.keys(body,['threadId']);const controller=this.active.get(v.id(body.threadId));controller?.abort();return {stopped:!!controller};}
-  /** Saves a question and the tutor's answer as one open learning record, scheduled for review the next day. */
+  /** Saves a question and the tutor's answer as one open learning record (help: full explanation), scheduled for review the next day. */
   async saveRecord(body){
     v.keys(body,['threadId','messageId']);v.id(body.threadId);v.id(body.messageId);
     const state=await this.store.get(),thread=state.chats.find(row=>row.id===body.threadId),index=thread?thread.messages.findIndex(row=>row.id===body.messageId):-1,answer=thread?.messages[index];
@@ -122,7 +122,7 @@ export class LearningChat{
     // The cue playing when the question was asked, else the last cue that had started.
     const cueIndex=cues.reduce((best,cue,i)=>cue.start<=question.seconds?i:best,-1),cue=cues[cueIndex];
     const anchor={lectureId:thread.lectureId,seconds:cue?Math.max(cue.start,Math.min(cue.end,question.seconds)):question.seconds,sourceText:cue?.en||'',translation:translations[cueIndex]?.ko||'',alignmentRevision,cueStart:cue?.start??null,cueEnd:cue?.end??null};
-    const record={resourceId:lecturePlace(thread.lectureId,this.roadmap)?.resourceId||`lecture-${thread.lectureId}`,lectureId:thread.lectureId,title:'',question:question.text,explanation:'',aiAnswer:answer.text,help:'none',anchor,reviewDueAt:new Date(this.now()+86400000).toISOString()};
+    const record={resourceId:lecturePlace(thread.lectureId,this.roadmap)?.resourceId||`lecture-${thread.lectureId}`,lectureId:thread.lectureId,title:'',question:question.text,explanation:'',aiAnswer:answer.text,help:'full',anchor,reviewDueAt:new Date(this.now()+86400000).toISOString()};
     return this.store.saveChatRecord({threadId:thread.id,messageId:answer.id,record});
   }
 }
