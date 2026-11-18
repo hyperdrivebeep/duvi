@@ -13,7 +13,8 @@ export class LearningEditor{
     const top=el('div','learning-actions');this.newButton=button('현재 시점에서 새 기록',()=>this.newRecord());top.append(this.newButton);
     const pause=el('label','learning-confirm');this.autoPause=el('input');this.autoPause.type='checkbox';this.autoPause.checked=questionAutoPause(localStorage);this.autoPause.addEventListener('change',()=>{try{localStorage.setItem(QUESTION_AUTOPAUSE_KEY,this.autoPause.checked?'on':'off');}catch{}});pause.append(this.autoPause,document.createTextNode('질문을 열면 영상 멈추기'));top.append(pause);root.append(top);
     this.anchorSummary=el('p','muted');this.anchorText=el('blockquote','learning-anchor');this.notice=el('p','notice');this.notice.setAttribute('role','status');
-    this.form=el('form');this.fields=el('fieldset','learning-fields');this.form.append(this.fields);root.append(this.anchorSummary,this.anchorText,this.form,this.notice);
+    this.aiAnswer=el('details','learning-ai-saved');this.aiAnswerText=el('p','learning-preserve');this.aiAnswer.append(el('summary','','질문하기에서 저장한 AI 튜터 답변 · 제안'),this.aiAnswerText);
+    this.form=el('form');this.fields=el('fieldset','learning-fields');this.form.append(this.fields);root.append(this.anchorSummary,this.anchorText,this.aiAnswer,this.form,this.notice);
     for(const name of ['title','question','explanation']){const entry=field(labels[name],name,{rows:name==='title'?1:3});this.inputs[name]=entry.input;this.fields.append(entry.wrap);}
     const optional=el('details','learning-evidence');optional.append(el('summary','','이 설명을 시험하기 · 근거·가정 보기'));
     optional.append(el('p','muted','선택 입력입니다. 원문 주장, 내 추론, 실제 관측을 구분하세요. 측정하지 않은 값은 미확인으로 남깁니다.'));
@@ -49,7 +50,7 @@ export class LearningEditor{
     this.stash();this.key=record.id||`${record.anchor?.lectureId}:${record.anchor?.cueStart??record.anchor?.seconds}`;
     const draft=this.drafts[this.key];this.savedRecord=record.id?structuredClone(record):null;this.record={...(draft?.record||record)};this.baseRevision=draft?(draft.baseRevision??draft.record.revision):record.revision;this.draftConflict=!!(record.id&&draft&&this.baseRevision!==record.revision);
     for(const name of RECORD_FIELDS)this.inputs[name].value=this.record[name]||'';this.inputs.help.value=this.record.help||'none';this.inputs.reviewDays.value=draft?.reviewDays||(record.id?'keep':'1');
-    const a=this.record.anchor||{};this.anchorSummary.textContent=`${a.lectureId?this.lectureName(a.lectureId):'강의 미선택'} · ${formatTime(a.seconds)} · 원문 자막 기준`;this.anchorText.textContent=`기록 당시 원문: ${a.sourceText||'자막 없음'}${a.translation?'\n당시 번역: '+a.translation:''}`;
+    const a=this.record.anchor||{};this.anchorSummary.textContent=`${a.lectureId?this.lectureName(a.lectureId):'강의 미선택'} · ${formatTime(a.seconds)} · 원문 자막 기준`;this.aiAnswer.hidden=!this.record.aiAnswer;this.aiAnswerText.textContent=this.record.aiAnswer||'';this.anchorText.textContent=`기록 당시 원문: ${a.sourceText||'자막 없음'}${a.translation?'\n당시 번역: '+a.translation:''}`;
     this.notice.textContent=this.draftConflict?'초안 이후 서버 기록이 바뀌었습니다. 초안은 유지합니다. 최신 설명을 확인하고 반영 여부를 선택하세요.':draft?'저장하지 않은 초안을 복원했습니다.':fresh?'질문 한 줄만 적어도 저장할 수 있습니다.':'';this.conflictButton.hidden=!this.draftConflict;this.reconcileButton.hidden=true;this.tutorSend.hidden=true;this.tutorAnswer.textContent='';this.tutorPreview.textContent='';this.preview.textContent='';this.showHistory(record);this.inputs.question.focus();
   }
   showHistory(record){this.historyBody.replaceChildren(el('h4','','최초 내 설명'),el('p','learning-preserve',(record.originalExplanation??record.initialExplanation??record.explanation)||'최초 저장에는 설명이 없습니다.'));

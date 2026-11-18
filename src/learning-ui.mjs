@@ -5,17 +5,22 @@ import {renderRoadmap,resourceAction} from './learning-map-view.mjs';
 import {renderRecords} from './learning-records-view.mjs';
 import {LearningBackupUI} from './learning-backup-ui.mjs';
 import {LearningSyncUI} from './learning-sync-ui.mjs';
-export function recordInput(record){return Object.fromEntries(['id','resourceId','lectureId',...RECORD_FIELDS,'help','anchor','reviewDueAt'].filter(key=>record[key]!==undefined).map(key=>[key,record[key]]));}
+import {ChatPanel} from './learning-chat.mjs';
+import {withThread} from './learning-chat-model.mjs';
+export function recordInput(record){return Object.fromEntries(['id','resourceId','lectureId',...RECORD_FIELDS,'aiAnswer','help','anchor','reviewDueAt'].filter(key=>record[key]!==undefined).map(key=>[key,record[key]]));}
 /** The panel re-renders while the dialog loads, so fall back to the re-created control with the same label. */
 export function returnFocusTarget({opener,label,root}){
   if(opener?.isConnected)return opener;
   return label&&root?[...root.querySelectorAll('button,a,summary')].find(node=>node.textContent===label)||null:null;
 }
 export class LearningUI{
-  constructor({api,capture,onOpen,onJump,onPrepare,onRestorePositions=()=>{},onStateChange=()=>{},getModel,openPanel,closeLibrary}){
-    Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,onStateChange,getModel,openPanel,closeLibrary});this.state={revision:0,records:[],progress:{}};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
+  constructor({api,stream,capture,onOpen,onJump,onPrepare,onRestorePositions=()=>{},onStateChange=()=>{},getModel,openPanel,closeLibrary,player}){
+    Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,onStateChange,getModel,openPanel,closeLibrary});this.state={revision:0,records:[],progress:{},chats:[]};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
     this.dialog=document.getElementById('learningDialog');this.content=document.getElementById('learningContent');this.notice=document.getElementById('learningNotice');
     this.editor=new LearningEditor(document.getElementById('learningQuestion'),{capture:()=>this.context(),onSave:record=>this.saveRecord(record),onJump,onTutor:body=>this.api('/api/learning/tutor',{...body,model:this.getModel()}),onConflict:async()=>{await this.refresh();return this.state.records.find(r=>r.id===this.editor.record?.id);},lectureName:id=>this.lectureName(id)});
+    this.chat=new ChatPanel(document.getElementById('learningChat'),{api,stream,capture,...player,getState:()=>this.state,
+      applyThread:(thread,revision)=>this.applyThread(thread,revision),applyState:state=>{this.state=state;this.sync();},
+      openRecords:()=>{this.recordFilter='open';void this.open('records');}});
     this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
     document.getElementById('openLearning').onclick=()=>this.open('roadmap');document.getElementById('openLearningMobile').onclick=()=>this.open('roadmap');
     document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{returnFocusTarget({opener:this.opener,label:this.openerLabel,root:document.getElementById(this.openerRootId)})?.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
@@ -27,7 +32,9 @@ export class LearningUI{
   /** The lecture title a learner recognises, instead of an internal id such as yt_VMj-3S1tku0. */
   lectureName(id){const current=this.capture();return orderedResources(this.roadmap).find(r=>String(r.lectureId)===String(id))?.title||(current&&String(current.lectureId)===String(id)&&current.title)||`강의 ${id}`;}
   context(){const context=this.capture();if(!context)return null;const resource=orderedResources(this.roadmap).find(r=>String(r.lectureId)===String(context.lectureId));return {...context,resourceId:resource?.id||`lecture-${context.lectureId}`};}
-  async refresh(){const [state,roadmap]=await Promise.all([this.api('/api/learning'),this.api('/api/learning/roadmap')]);if(!this.loaded||state.revision>=this.state.revision)this.state=state;this.roadmap=roadmap;this.loaded=true;this.sync();}
+  /** A chat turn written by the server; any other change since our copy means reloading the whole state. */
+  applyThread(thread,revision){const next=withThread(this.state,thread,revision);if(next){this.state=next;this.sync();}else void this.refresh().catch(()=>{});}
+  async refresh(){const [state,roadmap]=await Promise.all([this.api('/api/learning'),this.api('/api/learning/roadmap')]);if(!this.loaded||state.revision>=this.state.revision)this.state=state;this.roadmap=roadmap;this.loaded=true;this.sync();this.chat.render();}
   sync(){this.renderPanel();this.updateRoadmap?.(this.state);this.onStateChange(this.roadmap,this.state.progress);const summary=completionSummary(this.roadmap,this.state.progress),next=nextResource(this.roadmap,this.state.progress);this.resume.replaceChildren(el('p','muted',`학습 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`));if(next){const action=resourceAction(next,`다음 · ${next.title}`,r=>this.openResource(r),'learning-resume-action');action.classList.add('learning-resume-action');this.resume.append(action);}else this.resume.append(button('✓ 계획 완료 · 복습하기',()=>this.open('review')));if(this.resourceError){const error=el('p','notice',this.resourceError);error.setAttribute('role','status');this.resume.append(error,button('로드맵에서 강의 준비',()=>this.open('roadmap')));}}
   async openPhase(id){await this.open('roadmap');const section=[...this.content.querySelectorAll('[data-phase-id]')].find(node=>node.dataset.phaseId===id);if(section){section.open=true;section.querySelector('summary').focus();section.scrollIntoView({block:'start'});}}
   async init(){try{await this.refresh();}catch(error){this.panelNotice.textContent=error.message;}}
@@ -48,7 +55,7 @@ export class LearningUI{
     if(resource)root.append(el('p','learning-completion-label',done?'✓ 이 강의 완료 표시됨':'이 강의는 아직 완료 전입니다.'));
     const next=nextResource(this.roadmap,this.state.progress);if(this.loaded&&next)root.append(resourceAction(next,`다음 · ${next.title}`,r=>this.openResource(r),'learning-panel-record'));
     this.panelNotice=el('p','notice',this.resourceError||'');this.panelNotice.setAttribute('role','status');root.append(this.panelNotice);
-    const actions=el('div','learning-actions');actions.append(button('현재 시점 질문 남기기',()=>this.question()),button('전체 로드맵',()=>this.open('roadmap')),button(this.loaded?`복습할 기록 ${dueRecords(this.state.records).length}개`:'복습 기록 열기',()=>this.open('review')));root.append(actions);
+    const actions=el('div','learning-actions');actions.append(button('질문하기 (채팅)',()=>this.openPanel('chat')),button('현재 시점 기록 남기기',()=>this.question()),button('전체 로드맵',()=>this.open('roadmap')),button(this.loaded?`복습할 기록 ${dueRecords(this.state.records).length}개`:'복습 기록 열기',()=>this.open('review')));root.append(actions);
     if(!this.loaded)root.append(el('p','muted','학습 기록을 아직 불러오지 못했습니다.'),button('다시 불러오기',()=>this.init()));
     const local=this.state.records.filter(r=>String(r.lectureId)===String(this.capture()?.lectureId));
     root.append(el('h4','','이 강의의 기록'));if(!local.length)root.append(el('p','muted','아직 저장한 기록이 없습니다.'));

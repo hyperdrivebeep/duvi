@@ -67,7 +67,7 @@ function storageHarness(){const values=new Map();return {get length(){return val
 function editorHarness(saved){
   const editor=Object.create(LearningEditor.prototype);editor.record=structuredClone(saved);editor.savedRecord=saved.id?structuredClone(saved):null;editor.baseRevision=saved.revision;editor.drafts={};editor.key='';editor.fields={disabled:false};
   editor.inputs=Object.fromEntries(['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'].map(key=>[key,{value:saved[key]||'',focus(){}}]));editor.inputs.help={value:saved.help};editor.inputs.reviewDays={value:saved.id?'keep':'1'};
-  for(const key of ['notice','anchorSummary','anchorText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend'])editor[key]={hidden:true};editor.showHistory=()=>{};editor.lectureName=id=>`강의 ${id}`;return editor;
+  for(const key of ['notice','anchorSummary','anchorText','aiAnswerText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend','aiAnswer'])editor[key]={hidden:true};editor.showHistory=()=>{};editor.lectureName=id=>`강의 ${id}`;return editor;
 }
 test('restored dirty draft cannot preview saved provider context; exact saved version is submitted',()=>{
   const saved={...record,id:'saved',revision:3,explanation:'saved answer'},dirty={...saved,explanation:'unsaved private answer'};

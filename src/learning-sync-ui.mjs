@@ -7,6 +7,7 @@ export function syncSummaryLines(summary){
     `이 PC가 더 최신인 기록 ${summary.kept}개 (그대로 둠)`,
     `두 PC에서 따로 고친 기록 ${summary.conflicts.length}개 (나중에 고친 쪽을 현재 값으로, 다른 쪽은 수정 이력에 보관)`,
     `학습 상태·완료 표시 새로 ${summary.progressAdded}개 · 더 최신으로 ${summary.progressUpdated}개`,
+    `질문하기 대화 새로 ${summary.chatsAdded??0}개 · 양쪽 메시지를 합친 대화 ${summary.chatsUpdated??0}개`,
   ];
 }
 export class LearningSyncUI{
@@ -15,7 +16,7 @@ export class LearningSyncUI{
   render(status){
     const root=this.root;root.replaceChildren();this.status=status;
     root.append(el('h3','','여러 PC에서 이어 공부하기'),
-      el('p','muted','OneDrive·Google Drive 같은 클라우드 폴더 하나를 정하면, 각 PC가 그 폴더에 자기 학습 기록 파일(질문·설명·복습·완료 표시)을 내보내고 다른 PC의 파일을 합칩니다. 강의·번역·계정 정보·저장 전 초안은 넣지 않습니다. Git 저장소 안의 폴더는 쓸 수 없습니다.'),
+      el('p','muted','OneDrive·Google Drive 같은 클라우드 폴더 하나를 정하면, 각 PC가 그 폴더에 자기 학습 기록 파일(질문·설명·복습·완료 표시·질문하기 대화)을 내보내고 다른 PC의 파일을 합칩니다. 강의·번역·계정 정보·저장 전 초안은 넣지 않습니다. Git 저장소 안의 폴더는 쓸 수 없습니다.'),
       el('p','muted',`이 PC: ${status.deviceName} · 기기 ID ${status.deviceId.slice(0,8)}`));
     this.notice=el('p','notice');this.notice.setAttribute('role','status');
     const wrap=el('label','learning-field'),title=el('span','','동기화 폴더 (전체 경로)'),input=el('input');input.type='text';input.name='syncFolder';input.placeholder='예: C:\\Users\\나\\OneDrive\\Duvi-sync';input.value=status.folder||'';input.className='learning-text-input';wrap.append(title,input);

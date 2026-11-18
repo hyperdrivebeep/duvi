@@ -94,3 +94,47 @@
 .learning-concepts{font-size:var(--text-small)}
 @media(min-width:1101px){.learning-resource{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:var(--space-5)}.learning-progress-field{align-self:center}}
 @media(max-width:700px){.learning-dialog{padding:var(--space-4)}.learning-start{padding:var(--space-4)}.learning-start h3{font-size:20px}.learning-start button{width:100%;margin-right:0}.learning-nav button{font-size:var(--text-small)}.learning-resource-actions button{padding:var(--space-2)}.learning-phase>summary{font-size:16px}.learning-panel-head{padding:var(--space-1)}.study-header{flex-wrap:wrap}.study-header .title-group{flex:1 1 100%}}
+
+/* 질문하기 side chat: the message log owns scrolling and the composer stays visible below it. */
+.learning-chat{display:flex;flex-direction:column;gap:var(--space-2);overflow:hidden;height:min(64dvh,620px)}
+.learning-chat[hidden]{display:none}
+.chat-head,.chat-options{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;flex:none}
+.chat-head select{flex:1 1 160px;min-width:0;min-height:40px}
+.chat-options{font-size:var(--text-small)}
+.chat-options select{flex:1 1 140px;min-width:0;min-height:36px;font-size:var(--text-small)}
+.chat-toggle{display:inline-flex;align-items:center;gap:var(--space-1);min-height:36px;white-space:nowrap}
+.chat-toggle input{width:18px;height:18px}
+.chat-log{flex:1;min-height:96px;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-1) 2px}
+.chat-log:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.chat-message{padding:var(--space-2) var(--space-3);border-radius:var(--learning-radius);line-height:1.65}
+.chat-user{align-self:flex-end;max-width:90%;background:var(--selected)}
+.chat-assistant{background:var(--soft);border:1px solid var(--line)}
+.chat-meta{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:var(--space-1)}
+.chat-meta strong{color:var(--ink);font-weight:650}
+.chat-status-tag{color:#8b3d24}
+.chat-text{white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all}
+.learning-stage-content .chat-time,.chat-time{display:inline-flex;align-items:center;min-height:26px;padding:0 var(--space-2);margin:0 2px;border-radius:999px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--blue);background:#fff;border:1px solid var(--focus);vertical-align:baseline;line-height:1}
+.chat-actions{display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-2)}
+.learning-stage-content .chat-actions button{font-size:12px;padding:var(--space-1) var(--space-3);min-height:32px}
+.chat-empty{color:var(--muted);font-size:var(--text-small)}
+.chat-empty p{margin:0 0 var(--space-3)}
+.chat-starters{display:flex;flex-direction:column;gap:var(--space-2)}
+.learning-stage-content .chat-starters button{justify-content:flex-start;text-align:left;white-space:normal;min-height:40px}
+.chat-notice{margin:0;flex:none}.chat-notice:empty{display:none}
+.chat-composer{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);align-items:end;flex:none}
+.chat-composer textarea{resize:none;min-height:44px;max-height:160px;border:1px solid var(--line);border-radius:var(--learning-radius);padding:10px var(--space-3);font:inherit;line-height:1.5;background:#fff;color:inherit}
+.chat-composer textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.chat-composer button{min-height:44px;white-space:nowrap}
+.chat-composer button[hidden]{display:none}
+.chat-context{margin:0;font-size:12px;line-height:1.5;flex:none}
+.learning-ai-saved{margin:var(--space-2) 0}.learning-ai-saved>summary{font-size:var(--text-small);color:var(--blue);font-weight:600}
+.study-focus .learning-chat{height:auto}
+.study-focus .chat-user{background:#203652}
+.study-focus .chat-assistant{background:#0f141d;border-color:#ffffff1a}
+.study-focus .chat-meta,.study-focus .chat-empty{color:#bfcada}
+.study-focus .chat-meta strong{color:#fff}
+.study-focus .chat-status-tag{color:#ffc9b5}
+.study-focus .learning-stage-content .chat-time{background:#090b10;color:#9cc3ff;border-color:#75a6f0}
+.study-focus .chat-composer textarea{background:#232e40;color:#fff;border-color:#ffffff26}
+.study-focus .chat-composer textarea::placeholder{color:#9aa6b8}
+.study-focus .learning-stage-content .chat-composer .primary{background:var(--blue);border-color:var(--blue)}

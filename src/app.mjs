@@ -5,6 +5,7 @@ import {setupStudyView} from './study-view.mjs';
 import {LearningUI} from './learning-ui.mjs';
 import {makeAnchor,anchorState,questionAutoPause} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
+import {parseEvents} from './learning-chat-model.mjs';
 import './library.css';
 import './study-view.css';
 import './learning.css';
@@ -23,9 +24,16 @@ const translated=i=>chromeMode()?chromeTranslations[i]:aiTranslations[i]?.ko;
 function setText(id,text){const node=$(id);if(node.textContent!==text)node.textContent=text;}
 function chromeCacheKey(){return `mit6100-ko-${lecture.number}${lecture.alignmentRevision?'-'+lecture.alignmentRevision:''}`;}
 function save(){if(!lecture)return;try{localStorage.setItem(chromeCacheKey(),JSON.stringify(chromeTranslations));}catch{}savedAt=Date.now();}
-async function api(route,body){
-  let response;try{response=await fetch(route,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrf||''},body:JSON.stringify(body)});}catch{throw new Error('플레이어 서버에 연결할 수 없습니다. 시작 파일을 다시 실행하세요.');}
-  const value=await response.json();if(!response.ok){const error=new Error(value.error?.message||'요청에 실패했습니다.');error.status=response.status;error.code=value.error?.code;error.details=value.error?.details;throw error;}return value;
+async function request(route,body,signal){
+  let response;try{response=await fetch(route,body===undefined?{signal}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrf||''},body:JSON.stringify(body),signal});}catch(error){if(signal?.aborted)throw error;throw new Error('플레이어 서버에 연결할 수 없습니다. 시작 파일을 다시 실행하세요.');}
+  if(!response.ok){const value=await response.json().catch(()=>({}));const error=new Error(value.error?.message||'요청에 실패했습니다.');error.status=response.status;error.code=value.error?.code;error.details=value.error?.details;throw error;}
+  return response;
+}
+async function api(route,body){return (await request(route,body)).json();}
+/** POST answered with server-sent events (the 질문하기 chat); errors before the stream starts arrive as JSON. */
+async function streamApi(route,body,{signal,onEvent}){
+  const reader=(await request(route,body,signal)).body.getReader(),decoder=new TextDecoder();let buffer='';
+  while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value,{stream:!done});const parsed=parseEvents(buffer);buffer=parsed.rest;for(const {event,data}of parsed.events)onEvent(event,data);if(done)break;}
 }
 function progress(){
   if(!lecture)return;const n=Object.keys(chromeMode()?chromeTranslations:aiTranslations).length;
@@ -62,7 +70,7 @@ async function load(number){
   renderTranscript();renderCaptionNotice();
   localStorage.setItem('mit6100-lecture',String(number));history.replaceState(null,'',`?lecture=${encodeURIComponent(number)}`);renderLibrary();progress();
   if(!lecture.cues.length&&lecture.captionStatus==='pending'&&!lecture.unavailable)void prepareCaptions();
-  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.renderPanel();
+  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.renderPanel();learningUI.chat.sync();
 }
 function renderTranscript(){
   $('transcript').replaceChildren();nodes=lecture.cues.map((cue,i)=>{const b=document.createElement('button');b.className='cue';const t=document.createElement('time');t.textContent=fmt(cue.start);const e=document.createElement('span');e.className='en';e.textContent=cue.en;const k=document.createElement('span');k.className='ko';k.textContent=translated(i)||'';b.append(t,e,k);b.onclick=()=>seek(i);$('transcript').append(b);return b;});
@@ -96,6 +104,7 @@ $('captionFile').onchange=async()=>{
   if(file.size>2*1024*1024){$('captionNoticeText').textContent='자막 파일은 2MB 이하로 넣어주세요.';return;}
   const version=generation,text=await file.text();if(version===generation)await prepareCaptions(text);$('captionFile').value='';
 };
+function seekTime(seconds){if(!lecture)return;positionState.allowWrite(lecture.number);lastTime=seconds;video.currentTime=seconds;update();}
 function seek(i){if(!lecture?.cues.length)return;positionState.allowWrite(lecture.number);i=Math.max(0,Math.min(i,lecture.cues.length-1));lastTime=lecture.cues[i].start+0.02;video.currentTime=lastTime;update();void translateAhead();}
 function update(){
   if(!lecture)return;
@@ -194,7 +203,7 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시 듣기';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
-const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onQuestionOpen:()=>{const paused=!!lecture&&!video.paused&&questionAutoPause(localStorage);if(paused)video.pause();if(!learningUI.editor.record)learningUI.editor.newRecord();if(paused)learningUI.editor.notePaused(video.currentTime);},onLearningOpen:()=>learningUI.renderPanel()});
+const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:()=>learningUI.chat.open(),onQuestionOpen:()=>{const paused=!!lecture&&!video.paused&&questionAutoPause(localStorage);if(paused)video.pause();if(!learningUI.editor.record)learningUI.editor.newRecord();if(paused)learningUI.editor.notePaused(video.currentTime);},onLearningOpen:()=>learningUI.renderPanel()});
 video.addEventListener('timeupdate',update);video.addEventListener('seeked',()=>{positionState.allowWrite(lecture?.number);lastTime=video.currentTime;update();void translateAhead();});
 video.addEventListener('error',()=>{$('status').textContent=video.lastError||'영상을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.';});
 window.addEventListener('beforeunload',()=>{save();savePosition();});
@@ -221,7 +230,7 @@ for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEvent
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,button,a,[contenteditable=true]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
 const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,playPositions,format:fmt});
-const learningUI=new LearningUI({api,openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
+const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),
   onRestorePositions:()=>positionState.restore(lecture?.number,video.paused),
   capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,

@@ -1,6 +1,6 @@
 /** Typing a note, or clicking and pointing in the notes panel beside the video, must not pop the toolbar over the video. */
 export function revealsControls(event){return !event.target?.closest?.('input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,[contenteditable=true],.transcript-panel');}
-export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
+export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
@@ -90,14 +90,15 @@ export function setupStudyView({onTranscriptOpen,onQuestionOpen=()=>{},onLearnin
     for(const tab of document.querySelectorAll('[data-stage-tab]')){const selected=tab.dataset.stageTab===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
     for(const panel of document.querySelectorAll('[data-stage-panel]'))panel.hidden=panel.dataset.stagePanel!==name;
     if(name==='transcript')onTranscriptOpen();
+    if(name==='chat')onChatOpen();
     if(name==='question')onQuestionOpen();
     if(name==='learning')onLearningOpen();
   }
   function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');resetCaptions();for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
   const tabs=[...document.querySelectorAll('[data-stage-tab]')];
   tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab);tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab);tabs[target].focus();}};});
-  $('openQuestion').onclick=()=>openPanel('question');
+  $('openQuestion').onclick=()=>openPanel('chat');
   for(const id of ['toggleTranscript','studyTranscript'])$(id).onclick=()=>transcript($('transcriptPanel').hidden);
   $('closeTranscript').onclick=()=>{transcript(false);showControls();$(entered?'studyTranscript':'toggleTranscript').focus();};
-  return {openPanel};
+  return {openPanel,exit};
 }

@@ -14,7 +14,7 @@ export function parseBackup(text){
 export class LearningBackupUI{
   constructor(root,{api,onImported}){Object.assign(this,{root,api,onImported});this.build();}
   build(){
-    this.root.append(el('h3','','백업·복원'),el('p','muted','학습 기록, 강의와 폴더, 저장 번역, 이 브라우저의 재생 위치·자막 설정을 JSON으로 보관합니다. 계정·토큰·쿠키는 제외합니다. 저장하지 않은 초안은 이 브라우저에 남습니다.'));
+    this.root.append(el('h3','','백업·복원'),el('p','muted','학습 기록, 질문하기 대화, 강의와 폴더, 저장 번역, 이 브라우저의 재생 위치·자막 설정을 JSON으로 보관합니다. 계정·토큰·쿠키는 제외합니다. 저장하지 않은 초안은 이 브라우저에 남습니다.'));
     this.notice=el('p','notice');this.notice.setAttribute('role','status');
     const exportButton=button('전체 백업 내려받기',()=>busy(exportButton,async()=>{try{const backup=await this.api('/api/learning/export');download(`duvi-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({format:'duvi-local-backup',schemaVersion:1,backup,browser:captureBrowser(localStorage)},null,2),'application/json');this.notice.textContent='백업 파일 내려받기를 요청했습니다. 계정 정보는 포함하지 않았습니다.';}catch(error){this.notice.textContent=error.message;}}),'primary');
     const wrap=el('label','learning-field','복원할 JSON 파일 · 최대 16MB'),input=el('input');input.type='file';input.accept='.json,application/json';wrap.append(input);this.root.append(exportButton,wrap,this.notice);this.preview=el('section','learning-backup-preview');this.root.append(this.preview);
@@ -23,7 +23,7 @@ export class LearningBackupUI{
   showPreview(preview){
     this.preview.replaceChildren();this.token=preview;
     this.preview.append(el('h4','','가져오기 미리보기'));const list=el('dl','learning-backup-counts');
-    const labels={records:'학습 기록',progress:'학습 상태',lectures:'강의',folders:'폴더',translations:'번역'};
+    const labels={records:'학습 기록',chats:'질문하기 대화',progress:'학습 상태',lectures:'강의',folders:'폴더',translations:'번역'};
     for(const [name,count]of Object.entries(preview.counts||{})){list.append(el('dt','',labels[name]||name),el('dd','',`${count}개 · 충돌 ${(preview.conflicts?.[name]||[]).length}개`));}this.preview.append(list);
     const conflicts=el('details');conflicts.append(el('summary','','충돌 식별자 확인'),el('pre','learning-markdown',JSON.stringify(preview.conflicts||{},null,2)));this.preview.append(conflicts);
     const mode=field('같은 식별자의 항목이 있으면','mode',{options:{merge:'현재 기록 유지 · 없는 항목만 추가',replace:'백업 기록으로 충돌 항목 덮어쓰기'}});this.preview.append(mode.wrap,el('p','muted',`브라우저 설정 ${Object.keys(this.incoming.browser).length}개에도 같은 정책을 적용합니다. 서버는 복원 직전 상태를 별도로 보관합니다. 미리보기는 10분간 유효합니다.`));
