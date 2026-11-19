@@ -9,6 +9,7 @@
 | [2026-11-18-true-fullscreen](2026-11-18-true-fullscreen/README.md) | 진짜 전체화면 핵심 화면 점검 | 39 | 3.7 MB |
 | [2026-11-18-typing-toolbar](2026-11-18-typing-toolbar/README.md) | 입력 중 전체화면 막대 점검 | 24 | 3.0 MB |
 | [2026-11-19-chat-followups](2026-11-19-chat-followups/README.md) | 질문하기 후속 수정 4건 확인 | 38 | 4.3 MB |
+| [2026-11-19-how-to-study](2026-11-19-how-to-study/README.md) | 학습 방법 화면 따라 하기([가이드](../HOW_TO_STUDY.md)) | 22 | 0.9 MB |
 | [2026-11-19-side-chat](2026-11-19-side-chat/README.md) | 질문하기 사이드 채팅 점검 | 22 | 2.2 MB |
 
 ## 공개 기준
@@ -20,7 +21,7 @@
 
 ## 공통으로 확인하지 않은 것
 
-- 실제 키보드의 Esc 키로 전체화면을 빠져나오는 동작 (자동화는 앱 버튼과 `document.exitFullscreen()`만 사용)
+- 진짜 브라우저 전체화면을 실제 Esc 키로 빠져나오는 동작 (2026-11-19-how-to-study에서 실제 Esc 키 이벤트로 창 채우기 모드 종료는 확인했지만, 그 창에서는 Chrome이 진짜 전체화면을 거부함)
 - 물리적으로 다른 두 PC (동기화는 같은 PC의 서로 격리된 두 상태로만 확인)
 - 실제 ChatGPT 답변의 품질 (`DUVI_CHAT_MOCK=1` 모의 공급자만 사용)
 - 강의 영상 내용 자체 (영상 프레임은 화면 배치를 보여 주는 작은 증거 사진일 뿐입니다)
