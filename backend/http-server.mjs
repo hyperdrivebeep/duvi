@@ -102,7 +102,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/learning/import/preview'){json(res,200,await learning.backup.preview(body));return;}
           if(pathname==='/api/learning/import'){json(res,200,await learning.backup.commit(body));return;}
           if(pathname==='/api/learning/sync/folder'){json(res,200,await learning.sync.setFolder(body));return;}
-          if(pathname==='/api/learning/sync/export'){json(res,200,await learning.sync.export());return;}
+          if(pathname==='/api/learning/sync/export'){json(res,200,await learning.sync.export(body));return;}
           if(pathname==='/api/learning/sync/preview'){json(res,200,await learning.sync.preview(body));return;}
           if(pathname==='/api/learning/sync/import'){json(res,200,await learning.sync.commit(body));return;}
           if(pathname==='/api/learning/prepare'){const {prepareRoadmap}=await import('./learning-curriculum.mjs');json(res,200,await prepareRoadmap(library));return;}

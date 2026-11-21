@@ -234,6 +234,10 @@ const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,playPositions,for
 const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),
   onRestorePositions:()=>positionState.restore(lecture?.number,video.paused),
+  resumeSync:{
+    snapshot:()=>{savePosition();return positionState.snapshot();},
+    merge:positions=>positionState.merge(positions,lecture?.number,video.paused)
+  },
   cueAt:seconds=>{const i=lecture?.cues.length?cueAt(lecture.cues,seconds):-1;return i>=0?{en:lecture.cues[i].en,ko:translated(i)||''}:null;},
   capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,
   onOpen:async resource=>{await refreshLibrary(resource.lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(resource.lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=resource.lectureId;await load(resource.lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
