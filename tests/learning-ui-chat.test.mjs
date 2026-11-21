@@ -14,6 +14,10 @@ test('switching lectures isolates the draft and typing time, including a failure
   const pending=panel.send();lectureId='2';panel.sync();reject(new Error('연결 실패'));await pending;
   assert.deepEqual([panel.input.value,panel.anchor,panel.notice.textContent],['둘째 강의','detached','']);
   lectureId='1';panel.sync();assert.deepEqual([panel.input.value,panel.anchor],['첫 강의',72]);
+  assert.match(panel.notice.textContent,/전송되지 않음/);
+  panel.input.value='';panel.anchor=null;const starter=panel.send('추천 질문');
+  lectureId='2';panel.sync();reject(new Error('연결 실패'));await starter;lectureId='1';panel.sync();
+  assert.deepEqual([panel.input.value,panel.anchor],['추천 질문',null]);assert.match(panel.notice.textContent,/전송되지 않음/);
 });
 
 test('server-sent events split across network chunks are delivered once complete',()=>{

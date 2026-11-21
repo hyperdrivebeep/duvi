@@ -38,7 +38,16 @@ export function questionSeconds(anchor,now){return typeof anchor==='number'?anch
 export function contextRange(seconds,span=CONTEXT_SECONDS){return `${formatTime(Math.max(0,seconds-span))}–${formatTime(seconds+span)}`;}
 /** Which extra material goes with a question; both are on unless the learner turned one off. */
 export function chatContextChoice(storage){let saved={};try{saved=JSON.parse(storage.getItem(CHAT_CONTEXT_KEY)||'{}')||{};}catch{}return {transcript:saved.transcript!==false,notes:saved.notes!==false};}
-export function lectureNoteCount(records,lectureId){return (records||[]).filter(row=>String(row.lectureId??row.anchor?.lectureId)===String(lectureId)&&(row.question?.trim()||row.explanation?.trim())).length;}
+/** The same bounded set supplies the check-box count and the tutor's request. */
+export function lectureNotes(records,lectureId,budget=4000){
+  const rows=[];let used=0;
+  for(const record of (records||[]).filter(row=>String(row.lectureId??row.anchor?.lectureId)===String(lectureId)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))){
+    const row={at:formatTime(record.anchor?.seconds||0),question:record.question||'',explanation:record.explanation||''},size=row.question.length+row.explanation.length;
+    if(!size)continue;if(used+size>budget)break;used+=size;rows.push(row);
+  }
+  return rows;
+}
+export function lectureNoteCount(records,lectureId){return lectureNotes(records,lectureId).length;}
 export function lectureThreads(chats,lectureId){return (chats||[]).filter(row=>row.lectureId===String(lectureId)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
 /** Applies one server-written thread when it is the only change since this state; otherwise the caller reloads. */
 export function withThread(state,thread,revision){

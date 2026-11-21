@@ -13,7 +13,14 @@ export class TimeStrip{
     this.clock=el('span','strip-clock');
     root.append(this.range,this.track,this.clock);
   }
-  set(items,duration){this.items=items;this.duration=duration||0;this.paint();}
+  set(items,duration){
+    this.items=items;duration=duration||0;
+    if(this.duration!==duration||!this.range.options.length){
+      this.duration=duration;this.pinned=null;this.windowKey='';
+      this.range.replaceChildren(...stripWindows(duration).map(row=>new Option(row.label,String(row.start))));
+    }
+    this.paint();
+  }
   update(seconds){this.seconds=seconds;this.paint();}
   paint(){
     const current=stripWindow(this.seconds,this.duration);
@@ -21,8 +28,6 @@ export class TimeStrip{
     if(this.pinned===current.start)this.pinned=null;
     const span=this.pinned===null?current:stripWindow(this.pinned,this.duration),windowKey=`${span.start}:${span.end}`;
     if(windowKey!==this.windowKey){
-      const windows=stripWindows(this.duration);
-      if(this.range.options.length!==windows.length)this.range.replaceChildren(...windows.map(row=>new Option(row.label,String(row.start))));
       this.range.value=String(span.start);this.windowKey=windowKey;
     }
     const markers=stripMarkers(this.items,span),markerKey=JSON.stringify(markers);
