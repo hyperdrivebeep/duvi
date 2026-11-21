@@ -8,6 +8,7 @@
     "build": "vite build && node scripts/prepare-sites-build.mjs",
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
+    "test:chat-dom": "node scripts/test-chat-dom.mjs",
     "setup": "node scripts/setup.mjs",
     "prepare:learning": "node scripts/prepare-learning.mjs",
     "start": "node server.mjs",

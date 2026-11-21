@@ -57,4 +57,6 @@ test('send-context labels and choices: ±60 s of transcript, this lecture\'s not
   assert.deepEqual(chatContextChoice(storage({[CHAT_CONTEXT_KEY]:'{"notes":false}'})),{transcript:true,notes:false});
   assert.deepEqual(chatContextChoice(storage({[CHAT_CONTEXT_KEY]:'not json'})),{transcript:true,notes:true});
   assert.equal(lectureNoteCount(state.records,1),2);assert.equal(lectureNoteCount(state.records,'2'),1);
+  const notes=[record('a',1,{question:'x'.repeat(4000),updatedAt:'2026-11-21'}),record('b',2,{updatedAt:'2026-11-20'})];
+  assert.equal(lectureNoteCount(notes,1),1);
 });

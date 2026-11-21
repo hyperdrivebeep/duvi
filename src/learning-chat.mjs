@@ -63,11 +63,12 @@ export class ChatPanel{
   sync(){
     const lectureId=this.capture()?.lectureId;
     if(lectureId!==this.lectureId){
-      if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor});
+      if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor,unsent:this.unsent});
       else this.questions.delete(this.lectureId);
       const draft=this.questions.get(lectureId);
       this.lectureId=lectureId;this.input.value=draft?.text||'';this.anchor=draft?.anchor??null;
-      this.fit();this.startNew=false;this.threadId=null;this.editing.clear();this.hideCite();this.notice.textContent='';
+      this.unsent=!!draft?.unsent;this.fit();this.startNew=false;this.threadId=null;this.editing.clear();this.hideCite();
+      this.notice.textContent=this.unsent?'전송되지 않음 · 질문을 확인하고 다시 보내세요.':'';
     }
     if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;
     this.render();
@@ -186,7 +187,7 @@ export class ChatPanel{
     const form=el('form','chat-mine-edit'),id=`mine-${item.key.replace(/[^A-Za-z0-9_-]/g,'-')}`,label=el('label','chat-mine-label');
     label.htmlFor=id;label.append('내 설명 ',el('span','muted','AI 답과 따로 저장돼요'));
     const draft=this.drafts[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
-    let base=record,revision=draft===undefined?record?.revision:(typeof draft==='string'?1:draft.revision);
+    let base=record,revision=draft===undefined||typeof draft==='string'?record?.revision:draft.revision;
     const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||record?.help||(item.answers?.length?'full':'none');
     const stash=()=>{this.drafts[item.key]={text:text.value,help:help.value,revision:revision??1};this.saveDrafts();};
     text.addEventListener('input',stash);help.addEventListener('change',stash);
@@ -259,7 +260,7 @@ export class ChatPanel{
     const fromBox=text===this.input.value,seconds=questionSeconds(fromBox?this.anchor:null,this.time()),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
     const controller=new AbortController(),withTranscript=this.sendTranscript.input.checked,withNotes=this.sendNotes.input.checked&&!this.sendNotes.input.disabled;
     this.streaming={threadId:this.threadId,lectureId:context.lectureId,question,seconds,model:this.modelSelect.value,text:'',started:false,controller};
-    if(fromBox){this.input.value='';this.anchor=null;}this.fit();
+    if(fromBox){this.input.value='';this.anchor=null;this.unsent=false;}this.fit();
     this.notice.textContent=paused?`영상을 ${formatTime(this.time())}에서 멈췄습니다. 답을 읽고 다시 재생하세요.`:'';this.render();this.reveal(this.liveNode());
     try{await this.stream('/api/learning/chat',{threadId:this.threadId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
     catch(error){
@@ -268,8 +269,8 @@ export class ChatPanel{
       if(here)this.notice.textContent=controller.signal.aborted?'답변을 멈췄습니다.':error.message;
       // A question the server never stored goes back into the box, still tied to the time it was asked at.
       if(!started){
-        if(here&&!this.input.value){this.input.value=question;if(fromBox)this.anchor=seconds;this.fit();}
-        if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:seconds});
+        if(here&&!this.input.value){this.input.value=question;this.anchor=fromBox?seconds:null;this.unsent=true;this.fit();}
+        if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:fromBox?seconds:null,unsent:true});
       }
       if(here&&(error.code==='not_connected'||error.code==='plan_disabled'))this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
     }finally{this.streaming=null;this.render();}
