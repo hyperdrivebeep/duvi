@@ -3,6 +3,18 @@ import assert from 'node:assert/strict';
 import {parseEvents,textSegments,parseClock,composerAction,lectureThreads,withThread,chatAutoPause,CHAT_AUTOPAUSE_KEY} from '../src/learning-chat-model.mjs';
 import {recordInput} from '../src/learning-ui.mjs';
 import {recordMarkdown} from '../src/learning-model.mjs';
+import {ChatPanel} from '../src/learning-chat.mjs';
+
+test('switching lectures isolates the draft and typing time, including a failure arriving after the switch',async()=>{
+  let lectureId='1',reject;
+  const panel=Object.assign(Object.create(ChatPanel.prototype),{questions:new Map(),input:{value:''},capture:()=>({lectureId}),getState:()=>({chats:[]}),time:()=>300,editing:new Set(),notice:{},fit(){},render(){},reveal(){},hideCite(){},liveNode(){},autoPause:{checked:false},modelSelect:{value:'m'},sendTranscript:{input:{checked:true}},sendNotes:{input:{checked:false}},stream:()=>new Promise((_resolve,no)=>{reject=no;})});
+  panel.sync();panel.input.value='첫 강의';panel.anchor=72;
+  lectureId='2';panel.sync();assert.deepEqual([panel.input.value,panel.anchor],['',null]);panel.input.value='둘째 강의';panel.anchor='detached';
+  lectureId='1';panel.sync();assert.deepEqual([panel.input.value,panel.anchor],['첫 강의',72]);
+  const pending=panel.send();lectureId='2';panel.sync();reject(new Error('연결 실패'));await pending;
+  assert.deepEqual([panel.input.value,panel.anchor,panel.notice.textContent],['둘째 강의','detached','']);
+  lectureId='1';panel.sync();assert.deepEqual([panel.input.value,panel.anchor],['첫 강의',72]);
+});
 
 test('server-sent events split across network chunks are delivered once complete',()=>{
   const first=parseEvents('event: start\ndata: {"a":1}\n\nevent: delta\ndata: {"text":"반');
