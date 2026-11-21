@@ -70,16 +70,21 @@ function inspect(raw, key, lecture) {
   return {cache, count:entries.length, updated};
 }
 export class TranslationSync {
-  constructor(root, library, service) {Object.assign(this,{root, library, service});}
+  constructor(root, library, service, checkFolder) {Object.assign(this,{root, library, service, checkFolder});}
   async publish(folder, device) {
     const result = {translationsWritten:0, translationWarnings:[]};
     const local = await directory(this.root,['translations']);
     if (!local) return result;
+    let target;
     for (const name of await filenames(local)) {
       const key = name.slice(0,-5);
       try {
         const {cache} = inspect(await load(path.join(local,name)), key, await this.library.get(key));
-        const dir = await directory(folder,['translations',device],true), file = path.join(dir,name);
+        if (!target) {
+          const base = await this.checkFolder(await directory(folder,['translations'],true));
+          target = await this.checkFolder(await directory(base,[device],true));
+        }
+        const file = path.join(target,name);
         const packet = {version:1, hash:digest(cache), cache};
         // Repair incomplete or damaged cloud copies on the next explicit export.
         const previous = await load(file).catch(()=>null);

@@ -100,6 +100,14 @@ test('complete compatible cache replaces partial cache with a recovery copy; sou
   assert.ok(result.summary.translationWarnings.length);
   assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'translations/1.json'))), partial);
 });
+test('translation export refuses a Git tree nested inside the selected cloud folder', async t => {
+  const {folder, a} = await translations(t);
+  await mkdir(path.join(folder,'translations','.git'), {recursive:true});
+  const result = await a.sync.export();
+  assert.equal(result.translationsWritten, 0);
+  assert.ok(result.translationWarnings.length);
+  assert.deepEqual(await readdir(path.join(folder,'translations')), ['.git']);
+});
 
 test('a question saved on one PC reaches the other through the folder, without lectures, translations or credentials', async t => {
   const {folder, a, b} = await pcs(t);

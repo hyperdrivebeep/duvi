@@ -92,7 +92,7 @@ export function mergeLearning(current,incoming,devices){
 
 export class LearningSync{
   constructor({store,library=new LectureLibrary({root:store.root}),translations,now=()=>Date.now(),hostname=os.hostname(),writer=atomicJSON}){
-    this.captions=new TranslationSync(store.root,library,translations);
+    this.captions=new TranslationSync(store.root,library,translations,folder=>this.checkFolder(folder));
     Object.assign(this,{store,now,hostname,writer});this.file=path.join(store.root,'learning','sync-state.json');this.before=path.join(store.root,'learning','before-sync.json');this.tokens=new Map();
   }
   async settings(){
