@@ -70,7 +70,7 @@ async function load(number){
   renderTranscript();renderCaptionNotice();
   localStorage.setItem('mit6100-lecture',String(number));history.replaceState(null,'',`?lecture=${encodeURIComponent(number)}`);renderLibrary();progress();
   if(!lecture.cues.length&&lecture.captionStatus==='pending'&&!lecture.unavailable)void prepareCaptions();
-  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.renderPanel();learningUI.chat.sync();
+  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.lectureChanged();
 }
 function renderTranscript(){
   $('transcript').replaceChildren();nodes=lecture.cues.map((cue,i)=>{const b=document.createElement('button');b.className='cue';const t=document.createElement('time');t.textContent=fmt(cue.start);const e=document.createElement('span');e.className='en';e.textContent=cue.en;const k=document.createElement('span');k.className='ko';k.textContent=translated(i)||'';b.append(t,e,k);b.onclick=()=>seek(i);$('transcript').append(b);return b;});
@@ -108,6 +108,7 @@ function seekTime(seconds){if(!lecture)return;positionState.allowWrite(lecture.n
 function seek(i){if(!lecture?.cues.length)return;positionState.allowWrite(lecture.number);i=Math.max(0,Math.min(i,lecture.cues.length-1));lastTime=lecture.cues[i].start+0.02;video.currentTime=lastTime;update();void translateAhead();}
 function update(){
   if(!lecture)return;
+  learningUI.tick(video.currentTime);
   positionState.observePlayback(lecture.number,video.paused);
   if(!lecture.cues.length){setText('clock',`${fmt(video.currentTime)} / ${fmt(video.duration||lecture.duration)}`);if(Date.now()-resumeSaved>4000)savePosition();return;}
   const t=video.currentTime,next=t<lecture.cues[0].start?0:cueAt(lecture.cues,t),old=current;
@@ -230,9 +231,10 @@ for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEvent
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
 document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,button,a,[contenteditable=true]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
 const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,playPositions,format:fmt});
-const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
+const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),
   onRestorePositions:()=>positionState.restore(lecture?.number,video.paused),
+  cueAt:seconds=>{const i=lecture?.cues.length?cueAt(lecture.cues,seconds):-1;return i>=0?{en:lecture.cues[i].en,ko:translated(i)||''}:null;},
   capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,
   onOpen:async resource=>{await refreshLibrary(resource.lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(resource.lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=resource.lectureId;await load(resource.lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
   onPrepare:()=>refreshLibrary($('lecture').value),

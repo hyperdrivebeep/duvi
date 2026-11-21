@@ -4,17 +4,42 @@
 .transcript-actions{display:flex;align-items:center;gap:4px}
 .cue .ko{word-break:keep-all;overflow-wrap:anywhere}
 .stage.has-transcript{display:grid;grid-template-columns:minmax(0,1fr) 320px;column-gap:20px}
-.stage.has-transcript>.media-slot,.stage.has-transcript>.captions,.stage.has-transcript>.toolbar{grid-column:1}
-.stage.has-transcript>.transcript-panel{grid-column:2;grid-row:1/4;margin:0;padding-left:16px;border-top:0;border-left:1px solid var(--line);min-width:0;min-height:0;display:flex;flex-direction:column}
+.stage.has-transcript>.media-slot,.stage.has-transcript>.time-strip,.stage.has-transcript>.captions,.stage.has-transcript>.toolbar{grid-column:1}
+.stage.has-transcript>.transcript-panel{grid-column:2;grid-row:1/5;margin:0;padding-left:16px;border-top:0;border-left:1px solid var(--line);min-width:0;min-height:0;display:flex;flex-direction:column}
 .stage.has-transcript .transcript{flex:1;min-height:0}
 .stage.has-transcript>.toolbar{flex-wrap:wrap}
 .transcript-head{gap:4px;flex-wrap:wrap}
 .study-focused{overflow:hidden}
-.stage.study-focus{position:fixed;inset:0;z-index:1000;width:100vw;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:0;overflow:hidden;background:#090b10;color:#fff;outline:none}
-.stage.study-focus.has-transcript{grid-template-columns:minmax(0,1fr) 320px}
+/* Duvi's time strip: a ten-minute span under the video with this lecture's question markers (● my explanation, ○ open question). */
+.time-strip{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) 0;font-size:var(--text-small);color:var(--muted)}
+.strip-range{min-height:32px;padding:0 var(--space-2);font-size:var(--text-small);border-color:transparent;background:transparent;color:inherit;font-variant-numeric:tabular-nums}
+.strip-track{position:relative;flex:1;height:24px;min-width:0}
+.strip-track::before,.strip-played{content:'';position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:2px}
+.strip-track::before{right:0;background:var(--line)}
+.strip-played{background:var(--focus)}
+.strip-head{position:absolute;top:2px;bottom:2px;width:2px;margin-left:-1px;background:var(--blue)}
+.strip-marks{position:absolute;inset:0}
+.strip-marker{position:absolute;top:0;width:24px;height:24px;min-height:24px;margin-left:-12px;padding:0;border:0;border-radius:50%;background:transparent}
+.strip-marker::before{content:'';width:12px;height:12px;box-sizing:border-box;border-radius:50%;border:2px solid var(--blue);background:#fff}
+.strip-marker.filled::before{background:var(--blue)}
+.strip-marker:hover{background:var(--selected)}
+.strip-marker:focus-visible{outline:3px solid var(--focus);outline-offset:0}
+.strip-clock{min-width:3.2em;text-align:right;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.stage.study-focus{position:fixed;inset:0;z-index:1000;width:100vw;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;gap:0;overflow:hidden;background:#090b10;color:#fff;outline:none}
+/* B+ widens the fullscreen panel to 380px so a question, its answer and my explanation read as one group. */
+.stage.study-focus.has-transcript{grid-template-columns:minmax(0,1fr) 380px}
+.study-focus>.time-strip{grid-column:1;grid-row:2;padding:4px 16px;background:#0f141d;color:#bfcada}
+.study-focus .strip-range{background:#0f141d;color:#dce3ee}
+.study-focus .strip-track::before{background:#ffffff2e}
+.study-focus .strip-played{background:#75a6f0}
+.study-focus .strip-head{background:#9cc3ff}
+.study-focus .strip-marker::before{border-color:#9cc3ff;background:#0f141d}
+.study-focus .strip-marker.filled::before{background:#9cc3ff}
+.study-focus .strip-marker:hover{background:#26344b}
+.study-focus .strip-clock{color:#fff}
 .study-focus>.media-slot{grid-column:1;grid-row:1;width:100%;height:100%;min-height:0;min-width:0;aspect-ratio:auto;border-radius:0}
 .study-focus .video-fullscreen,.study-focus #fullscreen{display:none}
-.study-focus>.captions{grid-column:1;grid-row:2;min-height:0;max-height:none;height:auto;margin:0;padding:8px 20px;gap:12px;border-radius:0;background:#141922;text-align:center;grid-template-rows:repeat(2,minmax(0,auto))}
+.study-focus>.captions{grid-column:1;grid-row:3;min-height:0;max-height:none;height:auto;margin:0;padding:8px 20px;gap:12px;border-radius:0;background:#141922;text-align:center;grid-template-rows:repeat(2,minmax(0,auto))}
 .study-focus .caption-label{display:none}
 /* Three lines fit about 99% of aligned lecture sentences even beside the question panel; two lines clipped most of them. */
 .study-focus .caption-row{scrollbar-gutter:auto;font-size:var(--fullscreen-caption-size,22px);line-height:1.5;max-height:4.5em;scroll-padding-block:0}
@@ -32,7 +57,7 @@
 /* A YouTube iframe swallows pointer moves, so a transparent band at the top edge brings the hidden controls back. */
 .study-focus.controls-hidden::after{content:'';position:absolute;z-index:4;top:0;left:0;right:0;height:72px}
 /* The band covers only the video column: over the notes panel it would swallow taps on the panel tabs and close button. */
-.study-focus.has-transcript.controls-hidden::after{right:320px}
+.study-focus.has-transcript.controls-hidden::after{right:380px}
 .study-focus .toolbar button,.study-focus .toolbar select,.study-focus .study-controls-handle{min-height:44px;background:#232e40;color:#fff;border-color:#ffffff26}
 .study-focus .toolbar button:hover,.study-focus .study-controls-handle:hover{background:#34445d}
 .study-focus .sentence-controls{gap:6px}
@@ -44,9 +69,9 @@
 .study-focus #captionSize{width:85px}
 .study-focus .immersive-only{display:inline-flex}
 .study-focus .study-controls-handle{position:absolute;z-index:6;top:12px;right:12px}
-.study-focus.has-transcript>.toolbar{right:390px}
-.study-focus.has-transcript>.study-controls-handle{right:332px}
-.study-focus>.transcript-panel{grid-column:2;grid-row:1/3;min-height:0;padding:0;border-left:1px solid #ffffff26;background:#141922;color:#fff}
+.study-focus.has-transcript>.toolbar{right:450px}
+.study-focus.has-transcript>.study-controls-handle{right:392px}
+.study-focus>.transcript-panel{grid-column:2;grid-row:1/4;min-height:0;padding:0;border-left:1px solid #ffffff26;background:#141922;color:#fff}
 .study-focus .transcript-head{padding:10px;flex:none}
 .study-focus .transcript-head button{background:#232e40;border-color:#ffffff26;color:#fff;font-size:12px;padding:8px}
 .study-focus .transcript-head h3 span{display:none}

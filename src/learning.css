@@ -138,3 +138,60 @@
 .study-focus .chat-composer textarea{background:#232e40;color:#fff;border-color:#ffffff26}
 .study-focus .chat-composer textarea::placeholder{color:#9aa6b8}
 .study-focus .learning-stage-content .chat-composer .primary{background:var(--blue);border-color:var(--blue)}
+
+/* 이 강의 · 시간순 (B+): one stream of questions, answers and my explanations, a citation card and the composer's captured time. */
+.learning-chat{position:relative}
+.chat-title{flex:1;margin:0;font-size:var(--text-body);font-weight:650}
+.chat-filters{display:flex;gap:2px}
+.learning-stage-content .chat-filters button{min-height:32px;padding:0 var(--space-2);font-size:12px;border-color:transparent;background:transparent}
+.learning-stage-content .chat-filters [aria-pressed=true]{background:var(--selected);color:var(--blue);font-weight:650}
+.learning-stage-content .chat-options .chat-new{min-height:36px;padding:0 var(--space-3);font-size:var(--text-small)}
+.learning-stage-content .chat-new[aria-pressed=true]{background:var(--selected);color:var(--blue)}
+.chat-group{display:flex;flex-direction:column;gap:var(--space-2)}
+.chat-state{display:inline-flex;align-items:center;gap:var(--space-1);color:var(--blue);font-weight:600}
+.chat-state::before{content:'';width:10px;height:10px;box-sizing:border-box;border-radius:50%;border:2px solid currentColor}
+.chat-state.done::before{background:currentColor}
+.chat-record{padding:var(--space-2) var(--space-3);border-radius:var(--learning-radius);background:var(--soft)}
+.chat-record-question{margin:0;font-weight:650;line-height:1.6}
+.chat-now{display:flex;align-items:center;gap:var(--space-2);font-size:12px;font-weight:650;color:var(--blue);font-variant-numeric:tabular-nums}
+.chat-now::after{content:'';flex:1;height:1px;background:var(--focus)}
+.chat-mine{margin-top:calc(-1 * var(--space-2))}
+.learning-stage-content .chat-link{min-height:32px;padding:0 var(--space-1);border:0;background:transparent;color:var(--blue);font-size:var(--text-small);font-weight:600;justify-content:flex-start}
+.chat-mine-view,.chat-mine-edit{padding:var(--space-2) var(--space-3);border-radius:var(--learning-radius);background:var(--selected)}
+.chat-mine-view p{margin:0}
+.chat-mine-label{font-size:12px;font-weight:650;margin:0}
+.chat-mine-label .muted{font-weight:400}
+.chat-mine-text{white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all;line-height:1.65}
+.chat-mine-edit{display:flex;flex-direction:column;gap:var(--space-2)}
+.chat-mine-edit textarea{width:100%;min-height:72px;resize:vertical;border:1px solid var(--line);border-radius:var(--radius-small);padding:var(--space-2);font:inherit;line-height:1.55;background:#fff;color:inherit}
+.chat-mine-edit textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.chat-mine-row{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}
+.chat-mine-row .muted{flex:1 1 6em;font-size:12px}
+.learning-stage-content .chat-mine-row select,.learning-stage-content .chat-mine-row button{min-height:36px;font-size:var(--text-small);padding:0 var(--space-3)}
+.chat-mine-notice{margin:0}.chat-mine-notice:empty{display:none}
+.cite-preview{position:absolute;left:var(--space-3);right:var(--space-3);z-index:3;padding:var(--space-3);border-radius:var(--learning-radius);background:var(--ink);color:#fff;box-shadow:0 6px 20px #0f1c3533;font-size:var(--text-small);line-height:1.6;pointer-events:none}
+.cite-preview p{margin:0}
+.cite-head,.cite-hint{color:#9cc3ff;font-weight:600}
+.cite-en{margin-top:var(--space-1)!important;font-size:var(--text-body)}
+.cite-ko{margin-top:var(--space-1)!important;color:#dce3ee}
+.cite-hint{margin-top:var(--space-2)!important;font-weight:400}
+.chat-time.citing{outline:2px solid var(--blue);outline-offset:1px}
+.chat-anchor{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-1);font-size:12px;color:var(--muted)}
+.chat-anchor[hidden]{display:none}
+.chat-anchor strong{color:var(--blue);font-variant-numeric:tabular-nums}
+.learning-stage-content .chat-anchor-detach{margin-left:auto;min-width:28px;min-height:28px;padding:0;border:0;background:transparent;color:var(--muted);font-size:16px}
+.chat-send-context{display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center;font-size:12px;flex:none}
+.chat-send-context label{display:inline-flex;align-items:center;gap:var(--space-1);min-height:28px;font-variant-numeric:tabular-nums}
+.chat-send-context input{width:16px;height:16px}
+.chat-send-title{font-weight:650;color:var(--ink)}
+.study-focus .learning-stage-content .chat-filters button{background:transparent;color:#bfcada}
+.study-focus .learning-stage-content .chat-filters [aria-pressed=true],.study-focus .learning-stage-content .chat-new[aria-pressed=true]{background:#203652;color:#fff}
+.study-focus .chat-state,.study-focus .chat-now,.study-focus .chat-anchor strong{color:#9cc3ff}
+.study-focus .chat-now::after{background:#75a6f0}
+.study-focus .chat-record{background:#0f141d}
+.study-focus .learning-stage-content .chat-link,.study-focus .learning-stage-content .chat-anchor-detach{background:transparent;color:#9cc3ff}
+.study-focus .chat-mine-view,.study-focus .chat-mine-edit{background:#1b2a40}
+.study-focus .chat-mine-edit textarea{background:#232e40;color:#fff;border-color:#ffffff26}
+.study-focus .cite-preview{background:#232e40;box-shadow:0 6px 20px #0008}
+.study-focus .chat-anchor,.study-focus .chat-send-context{color:#bfcada}
+.study-focus .chat-send-title{color:#fff}
