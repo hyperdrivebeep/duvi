@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp, mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises';
+import {mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LearningSync, descends} from '../learning-sync.mjs';
+import {fingerprint, PROMPT_VERSION} from '../chatgpt-translate.mjs';
+import {ALIGNMENT_VERSION} from '../sentence-alignment.mjs';
 
 const anchor = {lectureId: 'yt_VMj-3S1tku0', seconds: 7, sourceText: 'Hello.', translation: '', alignmentRevision: null, cueStart: 5, cueEnd: 9};
 const question = text => ({resourceId: 'video-VMj-3S1tku0', lectureId: 'yt_VMj-3S1tku0', question: text, anchor});
@@ -33,6 +35,71 @@ async function pull(target, source) {
   const result = await target.sync.commit({revision: plan.revision, token: plan.token});
   return {plan, ...result};
 }
+
+const source = {number: 1, cues: [{start: 0, end: 4, en: 'Hello.'}, {start: 4, end: 8, en: 'Goodbye.'}]};
+const stamp = '2026-11-01T00:00:00.000Z';
+const cache = {version: 1, lecture: 1, sourceHash: fingerprint(source), promptVersion: PROMPT_VERSION,
+  alignmentVersion: ALIGNMENT_VERSION, alignmentRevision: '1cd21c62-f50d-429c-b45e-81943c286df8', timing: 'estimated-from-source-cues',
+  cues: source.cues, updatedAt: stamp, translations: {0: {ko: '안녕하세요.', model: 'test', updatedAt: stamp}, 1: {ko: '안녕히 가세요.', model: 'test', updatedAt: stamp}}};
+async function save(pc, file, value) {
+  await mkdir(path.dirname(path.join(pc.root, file)), {recursive: true});
+  await writeFile(path.join(pc.root, file), JSON.stringify(value));
+}
+async function translations(t) {
+  const pair = await pcs(t);
+  for (const pc of [pair.a, pair.b]) await save(pc, 'data/1.json', source);
+  await save(pair.a, 'translations/1.json', cache);
+  return pair;
+}
+test('aligned translations travel as one unit; unchanged files and private checkpoints are not exported again', async t => {
+  const {folder, a, b} = await translations(t);
+  await save(a, 'translations/1.json.sentences.pending.json', {private: true});
+  assert.equal((await a.sync.export()).translationsWritten, 1);
+  const dir = path.join(folder, 'translations', a.id);
+  assert.deepEqual(await readdir(dir), ['1.json']);
+  const modified = (await stat(path.join(dir, '1.json'))).mtimeMs;
+  assert.equal((await a.sync.export()).translationsWritten, 0);
+  assert.equal((await stat(path.join(dir, '1.json'))).mtimeMs, modified);
+  assert.equal((await pull(b, a)).plan.summary.translationsAdded, 1);
+  assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'translations/1.json'))), cache);
+});
+test('newer local translations and different boundary revisions survive a pull', async t => {
+  const {a, b} = await translations(t);
+  await a.sync.export();
+  for (const edit of [{updatedAt: '2026-11-02T00:00:00Z'}, {alignmentRevision: '4e77777d-9938-4623-ab68-918c0958056d', updatedAt: '2026-10-01T00:00:00Z'}]) {
+    const local = {...cache, ...edit};
+    await save(b, 'translations/1.json', local);
+    assert.equal((await pull(b, a)).summary.translationsKept, 1);
+    assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'translations/1.json'))), local);
+  }
+});
+test('tampered translations are explained and skipped while records merge', async t => {
+  const {folder, a, b} = await translations(t);
+  await a.store.saveRecord({revision: 0, record: question('테스트 질문')});
+  await a.sync.export();
+  const file = path.join(folder, 'translations', a.id, '1.json');
+  await writeFile(file, (await readFile(file, 'utf8')).replace('안녕하세요.', '바뀐 내용'));
+  const {plan, state} = await pull(b, a);
+  assert.match(plan.summary.translationWarnings.join(' '), /손상|검증/);
+  assert.equal(state.records.length, 1);
+  await assert.rejects(stat(path.join(b.root, 'translations/1.json')), {code: 'ENOENT'});
+});
+test('complete compatible cache replaces partial cache with a recovery copy; source changes after preview skip translation', async t => {
+  const {a, b} = await translations(t);
+  const partial = {...cache, translations: {0: cache.translations[0]}, updatedAt: '2026-11-12T00:00:00Z'};
+  await save(b, 'translations/1.json', partial);
+  await a.sync.export();
+  const {summary} = await pull(b, a);
+  assert.equal(summary.translationsUpdated, 1);
+  assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'learning/before-sync-translations/1.json'))), partial);
+  await save(b, 'translations/1.json', partial);
+  const plan = await b.sync.preview({deviceId: a.id});
+  await save(b, 'data/1.json', {...source, cues: [{start: 0, end: 6, en: 'Different.'}]});
+  const result = await b.sync.commit({revision: plan.revision, token: plan.token});
+  assert.equal(result.summary.translationsUpdated, 0);
+  assert.ok(result.summary.translationWarnings.length);
+  assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'translations/1.json'))), partial);
+});
 
 test('a question saved on one PC reaches the other through the folder, without lectures, translations or credentials', async t => {
   const {folder, a, b} = await pcs(t);

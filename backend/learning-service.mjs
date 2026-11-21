@@ -11,7 +11,7 @@ export class LearningService{
     this.store=new LearningStore({root});
     this.backup=new LearningBackup({store:this.store,library,translations});
     this.tutor=new LearningTutor({store:this.store,auth,library,translations});
-    this.sync=new LearningSync({store:this.store});
+    this.sync=new LearningSync({store:this.store,library,translations});
     this.chat=new LearningChat({store:this.store,auth:chatProvider?.auth||auth,library,translations,...(chatProvider?.fetcher&&{fetcher:chatProvider.fetcher})});
     this.ready=this.store.exclusive(()=>this.backup.recover());
     // Recovery errors are surfaced on API use, without an unhandled rejection at startup.

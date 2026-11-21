@@ -5,9 +5,11 @@ import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import {atomicJSON} from './vault.mjs';
 import {AppError} from './chatgpt-auth.mjs';
 import * as v from './learning-validation.mjs';
+import {LectureLibrary} from './library.mjs';
+import {TranslationSync} from './translation-sync.mjs';
 
 // Lightweight learning-state sync through a folder the learner chooses (for example OneDrive).
-// Each PC writes only its own file; lectures, translations, drafts and credentials are never included.
+// Keep the v1 learning file readable by older clients. Caption caches travel separately.
 export const SYNC_FORMAT='duvi-learning-sync';
 const FILE=/^duvi-sync-([A-Za-z0-9-]{1,64})\.json$/;
 const deviceId=value=>{if(typeof value!=='string'||!/^[A-Za-z0-9-]{1,64}$/.test(value))v.invalid('기기 식별자 형식을 확인하세요.');return value;};
@@ -89,7 +91,8 @@ export function mergeLearning(current,incoming,devices){
 }
 
 export class LearningSync{
-  constructor({store,now=()=>Date.now(),hostname=os.hostname(),writer=atomicJSON}){
+  constructor({store,library=new LectureLibrary({root:store.root}),translations,now=()=>Date.now(),hostname=os.hostname(),writer=atomicJSON}){
+    this.captions=new TranslationSync(store.root,library,translations);
     Object.assign(this,{store,now,hostname,writer});this.file=path.join(store.root,'learning','sync-state.json');this.before=path.join(store.root,'learning','before-sync.json');this.tokens=new Map();
   }
   async settings(){
@@ -136,8 +139,10 @@ export class LearningSync{
     return this.store.exclusive(async()=>{
       const settings=await this.settings();if(!settings.folder)throw new AppError('먼저 동기화 폴더를 정하세요.','sync_folder_required',409);
       const learning=await this.store.read(),exportedAt=new Date(this.now()).toISOString(),name=`duvi-sync-${settings.deviceId}.json`;
-      await this.writer(path.join(settings.folder,name),{format:SYNC_FORMAT,schemaVersion:1,deviceId:settings.deviceId,deviceName:settings.deviceName,exportedAt,learning});
-      return {file:name,exportedAt,records:learning.records.length,progress:Object.keys(learning.progress).length};
+      const folder=await this.checkFolder(settings.folder);
+      const result=await this.captions.publish(folder,settings.deviceId);
+      await this.writer(path.join(folder,name),{format:SYNC_FORMAT,schemaVersion:1,deviceId:settings.deviceId,deviceName:settings.deviceName,exportedAt,learning});
+      return {file:name,exportedAt,records:learning.records.length,progress:Object.keys(learning.progress).length,...result};
     });
   }
   preview(body){
@@ -145,11 +150,14 @@ export class LearningSync{
     return this.store.exclusive(async()=>{
       const settings=await this.settings();if(!settings.folder)throw new AppError('먼저 동기화 폴더를 정하세요.','sync_folder_required',409);
       if(body.deviceId===settings.deviceId)v.invalid('이 PC의 파일은 가져올 수 없습니다.');
-      const raw=await read(path.join(settings.folder,`duvi-sync-${body.deviceId}.json`),null);if(!raw)throw new AppError('다른 PC의 동기화 파일을 찾을 수 없습니다.','not_found',404);
+      const folder=await this.checkFolder(settings.folder);
+      const raw=await read(path.join(folder,`duvi-sync-${body.deviceId}.json`),null);if(!raw)throw new AppError('다른 PC의 동기화 파일을 찾을 수 없습니다.','not_found',404);
       const peer=this.parse(raw,body.deviceId),current=await this.store.read(),{summary}=mergeLearning(current,peer.learning,{localDevice:settings.deviceName,incomingDevice:peer.deviceName});
+      const captions=await this.captions.receive(folder,peer.deviceId);
+      Object.assign(summary,captions.summary);
       const now=this.now();for(const [key,entry]of this.tokens)if(entry.expires<=now)this.tokens.delete(key);
       if(this.tokens.size>=8)this.tokens.delete(this.tokens.keys().next().value);
-      const token=randomBytes(32).toString('base64url');this.tokens.set(token,{peer,fingerprint:hash(current),expires:now+600000,localDevice:settings.deviceName});
+      const token=randomBytes(32).toString('base64url');this.tokens.set(token,{peer,folder,captions:captions.plan,fingerprint:hash(current),expires:now+600000,localDevice:settings.deviceName});
       return {token,revision:current.revision,deviceName:peer.deviceName,exportedAt:peer.exportedAt,summary};
     });
   }
@@ -159,9 +167,13 @@ export class LearningSync{
     return this.store.change(body.revision,async current=>{
       if(!entry||entry.expires<=this.now())throw new AppError('동기화 미리보기가 만료되었습니다. 다시 확인하세요.','invalid_preview',409);
       if(entry.fingerprint!==hash(current))throw new AppError('미리보기 이후 기록이 바뀌었습니다. 다시 확인하세요.','import_conflict',409);
+      const settings=await this.settings();
+      if(!settings.folder||await this.checkFolder(settings.folder)!==entry.folder)throw new AppError('동기화 폴더가 바뀌었습니다. 다시 확인하세요.','import_conflict',409);
       const merged=mergeLearning(current,entry.peer.learning,{localDevice:entry.localDevice,incomingDevice:entry.peer.deviceName});summary=merged.summary;
       // Recovery copy of the state right before this explicitly confirmed merge.
       await this.writer(this.before,structuredClone(current));
+      const captions=await this.captions.receive(entry.folder,entry.peer.deviceId,entry.captions);
+      Object.assign(summary,captions.summary);
       current.records=merged.learning.records;current.progress=merged.learning.progress;current.chats=merged.learning.chats;
     }).then(state=>{this.tokens.delete(body.token);return {state,summary};});
   }
