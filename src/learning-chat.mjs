@@ -58,13 +58,13 @@ export class ChatPanel{
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
   saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}}
-  open(){this.sync();void this.loadModels();this.input.focus({preventScroll:true});}
+  open(){this.sync();this.reveal(this.nodes.get('now')?.node,'center');void this.loadModels();this.input.focus({preventScroll:true});}
   /** A newly opened lecture, or a panel whose threads just loaded, continues the most recent conversation unless the learner chose 새 대화. */
   sync(){
-    const lectureId=this.capture()?.lectureId,changed=lectureId!==this.lectureId;
-    if(changed){this.lectureId=lectureId;this.startNew=false;this.threadId=null;this.anchor=null;this.editing.clear();}
+    const lectureId=this.capture()?.lectureId;
+    if(lectureId!==this.lectureId){this.lectureId=lectureId;this.startNew=false;this.threadId=null;this.anchor=null;this.editing.clear();}
     if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;
-    this.render();if(changed)this.reveal(this.nodes.get('now')?.node,'center');
+    this.render();
   }
   threads(){return lectureThreads(this.getState().chats,this.lectureId);}
   thread(){return this.threads().find(row=>row.id===this.threadId)||null;}
@@ -117,7 +117,11 @@ export class ChatPanel{
     let ref=this.log.firstChild;
     for(const entry of entries){
       let current=this.nodes.get(entry.key);
-      if(!current||current.sig!==entry.sig){const node=entry.build();if(current)current.node.replaceWith(node);current={node,sig:entry.sig};}
+      if(!current||current.sig!==entry.sig){
+        const node=entry.build();
+        if(current){if(current.node===ref)ref=ref.nextSibling;current.node.remove();}
+        current={node,sig:entry.sig};
+      }
       next.set(entry.key,current);
       if(current.node===ref)ref=ref.nextSibling;else this.log.insertBefore(current.node,ref);
     }

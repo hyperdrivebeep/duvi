@@ -96,12 +96,13 @@
 @media(max-width:700px){.learning-dialog{padding:var(--space-4)}.learning-start{padding:var(--space-4)}.learning-start h3{font-size:20px}.learning-start button{width:100%;margin-right:0}.learning-nav button{font-size:var(--text-small)}.learning-resource-actions button{padding:var(--space-2)}.learning-phase>summary{font-size:16px}.learning-panel-head{padding:var(--space-1)}.study-header{flex-wrap:wrap}.study-header .title-group{flex:1 1 100%}}
 
 /* 질문하기 side chat: the message log owns scrolling and the composer stays visible below it. */
-.learning-chat{display:flex;flex-direction:column;gap:var(--space-2);overflow:hidden;height:min(64dvh,620px)}
+.learning-chat{display:flex;flex-direction:column;gap:var(--space-2);overflow:hidden;height:min(80dvh,700px)}
 .learning-chat[hidden]{display:none}
 .chat-head,.chat-options{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;flex:none}
 .chat-head select{flex:1 1 160px;min-width:0;min-height:40px}
 .chat-options{font-size:var(--text-small)}
-.chat-options select{flex:1 1 140px;min-width:0;min-height:36px;font-size:var(--text-small)}
+.chat-options{flex-wrap:nowrap}
+.chat-options select{flex:1 1 0;min-width:0;min-height:36px;font-size:var(--text-small)}
 .chat-toggle{display:inline-flex;align-items:center;gap:var(--space-1);min-height:36px;white-space:nowrap}
 .chat-toggle input{width:18px;height:18px}
 .chat-log{flex:1;min-height:96px;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-1) 2px}
@@ -180,7 +181,7 @@
 .chat-anchor[hidden]{display:none}
 .chat-anchor strong{color:var(--blue);font-variant-numeric:tabular-nums}
 .learning-stage-content .chat-anchor-detach{margin-left:auto;min-width:28px;min-height:28px;padding:0;border:0;background:transparent;color:var(--muted);font-size:16px}
-.chat-send-context{display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center;font-size:12px;flex:none}
+.chat-send-context{display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center;font-size:12px;flex:none}
 .chat-send-context label{display:inline-flex;align-items:center;gap:var(--space-1);min-height:28px;font-variant-numeric:tabular-nums}
 .chat-send-context input{width:16px;height:16px}
 .chat-send-title{font-weight:650;color:var(--ink)}
