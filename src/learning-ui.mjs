@@ -47,8 +47,7 @@ export class LearningUI{
     let record=item.record&&this.state.records.find(row=>row.id===item.record.id);
     if(!record){
       const answer=item.answers?.findLast(row=>row.role==='assistant'&&row.text);if(!answer)throw new Error('답이 온 뒤에 내 설명을 저장할 수 있습니다.');
-      const {state}=await this.api('/api/learning/chat/record',{threadId:item.threadId,messageId:answer.id});this.state=state;this.sync();
-      const recordId=state.chats.find(row=>row.id===item.threadId)?.messages.find(row=>row.id===answer.id)?.recordId;
+      const {state,recordId}=await this.api('/api/learning/chat/record',{threadId:item.threadId,messageId:answer.id});this.state=state;this.sync();
       record=state.records.find(row=>row.id===recordId);if(!record)throw new Error('기록을 만들지 못했습니다. 다시 저장하세요.');
     }
     return this.saveRecord({...record,explanation,help});
