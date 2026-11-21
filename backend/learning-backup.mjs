@@ -12,6 +12,10 @@ async function read(file,fallback){try{return JSON.parse(await readFile(file,'ut
 const byName=(a,b)=>a.localeCompare(b,'en',{numeric:true});
 async function names(directory){try{return await readdir(directory);}catch(error){if(error.code==='ENOENT')return [];throw error;}}
 function merge(local,incoming,key,replace){const rows=new Map(local.map(row=>[key(row),row]));for(const row of incoming)if(replace||!rows.has(key(row)))rows.set(key(row),row);return [...rows.values()];}
+export function checkAssetJobs(library,translations){
+  if(translations?.starting||translations?.job?.status==='running'||library?.playlistPending||library?.pending?.size||library?.captionRequests?.size)
+    throw new AppError('강의 또는 번역 작업이 끝난 뒤 다시 시도하세요.','busy',409);
+}
 export class LearningBackup{
   constructor({store,library,translations,writer=atomicJSON,now=()=>Date.now()}){Object.assign(this,{store,library,translations,writer,now});this.root=store.root;this.tokens=new Map();this.journal=path.join(this.root,'learning','import-journal.json');}
   async recover(){
@@ -27,7 +31,7 @@ export class LearningBackup{
     if(typeof relative!=='string'||! /^(?:learning\/state\.json|data\/(?:catalog|[1-9]|1[0-9]|2[0-6])\.json|library\/(?:folders|yt_[A-Za-z0-9_-]{11})\.json|translations\/(?:[1-9]|1[0-9]|2[0-6]|yt_[A-Za-z0-9_-]{11})\.json)$/.test(relative))v.invalid('백업 경로가 올바르지 않습니다.');
     return path.join(this.root,relative);
   }
-  busy(){if(this.translations?.starting||this.translations?.job?.status==='running'||this.library?.playlistPending||this.library?.pending?.size||this.library?.captionRequests?.size)throw new AppError('강의 또는 번역 작업이 끝난 뒤 백업을 다시 시도하세요.','busy',409);}
+  busy(){checkAssetJobs(this.library,this.translations);}
   async capture(){
     this.busy();const learning=await this.store.read(),library=[],translations=[];
     for(const directory of ['data','library'])for(const name of (await names(path.join(this.root,directory))).sort(byName)){

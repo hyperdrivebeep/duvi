@@ -1,26 +1,31 @@
 import {readFile,readdir,stat,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import {createHash,randomBytes,randomUUID} from 'node:crypto';
+import {randomBytes,randomUUID} from 'node:crypto';
 import {atomicJSON} from './vault.mjs';
 import {AppError} from './chatgpt-auth.mjs';
 import * as v from './learning-validation.mjs';
 import {LectureLibrary} from './library.mjs';
 import {TranslationSync} from './translation-sync.mjs';
+import {directory,load,save,digest as hash} from './sync-files.mjs';
 
 // Lightweight learning-state sync through a folder the learner chooses (for example OneDrive).
-// Keep the v1 learning file readable by older clients. Caption caches travel separately.
+// v1 clients reject unknown fields. Positions and captions use separate files.
 export const SYNC_FORMAT='duvi-learning-sync';
 const FILE=/^duvi-sync-([A-Za-z0-9-]{1,64})\.json$/;
 const deviceId=value=>{if(typeof value!=='string'||!/^[A-Za-z0-9-]{1,64}$/.test(value))v.invalid('기기 식별자 형식을 확인하세요.');return value;};
-const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const time=value=>Date.parse(value)||0;
-function resumePositions(value={}){
-  v.object(value);const rows=Object.entries(value);if(rows.length>526)v.invalid('이어보기 위치가 너무 많습니다.');
-  return Object.fromEntries(rows.map(([id,row])=>{
-    v.lectureId(id);v.keys(row,['seconds','updatedAt']);
-    return [id,{seconds:v.number(row.seconds),updatedAt:v.integer(row.updatedAt)}];
-  }));
+function resumePositions(value,now){
+  if(!value||typeof value!=='object'||Array.isArray(value))return {};
+  const rows=[];
+  for(const [id,row] of Object.entries(value)){
+    try{
+      v.lectureId(id);v.keys(row,['seconds','updatedAt']);
+      rows.push([id,{seconds:v.number(row.seconds),updatedAt:v.integer(row.updatedAt,0,now+5*60000)}]);
+    }catch{continue;}
+    if(rows.length===526)break;
+  }
+  return Object.fromEntries(rows);
 }
 async function read(file,fallback){try{return JSON.parse(await readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT')return fallback;throw error;}}
 async function exists(file){try{await stat(file);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}}
@@ -137,20 +142,28 @@ export class LearningSync{
   }
   get(){return this.store.exclusive(()=>this.status());}
   parse(value,expectedDevice){
-    v.bounded(value);v.keys(value,['format','schemaVersion','deviceId','deviceName','exportedAt','learning','positions']);
+    v.bounded(value);v.keys(value,['format','schemaVersion','deviceId','deviceName','exportedAt','learning']);
     if(value.format!==SYNC_FORMAT||value.schemaVersion!==1)v.invalid('지원하지 않는 동기화 파일입니다.');
     if(deviceId(value.deviceId)!==expectedDevice)v.invalid('파일 이름과 기기 식별자가 다릅니다.');
-    return {deviceId:value.deviceId,deviceName:v.text(value.deviceName,80),exportedAt:v.date(value.exportedAt),learning:v.state(value.learning),positions:resumePositions(value.positions)};
+    return {deviceId:value.deviceId,deviceName:v.text(value.deviceName,80),exportedAt:v.date(value.exportedAt),learning:v.state(value.learning)};
   }
   export(body={}){
     return this.store.exclusive(async()=>{
-      v.keys(body,['positions']);const positions=resumePositions(body.positions),positionCount=Object.keys(positions).length;
+      v.keys(body,['positions']);const positions=resumePositions(body.positions,this.now()),positionCount=Object.keys(positions).length;
       const settings=await this.settings();if(!settings.folder)throw new AppError('먼저 동기화 폴더를 정하세요.','sync_folder_required',409);
       const learning=await this.store.read(),exportedAt=new Date(this.now()).toISOString(),name=`duvi-sync-${settings.deviceId}.json`;
       const folder=await this.checkFolder(settings.folder);
       const result=await this.captions.publish(folder,settings.deviceId);
-      await this.writer(path.join(folder,name),{format:SYNC_FORMAT,schemaVersion:1,deviceId:settings.deviceId,deviceName:settings.deviceName,exportedAt,learning,...(positionCount&&{positions})});
-      return {file:name,exportedAt,records:learning.records.length,progress:Object.keys(learning.progress).length,positionCount,...result};
+      let written=0,positionWarning='';
+      try{
+        if(positionCount || await directory(folder,['positions'])){
+          const dir=await this.checkFolder(await directory(folder,['positions'],true));
+          await save(path.join(dir,`${settings.deviceId}.json`),{version:1,deviceId:settings.deviceId,exportedAt,positions});
+          written=positionCount;
+        }
+      }catch{positionWarning='이어보기 위치 파일을 쓰지 못했습니다.';}
+      await this.writer(path.join(folder,name),{format:SYNC_FORMAT,schemaVersion:1,deviceId:settings.deviceId,deviceName:settings.deviceName,exportedAt,learning});
+      return {file:name,exportedAt,records:learning.records.length,progress:Object.keys(learning.progress).length,positionCount:written,positionWarning,...result};
     });
   }
   preview(body){
@@ -162,6 +175,15 @@ export class LearningSync{
       const raw=await read(path.join(folder,`duvi-sync-${body.deviceId}.json`),null);if(!raw)throw new AppError('다른 PC의 동기화 파일을 찾을 수 없습니다.','not_found',404);
       const peer=this.parse(raw,body.deviceId),current=await this.store.read(),{summary}=mergeLearning(current,peer.learning,{localDevice:settings.deviceName,incomingDevice:peer.deviceName});
       const captions=await this.captions.receive(folder,peer.deviceId);
+      peer.positions={};
+      try{
+        const dir=await directory(folder,['positions']),extra=dir&&await load(path.join(dir,`${peer.deviceId}.json`));
+        if(extra){
+          v.keys(extra,['version','deviceId','exportedAt','positions']);
+          if(extra.version!==1||extra.deviceId!==peer.deviceId||extra.exportedAt!==peer.exportedAt)v.invalid();
+          peer.positions=resumePositions(extra.positions,this.now());
+        }
+      }catch{summary.positionWarning='이어보기 파일을 건너뜁니다. 클라우드 동기화가 끝나면 다시 확인하세요.';}
       Object.assign(summary,captions.summary,{positionCount:Object.keys(peer.positions).length});
       const now=this.now();for(const [key,entry]of this.tokens)if(entry.expires<=now)this.tokens.delete(key);
       if(this.tokens.size>=8)this.tokens.delete(this.tokens.keys().next().value);

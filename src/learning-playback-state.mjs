@@ -11,10 +11,11 @@ export class LearningPlaybackState{
     try{this.stamps=JSON.parse(storage.getItem('study-position-stamps'))||{};}catch{this.stamps={};}
   }
   snapshot(){
-    return Object.fromEntries(Object.entries(parsePositions(this.positions)).map(([id,seconds])=>{
+    return Object.fromEntries(Object.entries(parsePositions(this.positions)).filter(([id,seconds])=>
+      /^(?:[1-9]|1[0-9]|2[0-6]|yt_[A-Za-z0-9_-]{11})$/.test(id)&&seconds<=604800).map(([id,seconds])=>{
       const row=this.stamps[id];
       return [id,{seconds,updatedAt:row?.seconds===seconds&&Number.isSafeInteger(row.updatedAt)?row.updatedAt:0}];
-    }));
+    }).sort((a,b)=>b[1].updatedAt-a[1].updatedAt).slice(0,526));
   }
   persist(){
     this.storage.setItem('study-positions',JSON.stringify(this.positions));

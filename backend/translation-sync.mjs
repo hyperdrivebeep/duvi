@@ -1,46 +1,14 @@
 import path from 'node:path';
-import {readFile, readdir, lstat, mkdir, writeFile, rename, rm} from 'node:fs/promises';
-import {createHash, randomUUID} from 'node:crypto';
+import {readdir,opendir} from 'node:fs/promises';
+import {digest, directory, load, save} from './sync-files.mjs';
+import {checkAssetJobs} from './learning-backup.mjs';
 import {validKey} from './library.mjs';
 import {cache as validateCache} from './learning-backup-schema.mjs';
 import {fingerprint, PROMPT_VERSION} from './chatgpt-translate.mjs';
 import {ALIGNMENT_VERSION, timedWords} from './sentence-alignment.mjs';
-import {MAX_BYTES, keys} from './learning-validation.mjs';
+import {keys} from './learning-validation.mjs';
 
-const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const invalid = () => {throw new Error('번역 파일의 형식 또는 내용 검증에 실패했습니다.');};
-async function info(file) {
-  try {return await lstat(file);} catch (e) {if (e.code !== 'ENOENT') throw e; return null;}
-}
-async function directory(parent, parts, create=false) {
-  for (const part of parts) {
-    parent = path.join(parent, part);
-    if (create) await mkdir(parent).catch(e => {if (e.code !== 'EEXIST') throw e;});
-    const details = await info(parent);
-    if (!details) return null;
-    if (!details.isDirectory() || details.isSymbolicLink()) invalid();
-  }
-  return parent;
-}
-async function load(file) {
-  const details = await info(file);
-  if (!details) return null;
-  if (!details.isFile() || details.isSymbolicLink() || details.size > MAX_BYTES) invalid();
-  const bytes = await readFile(file);
-  if (bytes.length > MAX_BYTES) invalid();
-  const value = JSON.parse(bytes);
-  if (!value) invalid();
-  return value;
-}
-async function save(file, value) {
-  const bytes = JSON.stringify(value);
-  if (Buffer.byteLength(bytes) > MAX_BYTES) invalid();
-  const temp = file + '.' + randomUUID() + '.tmp';
-  try {
-    await writeFile(temp, bytes, {flag:'wx', mode:0o600});
-    await rename(temp, file);
-  } finally {await rm(temp, {force:true});}
-}
 function filenames(dir) {
   return readdir(dir).then(names => names.filter(n => n.endsWith('.json') && validKey(n.slice(0,-5))).sort());
 }
@@ -97,7 +65,7 @@ export class TranslationSync {
   }
 
   // Token entries contain only fingerprints, not an entire library of caption text.
-  // Commit reloads both files under the asset gate and applies only the previewed pair.
+  // Commit reloads both files and checks for background asset jobs before writing.
   async receive(folder, device, preview) {
     const summary = {translationsAdded:0, translationsUpdated:0, translationsKept:0,
       translationWarnings:[...(preview?.warnings || [])]};
@@ -105,7 +73,18 @@ export class TranslationSync {
     let remote, names;
     try {
       remote = await directory(folder,['translations',device]);
-      names = preview ? preview.selected.map(row=>row.name) : remote ? await filenames(remote) : [];
+      names = preview ? preview.selected.map(row=>row.name) : [];
+      if(!preview && remote){
+        for await(const {name} of await opendir(remote)){
+          if(!name.endsWith('.json')||!validKey(name.slice(0,-5)))continue;
+          if(names.length===526){
+            summary.translationWarnings.push('한 기기의 번역은 한 번에 최대 526강까지만 확인합니다.');
+            break;
+          }
+          names.push(name);
+        }
+        names.sort();
+      }
     } catch {
       summary.translationWarnings.push('번역 폴더를 읽을 수 없습니다. 클라우드 동기화가 끝난 뒤 다시 확인하세요.');
       names = [];
@@ -136,7 +115,7 @@ export class TranslationSync {
           }
         }
         if (preview) {
-          if (this.service?.starting || (this.service?.job?.status === 'running' && String(this.service.job.number) === key)) throw new Error('busy');
+          checkAssetJobs(this.library,this.service);
           const dest = await directory(this.root,['translations'],true);
           if (raw) {
             const snapshot = await directory(this.root,['learning','before-sync-translations'],true);
@@ -147,7 +126,7 @@ export class TranslationSync {
         summary[raw ? 'translationsUpdated' : 'translationsAdded']++;
       } catch (e) {
         const reason = e.code === 'not_found' ? '이 PC에도 같은 강의와 영어 자막을 먼저 준비하세요.' :
-          e.message === 'busy' ? '이 PC의 번역 작업이 끝난 뒤 다시 합치세요.' :
+          e.code === 'busy' ? e.message :
           '파일 손상, 원본·문장 버전 변경 또는 읽기·쓰기 오류입니다. 원본을 확인하고 다시 미리보기 하세요.';
         summary.translationWarnings.push(`${key} 강의 번역을 건너뜁니다. ${reason}`);
       }

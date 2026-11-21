@@ -10,6 +10,7 @@ export function syncSummaryLines(summary){
     `질문하기 대화 새로 ${summary.chatsAdded??0}개 · 양쪽 메시지를 합친 대화 ${summary.chatsUpdated??0}개`,
     `한국어 번역 새로 ${summary.translationsAdded??0}강 · 교체 ${summary.translationsUpdated??0}강 · 이 PC 번역 유지 ${summary.translationsKept??0}강`,
     `상대 PC의 이어보기 위치 ${summary.positionCount??0}강 (더 최근에 본 위치만 적용하며 지금 재생 중인 강의는 제외)`,
+    ...(summary.positionWarning?[summary.positionWarning]:[]),
     ...(summary.translationWarnings??[]),
   ];
 }
@@ -26,7 +27,7 @@ export class LearningSyncUI{
     const save=button('폴더 저장',()=>busy(save,async()=>{try{this.render(await this.api('/api/learning/sync/folder',{folder:input.value.trim()}));this.notice.textContent='동기화 폴더를 저장했습니다.';}catch(error){this.notice.textContent=error.message;}}));
     const actions=el('div','learning-actions');actions.append(save);
     if(status.folder){
-      const push=button('이 PC 기록을 동기화 폴더로 내보내기',()=>busy(push,async()=>{try{const result=await this.api('/api/learning/sync/export',{positions:this.resumeSync.snapshot()});this.notice.textContent=`기록 ${result.records}개, 이어보기 위치 ${result.positionCount}강, 새로 쓰거나 바뀐 번역 ${result.translationsWritten}강을 내보냈습니다. 클라우드 동기화가 끝난 뒤 다른 PC에서 가져오세요. ${result.translationWarnings.join(' ')}`;}catch(error){this.notice.textContent=error.message;}}),'primary');
+      const push=button('이 PC 기록을 동기화 폴더로 내보내기',()=>busy(push,async()=>{try{const result=await this.api('/api/learning/sync/export',{positions:this.resumeSync.snapshot()});this.notice.textContent=`기록 ${result.records}개, 이어보기 위치 ${result.positionCount}강, 새로 쓰거나 바뀐 번역 ${result.translationsWritten}강을 내보냈습니다. 클라우드 동기화가 끝난 뒤 다른 PC에서 가져오세요. ${[result.positionWarning,...result.translationWarnings].filter(Boolean).join(' ')}`;}catch(error){this.notice.textContent=error.message;}}),'primary');
       const refresh=button('다른 PC 파일 다시 찾기',()=>this.load());actions.append(push,refresh);
     }
     root.append(wrap,actions,this.notice);

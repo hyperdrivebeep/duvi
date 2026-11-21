@@ -63,6 +63,23 @@ test('aligned translations travel as one unit; unchanged files and private check
   assert.equal((await pull(b, a)).plan.summary.translationsAdded, 1);
   assert.deepEqual(JSON.parse(await readFile(path.join(b.root, 'translations/1.json'))), cache);
 });
+test('pending caption or library preparation after preview skips translation while importing records',async t=>{
+  const {a,b}=await translations(t);await a.store.saveRecord({revision:0,record:question('기록')});await a.sync.export();
+  for(const key of ['pending','captionRequests']){
+    const plan=await b.sync.preview({deviceId:a.id});b.sync.captions.library[key].set('1',Promise.resolve());
+    const result=await b.sync.commit({token:plan.token,revision:plan.revision});
+    assert.equal(result.summary.translationsAdded,0);assert.match(result.summary.translationWarnings.join(' '),/작업/);
+    assert.equal(result.state.records.length,1);b.sync.captions.library[key].clear();
+  }
+});
+test('more than 526 peer translation files do not trigger an unbounded preview',async t=>{
+  const {folder,a,b}=await translations(t);await a.sync.export();
+  const dir=path.join(folder,'translations',a.id);
+  await Promise.all(Array.from({length:526},(_,i)=>writeFile(path.join(dir,`yt_${String(i).padStart(11,'0')}.json`),'{}')));
+  const plan=await b.sync.preview({deviceId:a.id});
+  assert.ok(plan.summary.translationWarnings.some(w=>w.includes('526')));
+  assert.ok(plan.summary.translationWarnings.length<=527);
+});
 test('newer local translations and different boundary revisions survive a pull', async t => {
   const {a, b} = await translations(t);
   await a.sync.export();
