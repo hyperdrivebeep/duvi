@@ -69,6 +69,20 @@ test('a follow-up sends previous turns and the learner notes of this lecture onl
   assert.deepEqual(second.input.slice(1),[{role:'user',content:'첫 질문'},{role:'assistant',content:'답 1'},{role:'user',content:'이어서 질문'}]);
   assert.equal((await store.get()).chats[0].messages.length,4);
 });
+test('보낼 자료: an unchecked transcript or note set is left out, a request without the choices sends both, other values are refused',async t=>{
+  const {chat,store,calls}=await fixture(t,{fetcher:()=>streamOf([sse([completed('답')])])});
+  const anchor={lectureId:'1',seconds:3,sourceText:'Sentence 0.',translation:'',alignmentRevision:null,cueStart:0,cueEnd:5};
+  await store.saveRecord({revision:0,record:{resourceId:'mit-1',lectureId:'1',question:'노트',anchor}});
+  const context=i=>JSON.parse(calls[i].body.input[0].content.split('\n').slice(1).join('\n'));
+  await ask(chat,{text:'둘 다 끔',transcript:false,notes:false});
+  assert.deepEqual([context(0).transcript,context(0).learnerNotes],[[],[]]);
+  await ask(chat,{text:'대본만',notes:false});
+  assert.ok(context(1).transcript.length);assert.deepEqual(context(1).learnerNotes,[]);
+  await ask(chat,{text:'예전 클라이언트'});
+  assert.ok(context(2).transcript.length);assert.deepEqual(context(2).learnerNotes,[{at:'00:03',question:'노트',explanation:''}]);
+  await assert.rejects(ask(chat,{text:'잘못된 값',transcript:'no'}),{code:'invalid_learning'});
+  assert.equal(calls.length,3);assert.equal((await store.get()).chats.flatMap(row=>row.messages).filter(row=>row.role==='user').length,3);
+});
 test('chat context helpers keep the nearest transcript and the latest history within budget',()=>{
   const window=transcriptWindow(cues,{},101,{budget:40});
   assert.deepEqual(window.map(row=>row.at),['01:35','01:40','01:45']);

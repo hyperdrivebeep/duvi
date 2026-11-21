@@ -1,0 +1,319 @@
+[
+ [
+  "after-normal-1280",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": null,
+   "focus": false,
+   "vw": 1280,
+   "vh": 720,
+   "media": [
+    346,
+    113,
+    553,
+    311
+   ],
+   "captions": [
+    346,
+    484,
+    553,
+    232
+   ],
+   "panel": [
+    919,
+    113,
+    320,
+    738
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false,
+   "strip": {
+    "strip": [
+     346,
+     424,
+     553,
+     48
+    ],
+    "markers": [
+     [
+      "12%",
+      "strip-marker",
+      "01:12 · 열린 질문 · [QA 예시] 강의 슬라이드와 실습 파일은 어디서 받나요? · 이 장면으로 이동하고 멈춤"
+     ],
+     [
+      "30.8333%",
+      "strip-marker filled",
+      "03:05 · 내 설명 있음 · [QA 예시] computational thinking이 그냥 코딩이랑 뭐가 달라요? · 이 장면으로 이동하고 멈춤"
+     ]
+    ],
+    "range": "00:00–10:00",
+    "errors": []
+   }
+  }
+ ],
+ [
+  "after-normal-1536",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": null,
+   "focus": false,
+   "vw": 1536,
+   "vh": 864,
+   "media": [
+    398,
+    120,
+    757,
+    426
+   ],
+   "captions": [
+    398,
+    606,
+    757,
+    255
+   ],
+   "panel": [
+    1175,
+    120,
+    320,
+    876
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false,
+   "strip": {
+    "strip": [
+     398,
+     546,
+     757,
+     48
+    ],
+    "markers": [
+     [
+      "12%",
+      "strip-marker",
+      "01:12 · 열린 질문 · [QA 예시] 강의 슬라이드와 실습 파일은 어디서 받나요? · 이 장면으로 이동하고 멈춤"
+     ],
+     [
+      "30.8333%",
+      "strip-marker filled",
+      "03:05 · 내 설명 있음 · [QA 예시] computational thinking이 그냥 코딩이랑 뭐가 달라요? · 이 장면으로 이동하고 멈춤"
+     ]
+    ],
+    "range": "00:00–10:00",
+    "errors": []
+   }
+  }
+ ],
+ [
+  "after-fs-1536",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": "stage",
+   "focus": true,
+   "vw": 1536,
+   "vh": 864,
+   "media": [
+    0,
+    0,
+    1156,
+    664
+   ],
+   "captions": [
+    0,
+    704,
+    1156,
+    160
+   ],
+   "panel": [
+    1156,
+    0,
+    380,
+    864
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false,
+   "strip": {
+    "strip": [
+     0,
+     664,
+     1156,
+     40
+    ],
+    "markers": [
+     [
+      "12%",
+      "strip-marker",
+      "01:12 · 열린 질문 · [QA 예시] 강의 슬라이드와 실습 파일은 어디서 받나요? · 이 장면으로 이동하고 멈춤"
+     ],
+     [
+      "30.8333%",
+      "strip-marker filled",
+      "03:05 · 내 설명 있음 · [QA 예시] computational thinking이 그냥 코딩이랑 뭐가 달라요? · 이 장면으로 이동하고 멈춤"
+     ]
+    ],
+    "range": "00:00–10:00",
+    "errors": []
+   }
+  }
+ ],
+ [
+  "after-fs-1280",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": "stage",
+   "focus": true,
+   "vw": 1280,
+   "vh": 720,
+   "media": [
+    0,
+    0,
+    900,
+    520
+   ],
+   "captions": [
+    0,
+    560,
+    900,
+    160
+   ],
+   "panel": [
+    900,
+    0,
+    380,
+    720
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false,
+   "strip": {
+    "strip": [
+     0,
+     520,
+     900,
+     40
+    ],
+    "markers": [
+     [
+      "12%",
+      "strip-marker",
+      "01:12 · 열린 질문 · [QA 예시] 강의 슬라이드와 실습 파일은 어디서 받나요? · 이 장면으로 이동하고 멈춤"
+     ],
+     [
+      "30.8333%",
+      "strip-marker filled",
+      "03:05 · 내 설명 있음 · [QA 예시] computational thinking이 그냥 코딩이랑 뭐가 달라요? · 이 장면으로 이동하고 멈춤"
+     ]
+    ],
+    "range": "00:00–10:00",
+    "errors": []
+   }
+  }
+ ],
+ [
+  "cite",
+  {
+   "shown": true,
+   "text": "03:16 · 강의 원문 | And then after that, how do I take those computer science concepts and actually do the programming? | [QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 아닙니다. | 눌러서 이 장면으로 이동"
+  }
+ ],
+ [
+  "composer",
+  {
+   "chip": "00:30 에서 질문 중 · 쓰기 시작한 장면 ×",
+   "ctx": "보낼 자료 | 00:00–01:30 대본 | 이 강의 내 노트 2",
+   "clock": "00:42 / 63:29"
+  }
+ ],
+ [
+  "editor-while-streaming",
+  [
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": true
+   },
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": true
+   },
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": true
+   },
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": true
+   },
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": true
+   },
+   {
+    "top": 351,
+    "focused": true,
+    "len": 48,
+    "streaming": false
+   }
+  ]
+ ],
+ [
+  "saved",
+  {
+   "views": [
+    "내 설명 · 복습 11월 22일 [QA] 슬라이드와 코드는 강의 자료 페이지에 있다. 강의 [01:12]에서도 말한다. 고치기",
+    "내 설명 · 복습 11월 22일 [QA 예시] 문제를 단계로 쪼개는 생각이 먼저고, 그 단계를 파이썬으로 적는 게 코딩이다. 고치기"
+   ],
+   "markers": [
+    "@00:30",
+    "filled@01:12",
+    "filled@03:05"
+   ]
+  }
+ ],
+ [
+  "server-record",
+  {
+   "explanation": "[QA] 슬라이드와 코드는 강의 자료 페이지에 있다. 강의 [01:12]에서도 말한다.",
+   "aiAnswerKept": true,
+   "help": "full",
+   "revision": 2,
+   "original": ""
+  }
+ ],
+ [
+  "marker-seek",
+  {
+   "before": {
+    "t": 44.46,
+    "paused": false,
+    "clock": "00:44 / 63:29"
+   },
+   "after": {
+    "t": 185,
+    "paused": true,
+    "clock": "03:05 / 63:29",
+    "strip": "03:05",
+    "fs": "stage"
+   }
+  }
+ ]
+]

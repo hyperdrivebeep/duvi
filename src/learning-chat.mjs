@@ -1,90 +1,230 @@
 import {el,button,busy} from './learning-dom.mjs';
-import {formatTime} from './learning-model.mjs';
-import {CHAT_AUTOPAUSE_KEY,CHAT_MODEL_KEY,chatAutoPause,textSegments,composerAction,lectureThreads,threadLabel} from './learning-chat-model.mjs';
+import {formatTime,HELP,apiErrorMessage} from './learning-model.mjs';
+import {CHAT_AUTOPAUSE_KEY,CHAT_MODEL_KEY,CHAT_CONTEXT_KEY,chatAutoPause,chatContextChoice,textSegments,composerAction,lectureThreads,typingAnchor,questionSeconds,contextRange,lectureNoteCount} from './learning-chat-model.mjs';
+import {lectureStream,filterStream,streamCounts,nowIndex} from './learning-stream-model.mjs';
 
 const STARTERS=['방금 부분을 쉬운 비유로 설명해 줘','지금 코드가 한 줄씩 무슨 일을 하는지 알려 줘','이 개념을 확인할 작은 문제 하나 내 줘'];
 const STATUS={stopped:'멈춤 · 받은 부분까지',interrupted:'중간에 끊김'};
-/** 질문하기: a side chat that answers while the lecture plays, kept per lecture in the learning state. */
+const DRAFTS_KEY='duvi-explanation-drafts-v1';
+const dayText=value=>new Date(value).toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
+/**
+ * 질문하기 · 이 강의 · 시간순: this lecture's questions, AI answers and the learner's own explanations in lecture-time
+ * order, with a "지금" line, a composer that keeps the time the learner started typing, and answers streamed live.
+ */
 export class ChatPanel{
-  constructor(root,{api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings}){
-    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings});
-    this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.build();
+  constructor(root,{api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation}){
+    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation});
+    this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.filter='all';this.anchor=null;
+    this.nodes=new Map();this.editing=new Set();this.clock='';
+    try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
+    this.build();
   }
   build(){
     const root=this.root;root.classList.add('learning-chat');
     const head=el('div','chat-head');
-    this.threadSelect=el('select');this.threadSelect.setAttribute('aria-label','이 강의의 대화');this.threadSelect.addEventListener('change',()=>{this.threadId=this.threadSelect.value||null;this.notice.textContent='';this.renderLog();});
-    this.newButton=button('새 대화',()=>{this.threadId=null;this.startNew=true;this.notice.textContent='';this.render();this.input.focus();});
-    head.append(this.threadSelect,this.newButton);
+    this.filters=el('div','chat-filters');this.filters.setAttribute('role','group');this.filters.setAttribute('aria-label','흐름 보기');
+    this.allButton=button('전체',()=>this.setFilter('all'));this.openButton=button('열린 질문',()=>this.setFilter('open'));
+    this.filters.append(this.allButton,this.openButton,button('대본',()=>this.openTranscript()));
+    head.append(el('h3','chat-title','이 강의 · 시간순'),this.filters);
     const options=el('div','chat-options');
     this.modelSelect=el('select');this.modelSelect.setAttribute('aria-label','답변 모델');this.modelSelect.append(new Option('모델 불러오는 중…',''));
     this.modelSelect.addEventListener('change',()=>{try{localStorage.setItem(CHAT_MODEL_KEY,this.modelSelect.value);}catch{}});
     const pause=el('label','chat-toggle');this.autoPause=el('input');this.autoPause.type='checkbox';this.autoPause.checked=chatAutoPause(localStorage);
     this.autoPause.addEventListener('change',()=>{try{localStorage.setItem(CHAT_AUTOPAUSE_KEY,this.autoPause.checked?'on':'off');}catch{}});
-    pause.append(this.autoPause,document.createTextNode('보낼 때 영상 멈추기'));options.append(this.modelSelect,pause);
-    this.log=el('div','chat-log');this.log.setAttribute('role','log');this.log.setAttribute('aria-label','대화 내용');this.log.tabIndex=0;
+    pause.append(this.autoPause,document.createTextNode('보낼 때 멈추기'));
+    this.newButton=button('새 대화',()=>{this.startNew=!this.startNew;this.threadId=this.startNew?null:this.threads()[0]?.id||null;this.notice.textContent='';this.render();this.input.focus();},'chat-new');
+    this.newButton.title='다음 질문을 이전 대화와 따로 시작합니다';
+    options.append(this.modelSelect,pause,this.newButton);
+    this.log=el('div','chat-log');this.log.setAttribute('role','log');this.log.setAttribute('aria-label','이 강의의 질문과 답, 내 설명');this.log.tabIndex=0;
+    this.log.addEventListener('scroll',()=>this.hideCite(),{passive:true});
+    this.cite=el('div','cite-preview');this.cite.id='chatCitePreview';this.cite.setAttribute('role','tooltip');this.cite.hidden=true;
     this.notice=el('p','notice chat-notice');this.notice.setAttribute('role','status');
     this.form=el('form','chat-composer');
-    this.input=el('textarea');this.input.rows=1;this.input.maxLength=4000;this.input.placeholder='막힌 점을 바로 물어보세요';this.input.setAttribute('aria-label','질문 입력 (Enter 보내기, Shift+Enter 줄바꿈)');
+    this.anchorChip=el('div','chat-anchor');this.anchorTime=el('strong');
+    const detach=button('×',()=>{this.anchor='detached';this.renderComposer();this.input.focus();},'chat-anchor-detach');detach.setAttribute('aria-label','질문 시각 떼기 · 보낼 때의 재생 시점으로 보냄');detach.title='시각 떼기';
+    this.anchorChip.append(this.anchorTime,el('span','',' 에서 질문 중 · 쓰기 시작한 장면'),detach);
+    this.input=el('textarea');this.input.rows=2;this.input.maxLength=4000;this.input.placeholder='막힌 점을 바로 물어보세요';this.input.setAttribute('aria-label','질문 입력 (Enter 보내기, Shift+Enter 줄바꿈)');
     this.sendButton=button('보내기',null,'primary');this.sendButton.type='submit';
     this.stopButton=button('멈추기',()=>void this.stop(),'chat-stop');this.stopButton.hidden=true;
-    this.form.append(this.input,this.sendButton,this.stopButton);
+    this.form.append(this.anchorChip,this.input,this.sendButton,this.stopButton);
     this.input.addEventListener('keydown',event=>{if(composerAction(event)==='send'){event.preventDefault();void this.send();}});
-    this.input.addEventListener('input',()=>this.fit());
+    this.input.addEventListener('input',()=>{this.fit();this.anchor=typingAnchor(this.anchor,this.input.value,this.time());this.renderComposer();});
     this.form.addEventListener('submit',event=>{event.preventDefault();void this.send();});
-    const hint=el('p','muted chat-context','Enter 보내기 · Shift+Enter 줄바꿈 · 함께 보내는 것: 지금 시점 앞뒤 1분 대본, 이 강의의 내 기록, 이 대화');
-    root.append(head,options,this.log,this.notice,this.form,hint);
+    const sendContext=el('div','chat-send-context');sendContext.setAttribute('role','group');sendContext.setAttribute('aria-label','보낼 자료');
+    const choice=chatContextChoice(localStorage),check=(name,checked)=>{const label=el('label'),input=el('input'),text=el('span');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>this.saveContextChoice());label.append(input,text);this[name]={input,text};return label;};
+    sendContext.append(el('span','chat-send-title','보낼 자료'),check('sendTranscript',choice.transcript),check('sendNotes',choice.notes));
+    const hint=el('p','muted chat-context','Enter 보내기 · Shift+Enter 줄바꿈 · 이 대화의 앞선 질문과 답도 함께 보냅니다');
+    root.append(head,options,this.log,this.cite,this.notice,this.form,sendContext,hint);
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
-  open(){this.sync();void this.loadModels();this.input.focus({preventScroll:true});}
-  /** A newly opened lecture, or a panel whose threads just loaded, shows the most recent conversation unless the learner chose 새 대화. */
-  sync(){const lectureId=this.capture()?.lectureId;if(lectureId!==this.lectureId){this.lectureId=lectureId;this.startNew=false;this.threadId=null;}if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;this.render();}
+  saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}}
+  open(){this.sync();this.reveal(this.nodes.get('now')?.node,'center');void this.loadModels();this.input.focus({preventScroll:true});}
+  /** A newly opened lecture, or a panel whose threads just loaded, continues the most recent conversation unless the learner chose 새 대화. */
+  sync(){
+    const lectureId=this.capture()?.lectureId;
+    if(lectureId!==this.lectureId){this.lectureId=lectureId;this.startNew=false;this.threadId=null;this.anchor=null;this.editing.clear();}
+    if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;
+    this.render();
+  }
   threads(){return lectureThreads(this.getState().chats,this.lectureId);}
   thread(){return this.threads().find(row=>row.id===this.threadId)||null;}
+  setFilter(filter){this.filter=filter;this.renderLog();}
   render(){
-    const threads=this.threads();
-    this.threadSelect.replaceChildren(new Option(threads.length?'새 대화 (보내면 시작)':'첫 대화 (보내면 시작)',''),...threads.map(row=>new Option(threadLabel(row),row.id)));
-    this.threadSelect.value=this.thread()?this.threadId:'';
-    const busyNow=!!this.streaming;this.threadSelect.disabled=this.newButton.disabled=busyNow;
+    const busyNow=!!this.streaming;this.newButton.disabled=busyNow;this.newButton.setAttribute('aria-pressed',String(!!this.startNew));
     this.sendButton.hidden=busyNow;this.stopButton.hidden=!busyNow;
-    this.renderLog();
+    this.renderLog();this.renderComposer();
+  }
+  /** Called as the video plays: moves the 지금 line and the transcript span at most once a second. */
+  tick(seconds){const clock=formatTime(seconds);if(clock===this.clock)return;this.clock=clock;if(this.lectureId!==undefined){this.renderLog();this.renderComposer();}}
+  renderComposer(){
+    const seconds=questionSeconds(this.anchor,this.time());
+    this.anchorChip.hidden=typeof this.anchor!=='number';this.anchorTime.textContent=formatTime(seconds);
+    this.sendTranscript.text.textContent=`${contextRange(seconds)} 대본`;
+    const notes=lectureNoteCount(this.getState().records,this.lectureId);
+    this.sendNotes.text.textContent=`이 강의 내 노트 ${notes}`;this.sendNotes.input.disabled=!notes;
+  }
+  items(){
+    const items=this.lectureId===undefined?[]:lectureStream(this.getState(),this.lectureId),live=this.streaming;
+    if(live&&String(live.lectureId)===String(this.lectureId)){
+      const own=live.started&&items.find(item=>item.question?.id===live.messageId);
+      if(own)own.live=live;
+      else if(!live.started)items.push({kind:'qa',key:'live',seconds:live.seconds,question:{role:'user',text:live.question,seconds:live.seconds},answers:[],open:true,explained:false,live});
+      items.sort((a,b)=>a.seconds-b.seconds);
+    }
+    return items;
   }
   renderLog(){
-    const thread=this.thread(),live=this.streaming&&this.streaming.threadId===this.threadId?this.streaming:null;
-    this.log.replaceChildren();this.streamText=null;
-    if(!thread&&!live){
-      const empty=el('div','chat-empty');
-      empty.append(el('p','','영상을 보다 막히면 바로 물어보세요. 지금 장면의 대본과 내 기록을 함께 보내 답을 받습니다. 답은 AI 제안이니 원문과 함께 확인하세요.'));
-      const starters=el('div','chat-starters');for(const text of STARTERS)starters.append(button(text,()=>void this.send(text)));empty.append(starters);this.log.append(empty);return;
+    const items=this.items(),shown=filterStream(items,this.filter),counts=streamCounts(items);
+    this.allButton.textContent=`전체 ${counts.all}`;this.openButton.textContent=`열린 질문 ${counts.open}`;
+    this.allButton.setAttribute('aria-pressed',String(this.filter==='all'));this.openButton.setAttribute('aria-pressed',String(this.filter==='open'));
+    if(!items.length||!shown.length){
+      for(const {node} of this.nodes.values())node.remove();this.nodes.clear();this.log.replaceChildren(this.empty(!items.length));return;
     }
-    for(const message of thread?.messages||[])this.log.append(this.message(message));
-    if(live){
-      if(!live.started)this.log.append(this.message({role:'user',text:live.question,seconds:live.seconds}));
-      const node=this.message({role:'assistant',text:live.text,seconds:live.seconds,model:live.model},true);this.log.append(node);
+    this.log.querySelector(':scope>.chat-empty')?.remove();
+    const entries=[],now=nowIndex(shown,this.time()),nowEntry={key:'now',sig:this.clock,build:()=>{const line=el('div','chat-now');line.append(el('span','',`지금 ${formatTime(this.time())}`));return line;}};
+    shown.forEach((item,index)=>{
+      if(index===now)entries.push(nowEntry);
+      entries.push({key:item.key,sig:this.groupSig(item),build:()=>this.group(item)});
+      if(!item.live&&(item.kind==='record'||item.answers.length))entries.push({key:`${item.key}:mine`,sig:this.editing.has(item.key)?'edit':JSON.stringify([item.record?.explanation,item.record?.reviewDueAt,item.record?.id]),build:()=>this.mine(item)});
+    });
+    if(now>=shown.length)entries.push(nowEntry);
+    this.reconcile(entries);
+  }
+  /** Keeps unchanged nodes in place so an explanation being written is neither rebuilt nor moved when an answer streams in. */
+  reconcile(entries){
+    const keys=new Set(entries.map(entry=>entry.key)),next=new Map();
+    for(const [key,{node}] of this.nodes)if(!keys.has(key))node.remove();
+    let ref=this.log.firstChild;
+    for(const entry of entries){
+      let current=this.nodes.get(entry.key);
+      if(!current||current.sig!==entry.sig){
+        const node=entry.build();
+        if(current){if(current.node===ref)ref=ref.nextSibling;current.node.remove();}
+        current={node,sig:entry.sig};
+      }
+      next.set(entry.key,current);
+      if(current.node===ref)ref=ref.nextSibling;else this.log.insertBefore(current.node,ref);
     }
-    this.log.scrollTop=this.log.scrollHeight;
+    this.nodes=next;
+  }
+  empty(none){
+    const empty=el('div','chat-empty');
+    if(!none){empty.append(el('p','','열린 질문이 없습니다. 남긴 질문마다 내 설명을 적었습니다.'));return empty;}
+    empty.append(el('p','','영상을 보다 막히면 바로 물어보세요. 지금 장면의 대본과 내 기록을 함께 보내 답을 받습니다. 답은 AI 제안이니 원문과 함께 확인하세요.'));
+    const starters=el('div','chat-starters');for(const text of STARTERS)starters.append(button(text,()=>void this.send(text)));empty.append(starters);return empty;
+  }
+  groupSig(item){
+    if(item.live)return `live:${item.key}`;
+    return JSON.stringify([item.kind,item.question?.text,item.answers?.map(row=>[row.id,row.text,row.status,row.recordId,row.model]),item.record?.id,item.record?.question,item.explained,item.open,this.models?.length]);
+  }
+  group(item){
+    const node=el('div','chat-group');
+    if(item.kind==='record'){
+      const record=item.record,card=el('article','chat-record'),meta=el('div','chat-meta');
+      meta.append(this.chip(item.seconds,`기록한 시점 ${formatTime(item.seconds)}로 이동`),el('span',item.explained?'chat-state done':'chat-state',item.explained?'내 설명 있음':item.open?'열린 질문 · 내 설명 아직 없음':'질문만 저장 · 복습 기록 있음'));
+      card.append(meta,el('p','chat-record-question',record.question||record.title||'내 설명'));node.append(card);return node;
+    }
+    if(!item.explained&&item.open&&!item.live){const state=el('div','chat-meta');state.append(el('span','chat-state','열린 질문 · 내 설명 아직 없음'));node.append(state);}
+    node.append(this.message(item.question));
+    for(const answer of item.answers)node.append(this.message(answer,false,item));
+    if(item.live){const live=item.live;node.append(this.message({role:'assistant',text:live.text,seconds:live.seconds,model:live.model},true));}
+    return node;
   }
   modelName(id){return [...this.modelSelect.options].find(option=>option.value===id)?.textContent||id;}
-  message(message,streaming=false){
+  message(message,streaming=false,item=null){
     const user=message.role==='user',node=el('article',`chat-message ${user?'chat-user':'chat-assistant'}`),meta=el('div','chat-meta');
     meta.append(el('strong','',user?'나':'AI 튜터 · 제안'),this.chip(message.seconds,`질문한 시점 ${formatTime(message.seconds)}로 이동`));
     if(!user&&message.model)meta.append(el('span','',this.modelName(message.model)));
     if(STATUS[message.status])meta.append(el('span','chat-status-tag',STATUS[message.status]));
-    const text=el('div','chat-text');this.fill(text,message.text);
+    const text=el('div','chat-text');this.fill(text,message.text,!user);
     if(streaming){if(!message.text)text.textContent='답변을 준비하는 중…';this.streamText=text;node.setAttribute('aria-busy','true');}
     node.append(meta,text);
     if(!user&&!streaming){
       const actions=el('div','chat-actions');
       const copy=button('복사',()=>this.copy(message.text));copy.setAttribute('aria-label','답변 복사');actions.append(copy);
       const saved=message.recordId&&this.getState().records.some(row=>row.id===message.recordId);
-      if(saved)actions.append(button('✓ 기록에 저장됨 · 열린 질문 보기',()=>this.openRecords()));
-      else{const save=button('기록으로 저장',()=>busy(save,()=>this.saveRecord(message)));actions.append(save);}
+      if(saved)actions.append(button('✓ 기록에 저장됨',()=>this.openRecords()));
+      else{const save=button('기록으로 저장',()=>busy(save,()=>this.saveRecord(message,item)));actions.append(save);}
       node.append(actions);
     }
     return node;
   }
+  /** 내 설명: written right under its question and answer, saved as the learner's own explanation apart from the AI answer. */
+  mine(item){
+    const node=el('div','chat-mine'),record=item.record;
+    if(!this.editing.has(item.key)){
+      if(!item.explained){const write=button('내 설명 쓰기',()=>this.edit(item),'chat-link');write.setAttribute('aria-label',`내 설명 쓰기 · ${formatTime(item.seconds)} 질문`);node.append(write);return node;}
+      const view=el('div','chat-mine-view');
+      view.append(el('p','chat-mine-label',`내 설명${record.reviewDueAt?` · 복습 ${dayText(record.reviewDueAt)}`:''}`),el('p','chat-mine-text',record.explanation));
+      const fix=button('고치기',()=>this.edit(item),'chat-link');fix.setAttribute('aria-label',`내 설명 고치기 · ${formatTime(item.seconds)} 질문`);view.append(fix);node.append(view);return node;
+    }
+    const form=el('form','chat-mine-edit'),id=`mine-${item.key.replace(/[^A-Za-z0-9_-]/g,'-')}`,label=el('label','chat-mine-label');
+    label.htmlFor=id;label.append('내 설명 ',el('span','muted','AI 답과 따로 저장돼요'));
+    const text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=this.drafts[item.key]??record?.explanation??'';text.placeholder='내 말로 한두 문장';
+    text.addEventListener('input',()=>{this.drafts[item.key]=text.value;this.saveDrafts();});
+    const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=record?.help||(item.answers?.length?'full':'none');
+    const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
+    const row=el('div','chat-mine-row'),save=button('저장',null,'primary');save.type='submit';
+    row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
+    form.append(label,text,row,notice);
+    form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
+      void busy(save,async()=>{try{await this.saveExplanation(item,text.value,help.value);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
+        catch(error){notice.textContent=`${apiErrorMessage(error)} 쓴 내용은 그대로 있습니다.`;}});});
+    node.append(form);return node;
+  }
+  edit(item){this.editing.add(item.key);this.renderLog();const text=this.nodes.get(`${item.key}:mine`)?.node.querySelector('textarea');if(text){this.reveal(text.closest('.chat-mine'),'nearest');text.focus({preventScroll:true});}}
+  focusMine(key){this.nodes.get(`${key}:mine`)?.node.querySelector('button')?.focus({preventScroll:true});}
+  saveDrafts(){try{localStorage.setItem(DRAFTS_KEY,JSON.stringify(this.drafts));}catch{}}
   chip(seconds,label){const chip=button(formatTime(seconds),()=>this.seek(seconds),'chat-time');chip.setAttribute('aria-label',label);chip.title=label;return chip;}
-  fill(node,text){node.replaceChildren(...textSegments(text).map(part=>part.label?this.chip(part.seconds,`${part.label}로 이동`):document.createTextNode(part.text)));}
+  /** Time references inside an AI answer preview that moment's English and Korean sentence on hover or focus. */
+  fill(node,text,cite=false){
+    node.replaceChildren(...textSegments(text).map(part=>{
+      if(!part.label)return document.createTextNode(part.text);
+      const chip=this.chip(part.seconds,`${part.label}로 이동`);
+      if(cite){chip.removeAttribute('title');const show=()=>this.showCite(chip,part.seconds),hide=()=>this.hideCite(chip);chip.addEventListener('pointerenter',show);chip.addEventListener('focus',show);chip.addEventListener('pointerleave',hide);chip.addEventListener('blur',hide);chip.addEventListener('keydown',event=>{if(event.key==='Escape'&&!this.cite.hidden){event.stopPropagation();hide();}});}
+      return chip;
+    }));
+  }
+  showCite(chip,seconds){
+    const cue=this.cueAt(seconds),card=this.cite;
+    const head=el('p','cite-head',`${formatTime(seconds)} · 강의 원문`),en=el('p','cite-en',cue?.en||'이 시각에는 영어 자막이 없습니다.');en.lang='en';
+    card.replaceChildren(head,en,el('p','cite-ko',cue?.ko||'이 문장의 한국어 번역은 아직 없습니다.'),el('p','cite-hint','눌러서 이 장면으로 이동'));
+    card.hidden=false;chip.setAttribute('aria-describedby',card.id);chip.classList.add('citing');this.citing=chip;
+    const box=this.root.getBoundingClientRect(),at=chip.getBoundingClientRect(),height=card.offsetHeight;
+    let top=at.bottom-box.top+6;if(top+height>this.root.clientHeight-8)top=Math.max(8,at.top-box.top-height-6);
+    card.style.top=`${top}px`;
+  }
+  hideCite(chip=this.citing){if(!chip||chip!==this.citing)return;this.cite.hidden=true;chip.removeAttribute('aria-describedby');chip.classList.remove('citing');this.citing=null;}
+  /** Scrolls only the log, never the page or the fullscreen stage. */
+  reveal(node,align='nearest'){
+    if(!node||!this.log.contains(node))return;
+    const box=this.log.getBoundingClientRect(),at=node.getBoundingClientRect();
+    if(align==='center')this.log.scrollTop+=at.top-box.top-(box.height-at.height)/2;
+    else if(at.bottom>box.bottom)this.log.scrollTop+=Math.min(at.bottom-box.bottom,at.top-box.top);
+    else if(at.top<box.top)this.log.scrollTop-=box.top-at.top;
+  }
+  writing(){const active=document.activeElement;return this.log.contains(active)&&active.matches('textarea');}
+  liveNode(){const live=this.streaming;if(!live)return null;const item=this.items().find(row=>row.live===live);return item&&this.nodes.get(item.key)?.node;}
   async loadModels(){
     if(this.models)return;
     try{
@@ -104,26 +244,31 @@ export class ChatPanel{
     if(!question||this.streaming)return;
     if(!context){this.notice.textContent='강의를 먼저 열어 주세요.';return;}
     if(!this.modelSelect.value){this.notice.textContent='ChatGPT에 연결하고 답변 모델을 고른 뒤 질문하세요. 적은 질문은 그대로 있습니다.';await this.loadModels();return;}
-    const seconds=this.time(),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
-    const controller=new AbortController();
-    this.streaming={threadId:this.threadId,question,seconds,model:this.modelSelect.value,text:'',started:false,controller};
-    if(text===this.input.value)this.input.value='';this.fit();
-    this.notice.textContent=paused?`영상을 ${formatTime(seconds)}에서 멈췄습니다. 답을 읽고 다시 재생하세요.`:'';this.render();
-    try{await this.stream('/api/learning/chat',{threadId:this.threadId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
+    const fromBox=text===this.input.value,seconds=questionSeconds(fromBox?this.anchor:null,this.time()),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
+    const controller=new AbortController(),withTranscript=this.sendTranscript.input.checked,withNotes=this.sendNotes.input.checked&&!this.sendNotes.input.disabled;
+    this.streaming={threadId:this.threadId,lectureId:context.lectureId,question,seconds,model:this.modelSelect.value,text:'',started:false,controller};
+    if(fromBox){this.input.value='';this.anchor=null;}this.fit();
+    this.notice.textContent=paused?`영상을 ${formatTime(this.time())}에서 멈췄습니다. 답을 읽고 다시 재생하세요.`:'';this.render();this.reveal(this.liveNode());
+    try{await this.stream('/api/learning/chat',{threadId:this.threadId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
     catch(error){
       const started=this.streaming?.started;
       this.notice.textContent=controller.signal.aborted?'답변을 멈췄습니다.':error.message;
-      // A question the server never stored goes back into the box instead of being lost.
-      if(!started&&!this.input.value)this.input.value=question;this.fit();
+      // A question the server never stored goes back into the box, still tied to the time it was asked at.
+      if(!started&&!this.input.value){this.input.value=question;if(fromBox)this.anchor=seconds;}this.fit();
       if(error.code==='not_connected'||error.code==='plan_disabled')this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
     }finally{this.streaming=null;this.render();}
   }
   onEvent(event,data){
     const live=this.streaming;if(!live)return;
-    if(event==='start'){this.applyThread(data.thread,data.revision);live.started=true;live.threadId=data.thread.id;if(this.lectureId===data.thread.lectureId){this.threadId=data.thread.id;this.startNew=false;}this.render();}
+    if(event==='start'){
+      this.applyThread(data.thread,data.revision);live.started=true;live.threadId=data.thread.id;live.messageId=data.thread.messages.findLast(row=>row.role==='user')?.id;
+      if(this.lectureId===data.thread.lectureId){this.threadId=data.thread.id;this.startNew=false;}this.render();if(!this.writing())this.reveal(this.liveNode());
+    }
     if(event==='delta'){
-      live.text+=data.text;if(!this.streamText)return;
-      const stick=this.log.scrollHeight-this.log.scrollTop-this.log.clientHeight<80;this.fill(this.streamText,live.text);if(stick)this.log.scrollTop=this.log.scrollHeight;
+      live.text+=data.text;if(!this.streamText?.isConnected)return;
+      // Follow the answer only while its end is in view and the learner is not writing an explanation.
+      const node=this.liveNode(),box=this.log.getBoundingClientRect(),follow=node&&!this.writing()&&node.getBoundingClientRect().bottom<=box.bottom+80;
+      this.fill(this.streamText,live.text,true);if(follow)this.reveal(node);
     }
     if(event==='done'){this.applyThread(data.thread,data.revision);if(data.status==='stopped')this.notice.textContent='답변을 멈췄습니다. 받은 부분까지 저장했습니다.';}
     if(event==='error'){if(data.thread)this.applyThread(data.thread,data.revision);this.notice.textContent=data.message;}
@@ -133,9 +278,9 @@ export class ChatPanel{
     if(!live.started){live.controller.abort();return;}
     try{await this.api('/api/learning/chat/stop',{threadId:live.threadId});}catch(error){this.notice.textContent=error.message;live.controller.abort();}
   }
-  async saveRecord(message){
+  async saveRecord(message,item){
     try{
-      const {state}=await this.api('/api/learning/chat/record',{threadId:this.threadId,messageId:message.id});this.applyState(state);this.renderLog();
+      const {state}=await this.api('/api/learning/chat/record',{threadId:item?.threadId||this.threadId,messageId:message.id});this.applyState(state);this.renderLog();
       this.notice.textContent='질문과 답변을 학습 기록으로 저장했습니다. 열린 질문과 내일 복습에 나타납니다.';this.notice.append(' ',button('열린 질문 보기',()=>this.openRecords()));
     }catch(error){this.notice.textContent=error.message;}
   }

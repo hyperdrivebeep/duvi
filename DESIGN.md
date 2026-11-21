@@ -56,8 +56,10 @@ folders, failed imports, long titles and zero-caption lectures must remain usabl
 Fullscreen learning keeps the existing media mounted. The default is a compact,
 separate caption dock below the video, with adjacent English/Korean sentence pairs.
 An optional overlay mode maximizes video, with captions at top or bottom. Full
-transcripts open in a 320px right panel (a lower drawer on narrow screens), with
-current-cue follow and seeking. No sentence pair is independently truncated or
+transcripts open in a right panel (320px in the page, 380px in fullscreen since the
+B+ change of 2026-11-21; a lower drawer on narrow screens), with current-cue follow and
+seeking. A 40px time strip sits between the video and the captions: a ten-minute span
+select, played bar, playhead, 24px marker targets (12px dot, filled/hollow) and a clock. No sentence pair is independently truncated or
 retranslated for presentation. Long text remains scrollable and the complete
 sentence is available in the transcript. Use dark surfaces (#090b10, #141922),
 white Korean and soft-white English, with 18/22/26/30px sizes. Dock padding is

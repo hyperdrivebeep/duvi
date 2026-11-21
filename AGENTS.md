@@ -69,3 +69,12 @@ ChatGPT connection, with conversations kept per lecture in local learning state.
 The answer is labelled as an AI suggestion and becomes a learning record only when
 the learner presses 기록으로 저장. `DUVI_CHAT_MOCK=1` is a QA-only stand-in and
 must never be enabled by default or reported as real answer quality.
+
+On 2026-11-21 the user approved the B+ learning-screen direction ("좋다 duvi는 구현하거라";
+docs/design/2026-11-19-notebook-ui, section B+). Keep the wide video and two caption lines,
+Duvi's time strip under the player with question markers (filled = my explanation, hollow =
+open question; a marker seeks and pauses), the 질문하기 panel as one lecture-time-ordered stream
+("이 강의 · 시간순") with a 지금 line and 전체/열린 질문/대본 filters, citation previews on time
+chips inside AI answers, the learner's explanation written under its question and saved apart
+from the AI answer, the question time captured when typing starts, and "보낼 자료" checks that
+change what the server sends. The library sidebar stays; the panel still opens on demand.

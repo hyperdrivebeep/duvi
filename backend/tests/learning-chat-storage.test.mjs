@@ -77,3 +77,19 @@ test('sync merges threads as the union of both PCs messages and counts what chan
   assert.deepEqual([summary.chatsAdded,summary.chatsUpdated],[1,1]);assert.deepEqual(learning.chats.map(row=>row.id),['t1','t2']);
   assert.doesNotThrow(()=>v.state(learning));
 });
+test('an explanation written under a chat answer is saved on its record apart from the AI answer and survives a sync merge',async t=>{
+  const store=new LearningStore({root:await root(t)});
+  const {thread:saved}=await store.appendChat({threadId:null,lectureId:'1',messages:[message('q','user',1),message('a','assistant',2)]});
+  const anchor={lectureId:'1',seconds:10,sourceText:'Hello.',translation:'',alignmentRevision:null,cueStart:0,cueEnd:20};
+  let {state,recordId}=await store.saveChatRecord({threadId:saved.id,messageId:'a',record:{resourceId:'mit-1',lectureId:'1',question:'user q',aiAnswer:'assistant a',help:'full',anchor}});
+  const asked=state.records.find(row=>row.id===recordId);assert.equal(asked.explanation,'');
+  const {schemaVersion,revision,createdAt,updatedAt,originalExplanation,history,reviews,...input}=asked;
+  state=await store.saveRecord({revision:state.revision,recordRevision:asked.revision,record:{...input,explanation:'내 말로 쓴 설명',help:'partial'}});
+  const explained=state.records[0];
+  assert.deepEqual([explained.explanation,explained.aiAnswer,explained.help,explained.history.length],['내 말로 쓴 설명','assistant a','partial',1]);
+  assert.equal(state.chats[0].messages[1].recordId,recordId);
+  // A PC that still holds the question-only copy does not undo the explanation or the chat link.
+  const {learning}=mergeLearning(state,{...v.emptyState(),records:[asked],chats:[thread(saved.id,[message('q','user',1),message('a','assistant',2)])]},{localDevice:'office',incomingDevice:'home'});
+  assert.equal(learning.records[0].explanation,'내 말로 쓴 설명');assert.equal(learning.chats[0].messages[1].recordId,recordId);
+  assert.deepEqual(v.state(structuredClone(state)),state);
+});
