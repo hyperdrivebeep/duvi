@@ -12,10 +12,10 @@ const dayText=value=>new Date(value).toLocaleDateString('ko-KR',{month:'long',da
  * order, with a "지금" line, a composer that keeps the time the learner started typing, and answers streamed live.
  */
 export class ChatPanel{
-  constructor(root,{api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation}){
-    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation});
+  constructor(root,{api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation}){
+    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation});
     this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.filter='all';this.anchor=null;
-    this.nodes=new Map();this.editing=new Set();this.clock='';
+    this.nodes=new Map();this.editing=new Set();this.clock='';this.questions=new Map();
     try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
     this.build();
   }
@@ -62,7 +62,13 @@ export class ChatPanel{
   /** A newly opened lecture, or a panel whose threads just loaded, continues the most recent conversation unless the learner chose 새 대화. */
   sync(){
     const lectureId=this.capture()?.lectureId;
-    if(lectureId!==this.lectureId){this.lectureId=lectureId;this.startNew=false;this.threadId=null;this.anchor=null;this.editing.clear();}
+    if(lectureId!==this.lectureId){
+      if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor});
+      else this.questions.delete(this.lectureId);
+      const draft=this.questions.get(lectureId);
+      this.lectureId=lectureId;this.input.value=draft?.text||'';this.anchor=draft?.anchor??null;
+      this.fit();this.startNew=false;this.threadId=null;this.editing.clear();this.hideCite();this.notice.textContent='';
+    }
     if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;
     this.render();
   }
@@ -98,9 +104,8 @@ export class ChatPanel{
     this.allButton.textContent=`전체 ${counts.all}`;this.openButton.textContent=`열린 질문 ${counts.open}`;
     this.allButton.setAttribute('aria-pressed',String(this.filter==='all'));this.openButton.setAttribute('aria-pressed',String(this.filter==='open'));
     if(!items.length||!shown.length){
-      for(const {node} of this.nodes.values())node.remove();this.nodes.clear();this.log.replaceChildren(this.empty(!items.length));return;
+      const key=items.length?'empty-filter':'empty-lecture';this.reconcile([{key,sig:key,build:()=>this.empty(!items.length)}]);return;
     }
-    this.log.querySelector(':scope>.chat-empty')?.remove();
     const entries=[],now=nowIndex(shown,this.time()),nowEntry={key:'now',sig:this.clock,build:()=>{const line=el('div','chat-now');line.append(el('span','',`지금 ${formatTime(this.time())}`));return line;}};
     shown.forEach((item,index)=>{
       if(index===now)entries.push(nowEntry);
@@ -180,16 +185,23 @@ export class ChatPanel{
     }
     const form=el('form','chat-mine-edit'),id=`mine-${item.key.replace(/[^A-Za-z0-9_-]/g,'-')}`,label=el('label','chat-mine-label');
     label.htmlFor=id;label.append('내 설명 ',el('span','muted','AI 답과 따로 저장돼요'));
-    const text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=this.drafts[item.key]??record?.explanation??'';text.placeholder='내 말로 한두 문장';
-    text.addEventListener('input',()=>{this.drafts[item.key]=text.value;this.saveDrafts();});
-    const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=record?.help||(item.answers?.length?'full':'none');
+    const draft=this.drafts[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
+    let base=record,revision=draft===undefined?record?.revision:(typeof draft==='string'?1:draft.revision);
+    const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||record?.help||(item.answers?.length?'full':'none');
+    const stash=()=>{this.drafts[item.key]={text:text.value,help:help.value,revision:revision??1};this.saveDrafts();};
+    text.addEventListener('input',stash);help.addEventListener('change',stash);
     const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
     const row=el('div','chat-mine-row'),save=button('저장',null,'primary');save.type='submit';
     row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
     form.append(label,text,row,notice);
     form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
-      void busy(save,async()=>{try{await this.saveExplanation(item,text.value,help.value);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
-        catch(error){notice.textContent=`${apiErrorMessage(error)} 쓴 내용은 그대로 있습니다.`;}});});
+      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
+        catch(error){notice.textContent=apiErrorMessage(error);
+          if(error.status===409){const compare=button('최신 저장본 확인',async()=>{try{
+            const latest=await this.latestExplanation(item.key);if(!latest)throw new Error('기록을 찾을 수 없습니다. 초안은 유지했습니다.');
+            notice.replaceChildren(document.createTextNode(`최신 설명: ${latest.explanation||'(아직 없음)'} `),button('비교했어요 · 이 초안으로 저장 준비',()=>{base=latest;revision=latest.revision;stash();notice.textContent='초안을 확인한 뒤 저장하세요.';}));
+          }catch(err){notice.textContent=err.message;}});notice.append(' ',compare);}
+        }finally{text.readOnly=false;help.disabled=false;}});});
     node.append(form);return node;
   }
   edit(item){this.editing.add(item.key);this.renderLog();const text=this.nodes.get(`${item.key}:mine`)?.node.querySelector('textarea');if(text){this.reveal(text.closest('.chat-mine'),'nearest');text.focus({preventScroll:true});}}
@@ -242,7 +254,7 @@ export class ChatPanel{
   async send(text=this.input.value){
     const question=text.trim(),context=this.capture();
     if(!question||this.streaming)return;
-    if(!context){this.notice.textContent='강의를 먼저 열어 주세요.';return;}
+    if(!context||context.lectureId!==this.lectureId){this.notice.textContent='강의가 열리면 다시 보내 주세요.';return;}
     if(!this.modelSelect.value){this.notice.textContent='ChatGPT에 연결하고 답변 모델을 고른 뒤 질문하세요. 적은 질문은 그대로 있습니다.';await this.loadModels();return;}
     const fromBox=text===this.input.value,seconds=questionSeconds(fromBox?this.anchor:null,this.time()),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
     const controller=new AbortController(),withTranscript=this.sendTranscript.input.checked,withNotes=this.sendNotes.input.checked&&!this.sendNotes.input.disabled;
@@ -252,10 +264,14 @@ export class ChatPanel{
     try{await this.stream('/api/learning/chat',{threadId:this.threadId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
     catch(error){
       const started=this.streaming?.started;
-      this.notice.textContent=controller.signal.aborted?'답변을 멈췄습니다.':error.message;
+      const here=context.lectureId===this.lectureId;
+      if(here)this.notice.textContent=controller.signal.aborted?'답변을 멈췄습니다.':error.message;
       // A question the server never stored goes back into the box, still tied to the time it was asked at.
-      if(!started&&!this.input.value){this.input.value=question;if(fromBox)this.anchor=seconds;}this.fit();
-      if(error.code==='not_connected'||error.code==='plan_disabled')this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
+      if(!started){
+        if(here&&!this.input.value){this.input.value=question;if(fromBox)this.anchor=seconds;this.fit();}
+        if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:seconds});
+      }
+      if(here&&(error.code==='not_connected'||error.code==='plan_disabled'))this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
     }finally{this.streaming=null;this.render();}
   }
   onEvent(event,data){
@@ -270,8 +286,8 @@ export class ChatPanel{
       const node=this.liveNode(),box=this.log.getBoundingClientRect(),follow=node&&!this.writing()&&node.getBoundingClientRect().bottom<=box.bottom+80;
       this.fill(this.streamText,live.text,true);if(follow)this.reveal(node);
     }
-    if(event==='done'){this.applyThread(data.thread,data.revision);if(data.status==='stopped')this.notice.textContent='답변을 멈췄습니다. 받은 부분까지 저장했습니다.';}
-    if(event==='error'){if(data.thread)this.applyThread(data.thread,data.revision);this.notice.textContent=data.message;}
+    if(event==='done'){this.applyThread(data.thread,data.revision);if(live.lectureId===this.lectureId&&data.status==='stopped')this.notice.textContent='답변을 멈췄습니다. 받은 부분까지 저장했습니다.';}
+    if(event==='error'){if(data.thread)this.applyThread(data.thread,data.revision);if(live.lectureId===this.lectureId)this.notice.textContent=data.message;}
   }
   async stop(){
     const live=this.streaming;if(!live)return;

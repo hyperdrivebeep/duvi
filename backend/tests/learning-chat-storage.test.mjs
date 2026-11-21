@@ -9,6 +9,8 @@ import {LectureLibrary} from '../library.mjs';
 import {mergeLearning,mergeThread} from '../learning-sync.mjs';
 import * as v from '../learning-validation.mjs';
 import {atomicJSON} from '../vault.mjs';
+import {lectureStream} from '../../src/learning-stream-model.mjs';
+import {LearningUI} from '../../src/learning-ui.mjs';
 
 const at=minute=>`2026-11-18T10:${String(minute).padStart(2,'0')}:00.000Z`;
 const message=(id,role,minute,extra={})=>({id,role,text:`${role} ${id}`,at:at(minute),seconds:minute*10,model:'gpt-test',...extra});
@@ -92,4 +94,31 @@ test('an explanation written under a chat answer is saved on its record apart fr
   const {learning}=mergeLearning(state,{...v.emptyState(),records:[asked],chats:[thread(saved.id,[message('q','user',1),message('a','assistant',2)])]},{localDevice:'office',incomingDevice:'home'});
   assert.equal(learning.records[0].explanation,'내 말로 쓴 설명');assert.equal(learning.chats[0].messages[1].recordId,recordId);
   assert.deepEqual(v.state(structuredClone(state)),state);
+});
+
+test('overlapping turns on two PCs keep each question with its answer through sync and backup restore',async t=>{
+  const left=thread('t1',[message('qA','user',1),message('aA','assistant',4)]);
+  const right=thread('t1',[message('qB','user',2),message('aB','assistant',3)]);
+  for(const [first,second] of [[left,right],[right,left]]){
+    const {thread:merged}=mergeThread(first,second);
+    assert.deepEqual(merged.messages.map(row=>row.id),['qA','aA','qB','aB']);
+    assert.deepEqual(mergeThread(merged,second).thread,merged);
+    const source=await backupFixture(t),{thread:saved}=await source.store.appendChat({threadId:null,lectureId:'1',messages:merged.messages});
+    const backup=await source.service.export(),target=await backupFixture(t),preview=await target.service.preview({backup});
+    const restored=await target.service.commit({revision:0,token:preview.token,mode:'replace'});
+    assert.equal(restored.chats[0].id,saved.id);
+    assert.deepEqual(lectureStream(restored,1).map(item=>[item.question.id,...item.answers.map(row=>row.id)]),[['qA','aA'],['qB','aB']]);
+  }
+});
+
+test('a refreshed UI cannot write an old explanation over a newer record even if its global revision is current',async t=>{
+  const store=new LearningStore({root:await root(t)});
+  const first=await store.saveRecord({revision:0,record:{resourceId:'mit-1',lectureId:'1',question:'왜?',explanation:'처음 설명'}});
+  const base=first.records[0];
+  const latest=await store.saveRecord({revision:first.revision,recordRevision:base.revision,record:{id:base.id,resourceId:'mit-1',lectureId:'1',question:'다른 창 질문',explanation:'다른 창 설명'}});
+  const ui=Object.assign(Object.create(LearningUI.prototype),{state:latest,loaded:true,api:(_route,body)=>store.saveRecord(body),sync(){}});
+  await assert.rejects(ui.saveExplanation({record:base},'예전 초안','none',base.revision),{code:'revision_conflict'});
+  assert.equal((await store.get()).records[0].explanation,'다른 창 설명');
+  await ui.saveExplanation({record:latest.records[0]},'비교하고 저장','none',latest.records[0].revision);
+  const saved=(await store.get()).records[0];assert.equal(saved.question,'다른 창 질문');assert.equal(saved.explanation,'비교하고 저장');
 });

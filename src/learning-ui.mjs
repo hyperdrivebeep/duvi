@@ -24,7 +24,8 @@ export class LearningUI{
     this.chat=new ChatPanel(document.getElementById('learningChat'),{api,stream,capture,...player,getState:()=>this.state,
       applyThread:(thread,revision)=>this.applyThread(thread,revision),applyState:state=>{this.state=state;this.sync();},
       openRecords:()=>{this.recordFilter='open';void this.open('records');},openTranscript:()=>openPanel('transcript'),cueAt,
-      saveExplanation:(item,text,help)=>this.saveExplanation(item,text,help)});
+      saveExplanation:(item,text,help,revision)=>this.saveExplanation(item,text,help,revision),
+      latestExplanation:async key=>{await this.refresh();return this.streamItems().find(row=>row.key===key)?.record;}});
     this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
     document.getElementById('openLearning').onclick=()=>this.open('roadmap');document.getElementById('openLearningMobile').onclick=()=>this.open('roadmap');
     document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{returnFocusTarget({opener:this.opener,label:this.openerLabel,root:document.getElementById(this.openerRootId)})?.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
@@ -43,14 +44,15 @@ export class LearningUI{
   streamItems(){const current=this.capture();return current?lectureStream(this.state,current.lectureId):[];}
   tick(seconds){this.strip.update(seconds);this.chat.tick(seconds);}
   /** The learner's explanation under a question: a chat answer becomes its record first, then the explanation is saved on it. */
-  async saveExplanation(item,explanation,help){
-    let record=item.record&&this.state.records.find(row=>row.id===item.record.id);
+  async saveExplanation(item,explanation,help,baseRevision){
+    let record=item.record;
     if(!record){
       const answer=item.answers?.findLast(row=>row.role==='assistant'&&row.text);if(!answer)throw new Error('답이 온 뒤에 내 설명을 저장할 수 있습니다.');
       const {state,recordId}=await this.api('/api/learning/chat/record',{threadId:item.threadId,messageId:answer.id});this.state=state;this.sync();
       record=state.records.find(row=>row.id===recordId);if(!record)throw new Error('기록을 만들지 못했습니다. 다시 저장하세요.');
     }
-    return this.saveRecord({...record,explanation,help});
+    // A just-created chat record starts at 1. A later revision belongs to another edit.
+    return this.saveRecord({...record,revision:baseRevision??1,explanation,help});
   }
   async refresh(){const [state,roadmap]=await Promise.all([this.api('/api/learning'),this.api('/api/learning/roadmap')]);if(!this.loaded||state.revision>=this.state.revision)this.state=state;this.roadmap=roadmap;this.loaded=true;this.sync();this.chat.sync();}
   sync(){this.renderPanel();this.strip.set(this.streamItems(),this.player.duration());this.chat.renderLog();this.updateRoadmap?.(this.state);this.onStateChange(this.roadmap,this.state.progress);const summary=completionSummary(this.roadmap,this.state.progress),next=nextResource(this.roadmap,this.state.progress);this.resume.replaceChildren(el('p','muted',`학습 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`));if(next){const action=resourceAction(next,`다음 · ${next.title}`,r=>this.openResource(r),'learning-resume-action');action.classList.add('learning-resume-action');this.resume.append(action);}else this.resume.append(button('✓ 계획 완료 · 복습하기',()=>this.open('review')));if(this.resourceError){const error=el('p','notice',this.resourceError);error.setAttribute('role','status');this.resume.append(error,button('로드맵에서 강의 준비',()=>this.open('roadmap')));}}

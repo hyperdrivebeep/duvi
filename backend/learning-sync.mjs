@@ -40,10 +40,30 @@ export function mergeRecord(local,incoming,{localDevice,incomingDevice}){
 }
 /** Chat messages are never edited, so two copies of a thread merge into the union of their messages. */
 export function mergeThread(local,incoming){
-  const messages=new Map(local.messages.map(row=>[row.id,row]));
-  for(const row of incoming.messages){const mine=messages.get(row.id);if(!mine||(!mine.recordId&&row.recordId))messages.set(row.id,row);}
+  // In v2 a reply belongs to the preceding question. Keep each PC's turns together:
+  // wall-clock sorting individual messages can attach a slow reply to the other PC's question.
+  const messages=new Map(),parents=new Map();
+  for(const source of [local,incoming]){
+    let question=null;
+    for(const row of source.messages){
+      if(row.role==='user')question=row.id;
+      else if(question&&!parents.has(row.id))parents.set(row.id,question);
+      const mine=messages.get(row.id);if(!mine||(!mine.recordId&&row.recordId))messages.set(row.id,row);
+    }
+  }
+  const compare=(a,b)=>time(a.at)-time(b.at)||(a.id<b.id?-1:a.id>b.id?1:0);
+  const turns=new Map();
+  for(const row of messages.values()){
+    const key=parents.get(row.id)||row.id;
+    if(!turns.has(key))turns.set(key,[]);
+    if(key!==row.id)turns.get(key).push(row);
+  }
+  const groups=[...turns.keys()].map(key=>messages.get(key)).sort(compare)
+    .map(row=>[row,...turns.get(row.id).sort(compare)]);
+  // Drop whole oldest turns at the v2 limit; a surviving answer must retain its question.
+  let length=messages.size;while(length>v.CHAT_LIMITS.messages)length-=groups.shift().length;
   const merged={...local,title:local.title||incoming.title,createdAt:time(incoming.createdAt)<time(local.createdAt)?incoming.createdAt:local.createdAt,updatedAt:later(local.updatedAt,incoming.updatedAt),
-    messages:[...messages.values()].sort((a,b)=>time(a.at)-time(b.at)).slice(-v.CHAT_LIMITS.messages)};
+    messages:groups.flat()};
   return {thread:merged,changed:JSON.stringify(merged)!==JSON.stringify(local)};
 }
 export function mergeLearning(current,incoming,devices){
