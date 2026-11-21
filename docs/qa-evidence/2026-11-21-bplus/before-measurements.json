@@ -1,0 +1,162 @@
+[
+ [
+  "before-normal-1280",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": null,
+   "focus": false,
+   "vw": 1280,
+   "vh": 720,
+   "media": [
+    346,
+    113,
+    553,
+    311
+   ],
+   "captions": [
+    346,
+    436,
+    553,
+    232
+   ],
+   "panel": [
+    919,
+    113,
+    320,
+    690
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false
+  }
+ ],
+ [
+  "before-normal-1536",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": null,
+   "focus": false,
+   "vw": 1536,
+   "vh": 864,
+   "media": [
+    398,
+    120,
+    757,
+    426
+   ],
+   "captions": [
+    398,
+    558,
+    757,
+    255
+   ],
+   "panel": [
+    1175,
+    120,
+    320,
+    828
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false
+  }
+ ],
+ [
+  "before-fs-1536",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": "stage",
+   "focus": true,
+   "vw": 1536,
+   "vh": 864,
+   "media": [
+    0,
+    0,
+    1216,
+    704
+   ],
+   "captions": [
+    0,
+    704,
+    1216,
+    160
+   ],
+   "panel": [
+    1216,
+    0,
+    320,
+    864
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false
+  }
+ ],
+ [
+  "before-fs-1280",
+  {
+   "t": 196,
+   "paused": true,
+   "clock": "03:16 / 63:29",
+   "fs": "stage",
+   "focus": true,
+   "vw": 1280,
+   "vh": 720,
+   "media": [
+    0,
+    0,
+    960,
+    560
+   ],
+   "captions": [
+    0,
+    560,
+    960,
+    160
+   ],
+   "panel": [
+    960,
+    0,
+    320,
+    720
+   ],
+   "en": "And then after that, how do I take those computer science co",
+   "ko": "[QA 합성] 화면 점검용 한국어 자리 문장 34번입니다. 실제 번역이 ",
+   "sx": false
+  }
+ ],
+ [
+  "cite-hover",
+  {
+   "title": "01:12로 이동",
+   "preview": false
+  }
+ ],
+ [
+  "typing",
+  {
+   "hint": "Enter 보내기 · Shift+Enter 줄바꿈 · 함께 보내는 것: 지금 시점 앞뒤 1분 대본, 이 강의의 내 기록, 이 대화"
+  }
+ ],
+ [
+  "seek-chip",
+  {
+   "before": {
+    "t": 196,
+    "clock": "03:16 / 63:29",
+    "paused": true
+   },
+   "after": {
+    "t": 72,
+    "clock": "01:12 / 63:29",
+    "paused": true
+   }
+  }
+ ]
+]
