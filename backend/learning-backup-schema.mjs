@@ -27,7 +27,7 @@ function folder(value,project){
   result.lectureIds=v.unique(v.array(result.lectureIds,2000).map(lectureKey),key=>key);
   if(result.sourcePlaylistId!==undefined)v.id(result.sourcePlaylistId);return result;
 }
-function cache(value,project){
+export function cache(value,project=false){
   const result=pick(value,cacheFields,project);if(result.version!==1)v.invalid();lectureKey(result.lecture);
   if(typeof result.sourceHash!=='string'||!/^[a-f0-9]{64}$/.test(result.sourceHash))v.invalid();v.text(result.promptVersion,120);
   for(const key of ['alignmentVersion','alignmentRevision','timing'])if(result[key]!==undefined)v.text(result[key],160);
