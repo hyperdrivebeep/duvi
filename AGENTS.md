@@ -78,3 +78,11 @@ open question; a marker seeks and pauses), the 질문하기 panel as one lecture
 chips inside AI answers, the learner's explanation written under its question and saved apart
 from the AI answer, the question time captured when typing starts, and "보낼 자료" checks that
 change what the server sends. The library sidebar stays; the panel still opens on demand.
+
+On 2026-11-23 the user rejected mockups as "AI slop" because of decorative left accent
+lines on boxes. Do not use colored left/inline-start accent bars, boxes nested inside
+panels, or tinted pill badges repeated on every item. Build hierarchy with weight, size,
+spacing and at most a thin neutral divider; reserve the accent color for the primary
+action and the current position; show status with text and glyphs, not color alone.
+The user also asked that sent questions become records automatically and that the
+lecture-window 기록 tab be removed (design alternatives in docs/design/2026-11-23-fullscreen).

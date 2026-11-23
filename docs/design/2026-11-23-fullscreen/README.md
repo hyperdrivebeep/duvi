@@ -2,6 +2,21 @@
 
 사용자 요청: "강의창에 기록 기능은 없애면 되고 나는 질문하는게 자동으로 질문으로 가졌으면 좋겠어", 전체화면이 "더 정갈 했으면". 사용자 스킬 task-first-frontend(2026-11-23 수정본)를 따랐다. **구현 전 시안이며, 사용자가 고르기 전에는 구현·병합하지 않는다.**
 
+## 0. v2 (2026-11-23, 사용자 지적 반영) — 이번 선택 대상
+
+사용자 지적: v1에 "AI slop 티(박스 왼쪽에 선)"가 난다. ui-ux-guardrails·ui-verification 묶음을 전부 읽고(원자료 192개 파일은 마지막 줄까지 읽은 기록을 다시 셈) 세 시안을 다시 그렸다.
+
+| v1에서 AI 티가 난 곳 | v2 | 근거(원문 줄) |
+|---|---|---|
+| 답·설명·대본 속 질문에 왼쪽 색 막대 | 제거. 질문(굵게)→AI 제안→내 설명을 굵기·크기·여백으로 구분 | catalog/04-foundations-c-1.md:28 "use font weight, size, and color … to show information hierarchy" |
+| 질문마다 테두리 둥근 상자(패널 안 상자) | 상자 없음, 항목 사이 얇은 선 하나 | pages/boxes.md:24 "MUST NOT nest boxes … nested boxes make the interface busy", pages/layout.md:24 |
+| 모든 질문에 색 배경 배지 | ○ 열린 질문 / ● 내 설명 있음을 글자로 | pages/color.md:27 색만으로 구분 금지, rules F-03 |
+| 강조색이 칩·배지·버튼 여기저기 | "보내기"와 "지금 03:12"에만 | branding(강조색은 주 행동·상태) |
+| B: 영상 위에 떠 있는 창 | 자막 아래 고정 줄 | P-25 영상 내용 보존, C-37 보조 영역이 주 작업을 가리지 않음, panels(입력 있는 영역을 떠 있는 패널로 두지 않음) |
+| "자동 기록됨"을 모든 질문에 반복 | 입력창 아래 한 번 | design-principles.md:46 "Every element should earn its place" |
+
+이미지: `alts-v2/alt2-{a,b,c}-{1536,1280}.webp`, 비교판 `compare/compare-{a,b,c}.webp`(비포·v1·v2), 패널만 확대 비교 `compare/panel-compare-a.webp`. 검사: 여섯 장 모두 가로 넘침 0, 잘린 영역 0, 글자 넘침 0, `border-left` 규칙 0개. v1(아래 3절)은 비교용 기록으로 남긴다.
+
 ## 1. 과업
 
 1. 영상을 보다가 막히면 바로 질문한다(지금 시각이 붙는다).
