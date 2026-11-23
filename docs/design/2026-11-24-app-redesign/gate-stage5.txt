@@ -1,0 +1,39 @@
+gate: <work>  stages S0..S5  (skill <skill>)
+== S0 읽기 원장 ==
+[S0] PASS reading ledger: 35 row(s) recounted, every file read to its last line
+[S0] PASS required reading for S0 recorded (3 file(s))
+== S1 계약 ==
+[S1] PASS contract: widths 1536,1280, screens lecture,lecture-ask,fullscreen,fullscreen-ask,library,roadmap,records, tasks T1,T2,T3,T4, scope design-only
+[S1] PASS required reading for S1 recorded (3 file(s))
+== S2 비포 캡처 ==
+[S2] PASS before captures: 14 file(s) for 7 screen(s) x 2 width(s)
+[S2] PASS required reading for S2 recorded (1 file(s))
+== S3 레퍼런스 ==
+[S3] PASS borrow table: 74 row(s) complete, every capture file valid
+[S3] PASS visited-sites: all 14 relevant site(s) for ref_tags [screens, flows, principles, a11y, platform] accounted for
+[S3] PASS references from 24 distinct site(s)
+[S3] PASS task T1: 28 capture(s) from 15 site(s)
+[S3] PASS task T2: 21 capture(s) from 13 site(s)
+[S3] PASS task T3: 12 capture(s) from 10 site(s)
+[S3] PASS task T4: 28 capture(s) from 15 site(s)
+[S3] PASS required reading for S3 recorded (2 file(s))
+== S4 시안·출처 보드·안티슬롭 ==
+[S4] PASS 03-alts: 3 alternative(s): a, b, c
+[S4] PASS board.md: provenance rows with crops for every alternative (a:8, b:5, c:5)
+[S4] PASS 03-alts/boards/board-a.png: composed from board.md crops, sources unchanged (8 row(s))
+[S4] PASS 03-alts/boards/board-b.png: composed from board.md crops, sources unchanged (5 row(s))
+[S4] PASS 03-alts/boards/board-c.png: composed from board.md crops, sources unchanged (5 row(s))
+[S4] PASS anti-slop self-check: AS-1, AS-2, AS-3, AS-4, AS-5 PASS for every alternative
+[S4] PASS compare: 6 before/alternative image(s) composed from current files (screen lecture)
+[S4] PASS anti-slop: no decorative left/inline-start accent bar in 1 source file(s)
+[S4] INFO anti-slop: linted 12 markup literal(s) built in <script> (static expansion; both ternary branches counted)
+[S4] PASS anti-slop: no nested bordered+rounded containers (32 card-like elements)
+[S4] PASS anti-slop: no colored pill repeated more than 4 times
+[S4] PASS anti-slop: 1 distinct accent-colored background(s) (limit 3)
+[S4] PASS required reading for S4 recorded (2 file(s))
+== S5 가드레일·검증 판정 ==
+[S5] PASS verdict table: 56 row(s), 82 rule id(s), every verdict valid
+[S5] WARN design-only: required row(s) UNVERIFIED (report the UI as unverified): F-01; F-02; F-03; F-04, F-12, F-13, F-14, F-18; F-05; F-06; F-08; F-09; F-10, F-28, F-29, F-30; F-11; F-15; F-16; F-17; F-19; F-20, F-27; F-22, F-23; F-31, F-32, F-33; F-36, F-37; F-38; F-39; F-40; F-41; P-01, P-13; P-04; P-05, P-06, P-32; P-07; P-08, P-09, P-10; P-17; P-19; P-2
+24, P-40; P-25; P-29, P-30, P-31; P-38
+[S5] PASS required reading for S5 recorded (4 file(s))
+RESULT: PASS (S0..S5: 28 PASS, 0 FAIL, 1 WARN, 1 INFO, 0 N/A)
