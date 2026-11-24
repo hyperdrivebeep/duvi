@@ -2569,6 +2569,7 @@
    "prerequisites": [
     "가설검정·카이제곱·p값"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2584,6 +2585,7 @@
    "prerequisites": [
     "가설검정·카이제곱·p값"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2597,9 +2599,9 @@
    "definition": "실제 차이가 있을 때 검출할 확률과, 주어진 표본으로 잡을 수 있는 최소 효과 크기",
    "why": "시드·세계 수를 미리 정하고 \"효과 없음\"의 한계를 말한다",
    "prerequisites": [
-    "가설검정·카이제곱·p값",
-    "큰수의 법칙·중심극한정리"
+    "가설검정·카이제곱·p값"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2615,6 +2617,7 @@
    "prerequisites": [
     "가설검정·카이제곱·p값"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2630,6 +2633,7 @@
    "prerequisites": [
     "평가의 변동: 시드 간 구간·부트스트랩"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2645,6 +2649,7 @@
    "prerequisites": [
     "가설검정·카이제곱·p값"
    ],
+   "prerequisiteSource": "REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문) · 편집 판단",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2660,6 +2665,7 @@
    "prerequisites": [
     "확증 vs 탐색"
    ],
+   "prerequisiteSource": "REPORT.md:43 (확증 vs 탐색 구분과 편차 기록 · 사전등록) · 편집 판단",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2675,6 +2681,7 @@
    "prerequisites": [
     "조건부확률·독립"
    ],
+   "prerequisiteSource": "REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지) · SCM은 조건부 독립으로 정의되므로 편집 판단",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2690,6 +2697,7 @@
    "prerequisites": [
     "구조적 인과 모형(SCM)"
    ],
+   "prerequisiteSource": "REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지) · 편집 판단",
    "level": "",
    "status": "없음",
    "resources": [],
@@ -2706,6 +2714,7 @@
     "구조적 인과 모형(SCM)",
     "개입과 관찰의 구분"
    ],
+   "prerequisiteSource": "REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지)",
    "level": "",
    "status": "없음",
    "resources": [],

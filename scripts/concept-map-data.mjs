@@ -13,21 +13,23 @@ export const OUTPUT = fileURLToPath(new URL('src/concept-map-data.json', project
 const STATUS = {커버: '있음', 일부: '일부', 없음: '없음'};
 const GAP_SOURCE = 'Duvi 커리큘럼-목표 대조 조사 REPORT.md (2026-11-23) 1·2·5절: 로드맵·개념 지도 0건';
 
+// Each gap concept's prerequisites name R-019 concepts; prerequisiteSource cites the REPORT.md line the link rests on
+// and says when the link is an editorial judgement rather than a statement of the report.
 // Concepts the 2026-11-23 curriculum review found in the project's design sessions but in neither the roadmap nor R-019.
 export const GAP_GROUPS = [
   {name: '실험 판정 통계', concepts: [
-    ['다중 비교 보정(Holm·BH)', '검정을 여러 번 하면 우연히 "유의"가 나올 확률이 커지므로 기준을 함께 조정한다', '조건·지표가 여럿인 실험 비교에서 거짓 발견을 막는다', ['가설검정·카이제곱·p값']],
-    ['동등성 검정(TOST)', '차이가 미리 정한 허용 폭 안에 있음을 양쪽 단측 검정 두 번으로 보인다', '"차이 없음"을 p값이 크다는 것만으로 주장하지 않게 한다', ['가설검정·카이제곱·p값']],
-    ['검정력·MDE', '실제 차이가 있을 때 검출할 확률과, 주어진 표본으로 잡을 수 있는 최소 효과 크기', '시드·세계 수를 미리 정하고 "효과 없음"의 한계를 말한다', ['가설검정·카이제곱·p값', '큰수의 법칙·중심극한정리']],
-    ['Wilcoxon·부호 순열', '분포 가정 없이 쌍 차이의 순위나 부호를 뒤집어 보는 검정', '시드가 적고 분포가 치우친 쌍 비교', ['가설검정·카이제곱·p값']],
-    ['쌍 부트스트랩', '같은 시드·세계로 맞춘 쌍을 통째로 다시 뽑아 차이의 구간을 구한다', '두 구조를 같은 조건에서 비교할 때 차이의 불확실성', ['평가의 변동: 시드 간 구간·부트스트랩']],
-    ['확증 vs 탐색', '미리 정한 가설을 확인하는 분석과 결과를 보고 찾은 분석을 나눠 보고한다', '실험 결과를 과장하지 않고 편차를 기록한다', ['가설검정·카이제곱·p값']],
-    ['사전등록', '실행 전에 가설·지표·판정 규칙을 고정해 기록한다', '결과를 보고 기준을 바꾸는 일을 막는다', ['확증 vs 탐색']],
+    ['다중 비교 보정(Holm·BH)', '검정을 여러 번 하면 우연히 "유의"가 나올 확률이 커지므로 기준을 함께 조정한다', '조건·지표가 여럿인 실험 비교에서 거짓 발견을 막는다', ['가설검정·카이제곱·p값'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)'],
+    ['동등성 검정(TOST)', '차이가 미리 정한 허용 폭 안에 있음을 양쪽 단측 검정 두 번으로 보인다', '"차이 없음"을 p값이 크다는 것만으로 주장하지 않게 한다', ['가설검정·카이제곱·p값'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)'],
+    ['검정력·MDE', '실제 차이가 있을 때 검출할 확률과, 주어진 표본으로 잡을 수 있는 최소 효과 크기', '시드·세계 수를 미리 정하고 "효과 없음"의 한계를 말한다', ['가설검정·카이제곱·p값'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)'],
+    ['Wilcoxon·부호 순열', '분포 가정 없이 쌍 차이의 순위나 부호를 뒤집어 보는 검정', '시드가 적고 분포가 치우친 쌍 비교', ['가설검정·카이제곱·p값'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)'],
+    ['쌍 부트스트랩', '같은 시드·세계로 맞춘 쌍을 통째로 다시 뽑아 차이의 구간을 구한다', '두 구조를 같은 조건에서 비교할 때 차이의 불확실성', ['평가의 변동: 시드 간 구간·부트스트랩'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문)'],
+    ['확증 vs 탐색', '미리 정한 가설을 확인하는 분석과 결과를 보고 찾은 분석을 나눠 보고한다', '실험 결과를 과장하지 않고 편차를 기록한다', ['가설검정·카이제곱·p값'], 'REPORT.md:35 (3·3B 검증: 코드는 Holm·BH·TOST·부호 순열·Wilcoxon·쌍 부트스트랩·검정력, 로드맵은 p값·부트스트랩 입문) · 편집 판단'],
+    ['사전등록', '실행 전에 가설·지표·판정 규칙을 고정해 기록한다', '결과를 보고 기준을 바꾸는 일을 막는다', ['확증 vs 탐색'], 'REPORT.md:43 (확증 vs 탐색 구분과 편차 기록 · 사전등록) · 편집 판단'],
   ]},
   {name: '인과 구조 학습', concepts: [
-    ['구조적 인과 모형(SCM)', '변수마다 원인들의 함수와 잡음으로 값이 정해지는 모형과 그 그래프', '개입 실험이 무엇을 바꾸는지 식으로 적는다', ['조건부확률·독립']],
-    ['개입과 관찰의 구분', '값을 지켜본 것과 값을 직접 정한 것(do)은 다른 분포를 준다', '실험 선택이 관찰 데이터만으로 알 수 없는 것을 알려 주는 이유', ['구조적 인과 모형(SCM)']],
-    ['GIES', '관찰·개입 데이터를 함께 써서 인과 그래프(동치류)를 탐욕적으로 찾는 알고리즘', '진행 중 실험의 인과 구조 학습 기준선', ['구조적 인과 모형(SCM)', '개입과 관찰의 구분']],
+    ['구조적 인과 모형(SCM)', '변수마다 원인들의 함수와 잡음으로 값이 정해지는 모형과 그 그래프', '개입 실험이 무엇을 바꾸는지 식으로 적는다', ['조건부확률·독립'], 'REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지) · SCM은 조건부 독립으로 정의되므로 편집 판단'],
+    ['개입과 관찰의 구분', '값을 지켜본 것과 값을 직접 정한 것(do)은 다른 분포를 준다', '실험 선택이 관찰 데이터만으로 알 수 없는 것을 알려 주는 이유', ['구조적 인과 모형(SCM)'], 'REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지) · 편집 판단'],
+    ['GIES', '관찰·개입 데이터를 함께 써서 인과 그래프(동치류)를 탐욕적으로 찾는 알고리즘', '진행 중 실험의 인과 구조 학습 기준선', ['구조적 인과 모형(SCM)', '개입과 관찰의 구분'], 'REPORT.md:36 (4 인과: 코드는 GIES, 로드맵은 SCM 입문까지)'],
   ]},
 ];
 
@@ -79,8 +81,8 @@ export function buildConceptMapData({conceptMap, guideData, roadmap = ROADMAP}) 
     return {...concept, status: STATUS[entry.status] ?? entry.status, resources: linked};
   });
   const gapFields = GAP_GROUPS.map((group, index) => ({id: `g${index + 1}`, name: group.name, gap: true, source: GAP_SOURCE}));
-  const gaps = GAP_GROUPS.flatMap((group, groupIndex) => group.concepts.map(([name, definition, why, prerequisites], index) => ({
-    id: `g${groupIndex + 1}-${String(index + 1).padStart(2, '0')}`, field: group.name, name, definition, why, prerequisites,
+  const gaps = GAP_GROUPS.flatMap((group, groupIndex) => group.concepts.map(([name, definition, why, prerequisites, prerequisiteSource], index) => ({
+    id: `g${groupIndex + 1}-${String(index + 1).padStart(2, '0')}`, field: group.name, name, definition, why, prerequisites, prerequisiteSource,
     level: '', status: '없음', resources: [], gap: true, source: GAP_SOURCE,
   })));
   return {
