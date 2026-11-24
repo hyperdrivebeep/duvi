@@ -5,7 +5,7 @@ import {lectureStream,filterStream,streamCounts,nowIndex,unanswered} from './lea
 
 const STARTERS=['방금 부분을 쉬운 비유로 설명해 줘','지금 코드가 한 줄씩 무슨 일을 하는지 알려 줘','이 개념을 확인할 작은 문제 하나 내 줘'];
 const STATUS={stopped:'멈춤 · 받은 부분까지',interrupted:'중간에 끊김'};
-const DRAFTS_KEY='duvi-explanation-drafts-v1';
+const DRAFTS_KEY='duvi-explanation-drafts-v1',QUESTIONS_KEY='duvi-question-drafts-v1';
 const dayText=value=>new Date(value).toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
 /**
  * 질문하기 · 이 강의 · 시간순: this lecture's questions, AI answers and the learner's own explanations in lecture-time
@@ -16,6 +16,8 @@ export class ChatPanel{
     Object.assign(this,{root,api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails,openSettings,cueAt,saveExplanation,latestExplanation,onCount});
     this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.filter='all';this.anchor=null;
     this.nodes=new Map();this.editing=new Set();this.clock='';this.questions=new Map();
+    // Unsent questions per lecture survive a reload (like explanation drafts), with their time and id.
+    try{for(const [id,draft] of Object.entries(JSON.parse(localStorage.getItem(QUESTIONS_KEY)||'{}')||{}))this.questions.set(id,draft);}catch{}
     try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
     this.build();
   }
@@ -54,7 +56,7 @@ export class ChatPanel{
     this.form.append(this.anchorChip,this.input,this.sendButton,this.stopButton);
     this.input.addEventListener('keydown',event=>{if(composerAction(event)==='send'){event.preventDefault();void this.send();}});
     // An edited question is a new question; only an unchanged one sent again keeps its id (and so its record).
-    this.input.addEventListener('input',()=>{this.fit();this.questionId=null;this.anchor=typingAnchor(this.anchor,this.input.value,this.time());this.renderComposer();});
+    this.input.addEventListener('input',()=>{this.fit();this.questionId=null;this.anchor=typingAnchor(this.anchor,this.input.value,this.time());this.renderComposer();this.saveQuestions();});
     this.form.addEventListener('submit',event=>{event.preventDefault();void this.send();});
     const sendContext=el('div','chat-send-context');sendContext.setAttribute('role','group');sendContext.setAttribute('aria-label','보낼 자료');
     const choice=chatContextChoice(localStorage),check=(name,checked)=>{const label=el('label'),input=el('input'),text=el('span');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>this.saveContextChoice());label.append(input,text);this[name]={input,text};return label;};
@@ -224,6 +226,11 @@ export class ChatPanel{
   edit(item){this.editing.add(item.key);this.renderLog();const text=this.nodes.get(`${item.key}:mine`)?.node.querySelector('textarea');if(text){this.reveal(text.closest('.chat-mine'),'nearest');text.focus({preventScroll:true});}}
   focusMine(key){this.nodes.get(`${key}:mine`)?.node.querySelector('button')?.focus({preventScroll:true});}
   saveDrafts(){try{localStorage.setItem(DRAFTS_KEY,JSON.stringify(this.drafts));}catch{}}
+  /** Stores every lecture's unsent question, the open lecture's from the box. */
+  saveQuestions(){
+    if(this.lectureId){if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor,unsent:this.unsent,questionId:this.questionId});else this.questions.delete(this.lectureId);}
+    try{localStorage.setItem(QUESTIONS_KEY,JSON.stringify(Object.fromEntries(this.questions)));}catch{}
+  }
   chip(seconds,label){const chip=button(formatTime(seconds),()=>this.seek(seconds),'chat-time');chip.setAttribute('aria-label',label);chip.title=label;return chip;}
   /** Time references inside an AI answer preview that moment's English and Korean sentence on hover or focus. */
   fill(node,text,cite=false){
@@ -279,7 +286,7 @@ export class ChatPanel{
     // The id is kept while a question waits in the box after a failed send, so sending it again cannot record it twice.
     const questionId=retry?.id||(fromBox&&this.questionId)||crypto.randomUUID(),threadId=retry?retry.threadId:this.threadId;
     this.streaming={threadId,lectureId:context.lectureId,question,seconds,model:this.modelSelect.value,text:'',started:false,retry:!!retry,messageId:questionId,controller};
-    if(fromBox){this.input.value='';this.anchor=null;this.unsent=false;this.questionId=null;}this.fit();
+    if(fromBox){this.input.value='';this.anchor=null;this.unsent=false;this.questionId=null;this.saveQuestions();}this.fit();
     this.notice.textContent=paused?`영상을 ${formatTime(this.time())}에서 멈췄습니다. 답을 읽고 다시 재생하세요.`:'';this.render();this.reveal(this.liveNode());
     try{await this.stream('/api/learning/chat',{threadId,questionId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
     catch(error){
@@ -290,6 +297,7 @@ export class ChatPanel{
       if(!started&&!retry){
         if(here&&!this.input.value){this.input.value=question;this.anchor=fromBox?seconds:null;this.unsent=true;this.questionId=questionId;this.fit();}
         if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:fromBox?seconds:null,unsent:true,questionId});
+        this.saveQuestions();
       }
       if(here&&(error.code==='not_connected'||error.code==='plan_disabled'))this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
     }finally{this.streaming=null;this.render();}
