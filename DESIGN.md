@@ -310,3 +310,26 @@ micrograd lecture, headed Chrome with a temporary profile, true fullscreen throu
 real click at 1280, 1536 and 1920. Captures are local files in
 `../fs-qa-shots/side-chat/` and are not committed. Real ChatGPT answers, their
 quality and latency were not observed.
+
+## 13. Concept map and progress table (2026-11-24)
+Modules: `src/concept-map-model.mjs` (pure), `src/concept-map-view.mjs`, `src/concept-map.css`, data
+`src/concept-map-data.json` from `npm run data:concept-map` (R-019 sections 2-9 = 160 concepts, plus two gap
+groups from the 2026-11-23 curriculum review with no material). The app shell mounts it; nothing here edits it.
+- Default view is a graph; a 그래프/표 switch shows the outline progress table (design alternative C), the
+  accessible equivalent. Both share one inspector: definition, why, prerequisite chain, 지도 밖 선수 as text,
+  lecture buttons, reading links and the four evidence rows.
+- Graph: deterministic layout. Columns are the longest resolved prerequisite path; fields are horizontal bands
+  headed `분야 · 자료 있음 n/N`. An edge exists only when a 선수 entry resolves to a concept id; dashed when the
+  target has no material, explained in the legend. Light canvas `#f8fafd`, white 8px-radius node cards, gray
+  edges; the selected node gets the accent border and its edges turn ink and thicker. Pan by drag or wheel,
+  ctrl/pinch zooms around the cursor, keys + − 0 and arrows, Tab through nodes. Bottom-right cluster:
+  화면 맞춤, 지금 강의 개념으로, +, −. Fit never goes below 0.8x (14px text stays at least about 11px); below
+  that it fits the selected field and says so in a status line.
+- Table: group rows are disclosure buttons with aria-expanded; columns 개념 | 먼저 알아야 할 것 | 다루는 강의 |
+  자료 | 내가 표시 | 질문 | 확인 문제 | 커밋·테스트. The header note says 내가 표시 is self-marked and the
+  right three columns are evidence from records. Missing evidence reads `아직 증거 없음`, never 0.
+- 자료 wording: 자료 있음 = an app-playable lecture is linked, 일부 = reading or exercise only, 자료 없음 = nothing.
+- Rules kept: no left accent bars, no nested bordered boxes, no colored pills; status is text with a glyph
+  (● ◐ ○); accent only for links, the pressed view, the selection and focus; 14px minimum.
+- Preview without the app: `npx vite`, then `/dev/concept-map.html?view=graph|table&select=<개념>&zoom=<n>`
+  (fixture state, not learner data; `dev/` is not a build entry).
