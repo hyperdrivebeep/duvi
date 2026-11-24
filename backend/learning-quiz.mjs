@@ -65,8 +65,16 @@ export async function verifyRepoQuote(item,excerpts,sources){
   try{const fresh=await sources.excerpt({repo:sent.repo,path:file,startLine,endLine});return normalize(fresh.text).includes(quote);}
   catch{return false;}
 }
+/**
+ * Names that only code reaching into the interpreter or the Pyodide bridge needs. Problem code that mentions one is not
+ * run and its answer stays unverified. This keeps such code from producing "executed" evidence; it is not a security
+ * boundary (the runner process is), and an ordinary snippet that merely prints one of these words is refused too.
+ */
+export const INTERNAL_NAMES=/\b(?:gc|importlib|_builtin_from_name|meta_path|sys\s*\.\s*modules|__subclasses__|_pyodide\w*|pyodide\w*|js|ctypes)\b/;
 /** Replaces the AI's expected answer with the real output of the item's fixed code; a failed run leaves it unverified. */
 export async function executeItem(item,run=runPython,signal){
+  const internal=INTERNAL_NAMES.exec(item.code);
+  if(internal)return {item,execution:{status:'refused',reason:`문제 코드가 실행 환경 내부(${internal[0]})를 건드려 실행하지 않았습니다.`}};
   const result=await run(item.code,{signal});
   if(result.status!=='executed')return {item,execution:{status:result.status,reason:result.reason}};
   const output=executedAnswer(result).slice(0,v.ATTEMPT_LIMITS.answer),same=(a,b)=>normalize(a)===normalize(b);
@@ -99,7 +107,7 @@ export function parseQuiz(text){
 }
 function execution(value){
   v.keys(value,['status','output','aiAnswer','mismatch','truncated','optionsDropped','reason']);
-  const result={status:v.choice(value.status,['executed','timeout','unavailable'])};
+  const result={status:v.choice(value.status,['executed','timeout','unavailable','refused'])};
   for(const key of ['output','aiAnswer','reason'])if(value[key]!==undefined)result[key]=v.text(value[key],v.ATTEMPT_LIMITS.answer);
   for(const key of ['mismatch','truncated','optionsDropped'])if(value[key]!==undefined)result[key]=v.choice(value[key],[true,false]);
   return result;
@@ -229,7 +237,8 @@ export class LearningQuiz{
         // Only the generated question's own code runs, once, here; attempts never reach the runner.
         const {item,execution}=generated.code?await executeItem(generated,this.run,controller.signal):{item:generated};
         if(controller.signal.aborted)throw cancelled();
-        const evidence=execution?.status==='executed'?'executed':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
+        // Refused code makes the whole question suspect, so a quote it carries does not verify it either.
+        const evidence=execution?.status==='executed'?'executed':execution?.status==='refused'?'ai_unverified':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
         verified.push({id:randomUUID(),...item,evidence,...(execution&&{execution})});
       }
       if(controller.signal.aborted)throw cancelled();

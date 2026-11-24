@@ -116,12 +116,15 @@ generated only on an explicit, previewed request through the learner's ChatGPT c
 carries its evidence: real output of the question's fixed code, a verbatim quote, the learner's own
 confirmation, or "AI 제안 · 정답 미검증". Only fixed problem code runs, once at generation, in Pyodide inside a
 separate Node process started with `--permission`, read access to the Pyodide package only (no write, child-process,
-worker, addon, WASI or inspector grant) and `--disallow-code-generation-from-strings`, killed on timeout or cancel
-(cancel saves nothing). Treat that code as untrusted (its prompt includes third-party captions) and assume it can reach
-JavaScript in that process: the Python layer (blocked imports, removed os/posix calls, emptied Pyodide modules) is
-bypassable. The permission model is the boundary for processes and files; the network is closed only by patching and
-freezing the Node network, vm, binding and child_process APIs in that process (Node 24 has no network permission), not
-by the OS. If the isolated process cannot run, the answer stays "AI 제안 · 정답 미검증" and nothing runs unisolated.
+worker, addon, WASI or inspector grant), `--disallow-code-generation-from-strings`, `--no-experimental-sqlite` and
+`--no-addons`, killed on timeout or cancel (cancel saves nothing). Treat that code as untrusted (its prompt includes
+third-party captions) and assume it can reach JavaScript in that process: the Python layer (blocked imports, removed
+os/posix calls, emptied Pyodide modules) is bypassable. On Node 24.19 the permission model does not cover file writes by
+node:sqlite (measured), so that module is disabled by flag. After Pyodide loads, a lockdown leaves only an allowlist of
+built-ins (no file, socket, process or debugger access) and of process functions; every other built-in throws and is
+frozen, and no module can be loaded any more. The network and process signals are closed by that lockdown, not by the
+OS. Problem code that names interpreter internals (gc, importlib, meta_path, pyodide, js, ctypes, ...) is not run and
+stays "AI 제안 · 정답 미검증"; that is an evidence-quality check, not a boundary. If the isolated process cannot run, the answer stays "AI 제안 · 정답 미검증" and nothing runs unisolated.
 The guarantees are only what backend/tests/learning-quiz.test.mjs checks (docs/LEARNING_DESIGN.md, 실행 경계);
 learner-written code or answers are never run. The learner's
 repositories (default from `DUVI_EVIDENCE_REPOS` or the local, gitignored `backend/learning/sources.json`,

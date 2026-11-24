@@ -13,7 +13,7 @@ const PYODIDE=import.meta.resolve('pyodide'),PYODIDE_DIR=path.dirname(fileURLToP
  * Pyodide package (Node 24 also lets it load its own entry file). Measured: nothing else is needed. It cannot write files, start processes or workers, load addons, use WASI or
  * the inspector. The permission model does not cover the network; the worker blocks it in JavaScript instead.
  */
-export function runnerArgs(){return ['--permission',`--allow-fs-read=${PYODIDE_DIR}`,'--disallow-code-generation-from-strings',`--max-old-space-size=${RUNNER_LIMITS.memoryMb}`];}
+export function runnerArgs(){return ['--permission',`--allow-fs-read=${PYODIDE_DIR}`,'--disallow-code-generation-from-strings','--no-experimental-sqlite','--no-addons',`--max-old-space-size=${RUNNER_LIMITS.memoryMb}`];}
 /** → {status:'executed', output, error, truncated} | {status:'timeout'|'unavailable'|'cancelled', reason} */
 export function runPython(code,{loadMs=RUNNER_LIMITS.loadMs,runMs=RUNNER_LIMITS.runMs,maxOutput=RUNNER_LIMITS.maxOutput,signal,pythonGuard=true}={}){
   if(typeof code!=='string'||!code.trim()||code.length>RUNNER_LIMITS.code)return Promise.resolve({status:'unavailable',reason:'실행할 코드가 없거나 너무 깁니다.'});

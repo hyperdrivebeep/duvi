@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,mkdir,writeFile,readdir} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import net from 'node:net';
 import dgram from 'node:dgram';
 import os from 'node:os';
@@ -218,7 +218,7 @@ test('generated code cannot start a host process, write a host file or open a co
 test('below the Python guard the process still fails closed: child_process and the network throw in JavaScript',async t=>{
   const {connections,port,file}=await host(t);
   const system=await runPython(`import os\nprint('rc', os.system(${py(`echo RAN> "${file('system.txt')}"`)}))`,{pythonGuard:false});
-  assert.equal(system.status,'executed');assert.match(system.error,/child_process\.spawnSync/);assert.doesNotMatch(system.output,/rc 0/);
+  assert.equal(system.status,'executed');assert.match(system.error,/확인 문제 실행에서 쓸 수 없습니다/);assert.doesNotMatch(system.output,/rc 0/);
   assert.equal(existsSync(file('system.txt')),false);
   for(const code of [`import socket\nsocket.create_connection(('127.0.0.1',${port}),timeout=1)`,`import urllib.request\nurllib.request.urlopen('http://127.0.0.1:${port}/',timeout=1)`]){
     const result=await runPython(code,{pythonGuard:false});assert.equal(result.status,'executed');assert.match(result.error,/Error/,code);
@@ -327,6 +327,114 @@ print(json.dumps(results))`;
   assert.deepEqual(Object.entries(results).filter(([,value])=>value!=='blocked'),[],'nothing is allowed');
   assert.equal(Object.keys(results).length,27);
   assert.deepEqual(await datagrams(),[]);assert.deepEqual(connections,[]);assert.equal(existsSync(target),false);
+});
+
+test('with JavaScript reached, no built-in creates a host file, signals another process or opens a connection',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t),directory=path.dirname(file('x')),secret=file('secret.txt');
+  await writeFile(secret,'secret');
+  const pyodideDir=runnerArgs().find(flag=>flag.startsWith('--allow-fs-read=')).slice('--allow-fs-read='.length);
+  const listing=async()=>[...await readdir(directory),...(await readdir(pyodideDir)).map(name=>`pyodide/${name}`)].sort();
+  const before=await listing();
+  // A process of our own to signal: after the runs it must still be alive.
+  const target=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',windowsHide:true});
+  t.after(()=>target.kill());await new Promise(resolve=>target.once('spawn',resolve));
+  // JSON of strings and numbers is also a Python literal.
+  const settings=JSON.stringify({file:file('h2'),directory,secret,package:path.join(pyodideDir,'package.json'),pid:target.pid,udpPort,port});
+  const prelude=`import json
+try:
+    import js as g
+except ImportError:
+    import gc
+    core = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')
+    g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+S = ${settings}
+P, J, noop = g.process, g.JSON.parse, g.Function.prototype
+def mod(name):
+    module = P.getBuiltinModule(name)
+    if module is None:
+        raise ImportError(name)
+    return module
+w = lambda suffix: S['file'] + '.' + suffix
+url = f"http://127.0.0.1:{S['port']}/"
+def resolver():
+    r = mod('dns').Resolver.new()
+    r.setServers(J(json.dumps([f"127.0.0.1:{S['udpPort']}"])))
+    r.resolve4('duvi-test.invalid', noop)
+results = {}
+def attempt(name, action):
+    try:
+        action()
+        results[name] = 'allowed'
+    except Exception:
+        results[name] = 'blocked'
+`;
+  // Write-capable API per module, signals to another pid, and UDP/DNS/TCP; sqlite and _kill included explicitly.
+  const cases=[
+    ['fs.writeFileSync',"mod('fs').writeFileSync(w('fs'), 'x')"],['fs.appendFileSync',"mod('fs').appendFileSync(w('append'), 'x')"],
+    ['fs.openSync w',"mod('fs').openSync(w('open'), 'w')"],['fs.mkdirSync',"mod('fs').mkdirSync(w('dir'))"],
+    ['fs.cpSync',"mod('fs').cpSync(S['package'], w('cp'))"],['fs.createWriteStream',"mod('fs').createWriteStream(w('stream')).write('x')"],
+    ['fs/promises.writeFile',"mod('fs/promises').writeFile(w('promises'), 'x').catch(noop)"],
+    ['module.createRequire fs',"mod('module').createRequire(S['package'])('fs').writeFileSync(w('require'), 'x')"],
+    ['sqlite.DatabaseSync',"mod('node:sqlite').DatabaseSync.new(w('db')).exec('create table x(a)')"],
+    ['v8.writeHeapSnapshot',"mod('v8').writeHeapSnapshot(w('heap'))"],['process.report.writeReport',"P.report.writeReport(w('report'))"],
+    ['trace_events.enable',"mod('trace_events').createTracing(J('{\"categories\":[\"node\"]}')).enable()"],
+    ['module.enableCompileCache',"mod('module').enableCompileCache(w('cache'))"],
+    ['repl.setupHistory',"mod('repl').start(J('{\"terminal\":false}')).setupHistory(w('history'), noop)"],
+    ['inspector.open',"mod('inspector').open(0)"],['inspector.Session',"mod('inspector').Session.new().connect()"],
+    ['wasi.WASI',"mod('wasi').WASI.new(J(json.dumps({'version': 'preview1', 'preopens': {'/sandbox': S['directory']}})))"],
+    ['worker_threads.Worker',"mod('worker_threads').Worker.new('1', J('{\"eval\":true}'))"],
+    ['child_process.spawnSync',"mod('child_process').spawnSync('cmd', ['/c', 'echo RAN> \"' + w('child') + '\"'])"],
+    ['cluster.fork',"mod('cluster').fork()"],['node:test.run',"mod('node:test').run(J('{\"files\":[]}'))"],
+    ['process.loadEnvFile',"P.loadEnvFile(S['secret'])"],['process.chdir',"P.chdir(S['directory'])"],
+    ['process.execve',"P.execve('C:/Windows/System32/cmd.exe')"],['process.dlopen',"P.dlopen(J('{\"exports\":{}}'), S['package'])"],
+    ['process.binding',"P.binding('fs')"],['process._linkedBinding',"P._linkedBinding('fs')"],
+    ['process._kill',"P._kill(S['pid'], 0)"],['process.kill',"P.kill(S['pid'], 0)"],['process._debugProcess',"P._debugProcess(S['pid'])"],
+    ['os.setPriority',"mod('os').setPriority(S['pid'], 10)"],
+    ['dgram.Socket',"mod('dgram').Socket.new('udp4').send('exfil-udp', S['udpPort'], '127.0.0.1')"],['dns.Resolver','resolver()'],
+    ['dns.lookup',"mod('dns').lookup('localhost', noop)"],['net.connect',"mod('net').connect(S['port'], '127.0.0.1')"],
+    ['stderr socket connect',"P.stderr.constructor.new().connect(S['port'], '127.0.0.1')"],['http.request',"mod('http').request(url).end()"],
+    ['tls.connect',"mod('tls').connect(S['port'], '127.0.0.1')"],['http2.connect',"mod('http2').connect(url)"],
+    ['fetch','g.fetch(url).catch(noop)'],['WebSocket',"g.WebSocket.new(f\"ws://127.0.0.1:{S['port']}/\")"],
+  ];
+  // The runner refuses snippets over 4,000 characters, so the cases run in chunks with the same prelude.
+  const chunks=[[]];
+  for(const row of cases){const next=[...chunks.at(-1),row];if(next.length>1&&(prelude+next.map(([name,call])=>`attempt(${py(name)}, lambda: ${call})\n`).join('')).length>3800)chunks.push([row]);else chunks[chunks.length-1]=next;}
+  const run=async body=>{
+    const result=await runPython(`${prelude}${body}print(json.dumps(results))`,{pythonGuard:false,runMs:15000});
+    assert.ok(result.status==='executed'&&result.error===null,`the run reports its attempts: ${JSON.stringify(result)}`);return JSON.parse(result.output);
+  };
+  const results={};
+  for(const chunk of chunks)Object.assign(results,await run(chunk.map(([name,call])=>`attempt(${py(name)}, lambda: ${call})\n`).join('')));
+  // Every built-in the process can name, plus a fixed list in case node:module itself is closed.
+  const loaded=await run(`try:
+    names = list(mod('module').builtinModules)
+except Exception:
+    names = []
+for name in names + ['fs', 'net', 'node:sqlite', 'child_process', 'inspector', 'vm', 'v8', 'os', 'module']:
+    attempt('load ' + name, lambda: mod(name))
+`);
+  assert.deepEqual(await listing(),before,'no host file in the temp directory or the Pyodide package');
+  assert.deepEqual(await datagrams(),[]);assert.deepEqual(connections,[]);
+  assert.equal(target.exitCode,null,'the signalled process is still running');
+  assert.equal(Object.keys(results).length,cases.length);
+  assert.deepEqual(Object.entries(results).filter(([,value])=>value!=='blocked'),[],'every attempt throws');
+  assert.deepEqual(Object.entries(loaded).filter(([,value])=>value!=='blocked'),[],'no built-in module can be loaded after setup');
+});
+
+test('problem code that reaches into the interpreter is not run and its answer stays unverified',async t=>{
+  const runs=[],quoted={source:{kind:'transcript',ref:'00:06'},quote:'it calculates and it remembers.',concepts:[]};
+  const items=[
+    {type:'predict',prompt:'p1',code:'import gc\\nprint(len(gc.get_objects()) > 0)',answer:'True',...quoted},
+    {type:'predict',prompt:'p2',code:'import importlib._bootstrap as b\\nprint(b._builtin_from_name("posix"))',answer:'x',...quoted},
+    {type:'predict',prompt:'p3',code:'print(7 // 2)',answer:'3',...quoted},
+  ];
+  const fetcher=async()=>new Response(`event: response.completed\ndata: ${JSON.stringify({type:'response.completed',response:{status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({items})}]}]}})}\n\n`,{headers:{'Content-Type':'text/event-stream'}});
+  const {quiz}=await fixture(t,{fetcher,run:async code=>{runs.push(code);return {status:'executed',output:'3\n',error:null,truncated:false};}});
+  const set=(await quiz.generate({token:(await quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'})).segments[0].set;
+  assert.deepEqual(runs,['print(7 // 2)'],'only the ordinary snippet reaches the runner');
+  assert.deepEqual(set.items.map(row=>[row.evidence,row.execution.status]),[['ai_unverified','refused'],['ai_unverified','refused'],['executed','executed']]);
+  assert.match(set.items[0].execution.reason,/실행 환경 내부\(gc\)/);assert.match(set.items[1].execution.reason,/importlib/);
+  assert.equal(set.items[0].answer,'True','a refused question keeps the AI answer, shown as unverified');
 });
 
 test('the re-review bypasses of the Python layer still start no process and write no host file',async t=>{
