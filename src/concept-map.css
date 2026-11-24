@@ -9,7 +9,12 @@
   height: 100%; min-height: 0; color: var(--cmap-ink); font: 15px/1.55 "Noto Sans KR Variable", "Noto Sans KR", Arial, sans-serif; background: #fff;
 }
 .cmap *, .cmap *::before, .cmap *::after { box-sizing: border-box; }
-:where(.cmap, .cmap-graph) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+/* Inside the app the global button rule (library.css) adds a 44px height, centred inline-flex, radius, hover fill and a
+   pressed shift; the map's buttons reset them here and their own classes style them. */
+:where(.cmap, .cmap-graph, .cmap-lecture) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  display: inline-block; min-height: 0; border-radius: 0; gap: 0; text-align: left; align-items: normal; justify-content: normal; }
+:where(.cmap, .cmap-graph, .cmap-lecture) button:hover { background: none; }
+:where(.cmap, .cmap-graph, .cmap-lecture) button:active { transform: none; }
 :where(.cmap, .cmap-graph, .cmap-lecture) :focus-visible { outline: 2px solid var(--cmap-focus); outline-offset: 2px; }
 .cmap-muted { color: var(--cmap-muted); font-size: 14px; }
 .cmap-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -20,7 +25,7 @@
 .cmap-title p { margin: 0; }
 .cmap-toolbar { display: flex; align-items: center; gap: 12px; }
 .cmap-switch { display: flex; background: var(--cmap-soft); border-radius: 8px; padding: 2px; }
-.cmap-view { height: 36px; padding: 0 14px; border-radius: 6px; font-size: 14px; color: var(--cmap-muted); }
+.cmap-view { flex: none; white-space: nowrap; height: 36px; padding: 0 14px; border-radius: 6px; font-size: 14px; color: var(--cmap-muted); }
 .cmap-view[aria-pressed="true"] { background: #fff; color: var(--cmap-ink); font-weight: 700; box-shadow: 0 1px 2px rgb(17 26 45 / 12%); }
 .cmap-search { width: 240px; height: 40px; padding: 0 12px; border: 1px solid var(--cmap-line); border-radius: 8px; font: inherit; font-size: 15px; color: inherit; background: #fff; }
 .cmap-note { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--cmap-muted); }
@@ -47,7 +52,8 @@
 .cmap-num { font-variant-numeric: tabular-nums; }
 
 /* Graph */
-.cmap-graph { position: absolute; inset: 0; overflow: hidden; background: var(--cmap-canvas); cursor: grab; touch-action: none; }
+/* user-select: dragging to pan must not select node text. */
+.cmap-graph { user-select: none; position: absolute; inset: 0; overflow: hidden; background: var(--cmap-canvas); cursor: grab; touch-action: none; }
 .cmap-graph.cmap-dragging { cursor: grabbing; }
 .cmap-layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .cmap-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
@@ -55,10 +61,14 @@
 .cmap-edge.cmap-dashed { stroke-dasharray: 6 5; }
 .cmap-edge.cmap-on { stroke: var(--cmap-ink); stroke-width: 2.5; }
 .cmap-edge.cmap-faint { opacity: .28; }
+/* Edges between fields cross the bands: faint at rest, full strength when one of their ends is selected. */
+.cmap-edge.cmap-cross { opacity: .18; }
+.cmap-edge.cmap-cross.cmap-on { opacity: 1; }
+.cmap-legend-line.cmap-cross { opacity: .35; }
 .cmap-band { position: absolute; left: 0; margin: 0; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 28px; }
 .cmap-node { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 8px 12px; text-align: left;
   background: #fff; border: 1px solid var(--cmap-line); border-radius: 8px; cursor: pointer; }
-.cmap-node:hover { border-color: var(--cmap-edge); }
+.cmap-node:hover { border-color: var(--cmap-edge); background: #fff; }
 .cmap-node[aria-pressed="true"] { border: 2px solid var(--cmap-accent); background: var(--cmap-selected); padding: 7px 11px; }
 .cmap-node.cmap-dim { opacity: .35; }
 .cmap-node-name { font-size: 15px; font-weight: 700; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -89,7 +99,6 @@
 .cmap-lecture h2 { margin: 0 0 8px; font-size: 16px; }
 .cmap-lecture ul { margin: 0; padding: 0; list-style: none; }
 .cmap-lecture li { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--cmap-line); font-size: 15px; }
-:where(.cmap-lecture) button { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 .cmap-lecture .cmap-muted { color: var(--cmap-muted); }
 
 @media (max-width: 1100px) {

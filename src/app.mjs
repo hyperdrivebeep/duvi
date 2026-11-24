@@ -12,11 +12,16 @@ import {renderQuizScreen,renderLectureQuizTab} from './quiz-view.mjs';
 import {renderReviewScreen} from './review-view.mjs';
 import {renderSourcesSettings} from './sources-settings.mjs';
 import {routeTarget,segmentIdAt} from './app-routes.mjs';
+import mapData from './concept-map-data.json';
+import {renderConceptMap,renderLectureConcepts} from './concept-map-view.mjs';
+import {lectureConcepts,attemptsByConcept,evidenceByConcept} from './concept-map-model.mjs';
 import './library.css';
 import './study-view.css';
 import './learning.css';
 import './quiz-view.css';
 import './review-view.css';
+// After the app's own CSS so the map's button reset wins over the global button rule of the same specificity.
+import './concept-map.css';
 import {createIcons, Search, Plus, Settings, X, PanelLeft, SkipBack, SkipForward, RotateCcw, Maximize, Minimize, Languages, ChevronRight, ChevronDown, Play} from 'lucide';
 const $=id=>document.getElementById(id),video=new MediaPlayer($('video'),$('youtubeWrap'));
 createIcons({icons:{Search,Plus,Settings,X,PanelLeft,SkipBack,SkipForward,RotateCcw,Maximize,Minimize,Languages,ChevronRight,ChevronDown,Play},attrs:{'aria-hidden':'true'}});
@@ -212,11 +217,12 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
-const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:focus=>learningUI.chat.open(focus),onQuizOpen:()=>showLectureQuiz()});
+const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:focus=>learningUI.chat.open(focus),onQuizOpen:()=>showLectureQuiz(),onConceptsOpen:()=>showLectureConcepts()});
 // Leaving the lecture pauses it, so 개념 지도·확인 문제·돌아보기 return to the same time; the media instance is only hidden, never rebuilt.
 const shell=setupShell({onShow:(view,previous)=>{
   if(previous==='lecture')video.pause();
   if(view==='review')showReview();
+  if(view==='map'){showMap(mapTarget||{}).catch(error=>{$('status').textContent=error.message;});mapTarget=null;}
   if(view==='quiz'){showQuiz(quizTarget||{lectureId:lecture?String(lecture.number):'',segmentId:segmentIdAt(video.currentTime)});quizTarget=null;}
   if(view==='lecture')lectureQuizChanged({keep:true});
 }});
@@ -259,7 +265,7 @@ const learningUI=new LearningUI({api,stream:streamApi,onChatCount:count=>tabLabe
 // 확인 문제 and 돌아보기 (quiz-view.mjs, review-view.mjs). Each screen is mounted once and reloaded when shown again;
 // their links come back through openTarget. None of this touches the lecture stage, so playback and drafts survive.
 const views=createLearningViewApi(api,{open:target=>void openTarget(target).catch(error=>{$('status').textContent=error.message;}),lectureName:id=>learningUI.lectureName(id)});
-const mounts={quiz:null,lectureQuiz:null,review:null},sourcesUI=renderSourcesSettings($('sourcesSettings'),views);
+const mounts={quiz:null,lectureQuiz:null,review:null,map:null},sourcesUI=renderSourcesSettings($('sourcesSettings'),views);
 let quizTarget=null;
 function tabLabel(id,label,count){const text=count?`${label} ${count}`:label;if($(id).textContent!==text)$(id).textContent=text;}
 /** 확인 문제 n on the lecture panel tab; the count is left off until the quiz list has loaded for this lecture. */
@@ -277,20 +283,49 @@ function showLectureQuiz(){
 function lectureQuizChanged({keep=false}={}){
   const lectureId=lecture?String(lecture.number):'';if(!lectureId)return;
   if(!keep)tabLabel('stageQuizTab','확인 문제',0);
-  void refreshQuizCount(lectureId);if(studyView.selectedTab()==='quiz')showLectureQuiz();
+  tabLabel('stageConceptTab','개념',lectureConcepts(mapData,lectureId).length);
+  void refreshQuizCount(lectureId);if(studyView.selectedTab()==='quiz')showLectureQuiz();if(studyView.selectedTab()==='concepts')showLectureConcepts();
 }
 function showQuiz({lectureId,segmentId}={}){
   lectureId=String(lectureId||'');
   const select=$('quizLecture'),rows=libraryUI.rows;
   select.replaceChildren(new Option('강의를 고르세요',''),...rows.map(row=>new Option(row.title.split(' | ')[0],String(row.number))));
   select.value=rows.some(row=>String(row.number)===lectureId)?lectureId:'';
-  if(!select.value){mounts.quiz=null;const empty=document.createElement('p');empty.className='view-empty';empty.textContent='강의를 고르면 그 강의의 10분 구간마다 확인 문제를 만들고 풀 수 있습니다.';$('quizRoot').replaceChildren(empty);return;}
+  if(!select.value){
+    mounts.quiz=null;const head=document.createElement('div'),title=document.createElement('h1'),empty=document.createElement('p');
+    head.className='quiz-head';title.textContent='확인 문제';head.append(title,$('quizPicker'));empty.className='quiz-muted';empty.textContent='강의를 고르면 그 강의의 10분 구간마다 확인 문제를 만들고 풀 수 있습니다.';
+    const page=document.createElement('div');page.className='quiz-page';page.append(head,empty);const screen=document.createElement('section');screen.className='quiz-screen';screen.append(page);$('quizRoot').replaceChildren(screen);return;
+  }
   const mounted=mounts.quiz;
   if(mounted?.lectureId===lectureId&&(!segmentId||mounted.view.segmentId===segmentId)){void mounted.reload();return;}
-  mounts.quiz={lectureId,...renderQuizScreen($('quizRoot'),views,{lectureId,segmentId})};
+  mounts.quiz={lectureId,...renderQuizScreen($('quizRoot'),views,{lectureId,segmentId,lecturePicker:$('quizPicker')})};
 }
 $('quizLecture').onchange=()=>showQuiz({lectureId:$('quizLecture').value,segmentId:String(lecture?.number)===$('quizLecture').value?segmentIdAt(video.currentTime):undefined});
 function showReview(){if(mounts.review)void mounts.review.reload();else mounts.review=renderReviewScreen($('reviewRoot'),views);}
+// 개념 지도 (concept-map-view.mjs): mounted again each time it is shown, with the latest learning state, quiz attempts and
+// repository evidence, keeping the chosen view (그래프/표) and selection. Opening a lecture from it only switches views.
+let mapTarget=null;
+const currentConcepts=()=>lecture?lectureConcepts(mapData,String(lecture.number)).map(concept=>concept.id):[];
+async function showMap({conceptId}={}){
+  const previous=mounts.map,loading=document.createElement('p');loading.className='view-empty';loading.textContent='개념 지도를 불러오는 중…';
+  if(!previous)$('mapRoot').replaceChildren(loading);
+  let state,evidence;
+  try{state=await views.learning();}catch(error){loading.textContent='✕ '+error.message;$('mapRoot').replaceChildren(loading);return;}
+  // Without readable repositories the 커밋·테스트 column says '아직 증거 없음' rather than failing the whole map.
+  try{evidence=evidenceByConcept(mapData,await views.evidence());}catch{evidence=undefined;}
+  if(shell.current()!=='map')return;
+  mounts.map=renderConceptMap($('mapRoot'),{data:mapData,state:{progress:state.progress,records:state.records,attempts:attemptsByConcept(mapData,state.attempts||[])},evidence,
+    focusConceptIds:currentConcepts(),view:previous?.view||'graph',selected:conceptId||previous?.selected||null,
+    onOpenLecture:resource=>void openTarget({kind:'lecture',lectureId:resource.lectureId}).catch(error=>{$('status').textContent=error.message;})});
+}
+async function openMap(conceptId){
+  if(document.body.classList.contains('study-focused'))await studyView.exit();
+  if(shell.current()==='map')await showMap({conceptId});else{mapTarget={conceptId};shell.show('map');}
+}
+function showLectureConcepts(){
+  if(!lecture)return;
+  renderLectureConcepts($('lectureConcepts'),{data:mapData,state:learningUI.state,lectureId:String(lecture.number),onOpenConcept:id=>void openMap(id)});
+}
 function openSources(target){openDialog('settingsDialog');void sourcesUI.reload(target);$('sourcesHeading').focus();}
 /** open(target) from the quiz and review modules. Screens outside the lecture first leave fullscreen, which only holds the stage. */
 async function openTarget(target){

@@ -17,6 +17,8 @@ function h(tag, props = {}, ...children) {
   for (const [key, value] of Object.entries(props)) {
     if (value == null || value === false) continue;
     if (key === 'className') el.setAttribute('class', value);
+    // Through the CSSOM: the app's Content-Security-Policy (style-src 'self') refuses inline style attributes.
+    else if (key === 'style') el.style.cssText = value;
     else if (key === 'text') el.textContent = value;
     else if (key.startsWith('on')) el.addEventListener(key.slice(2).toLowerCase(), value);
     else el.setAttribute(key, value === true ? '' : String(value));
@@ -128,7 +130,9 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   const edgeEls = layout.edges.map(edge => {
     const from = nodeOf.get(edge.from), to = nodeOf.get(edge.to);
     const x1 = from.x + from.width, y1 = from.y + from.height / 2, x2 = to.x, y2 = to.y + to.height / 2, bend = Math.max(48, Math.abs(x2 - x1) / 2);
-    const path = svg('path', {d: `M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}`, class: edge.dashed ? 'cmap-edge cmap-dashed' : 'cmap-edge', 'data-from': edge.from, 'data-to': edge.to});
+    // An edge between two fields runs across the bands; it stays faint until one of its ends is selected.
+    const cross = from.field !== to.field, names = ['cmap-edge', edge.dashed && 'cmap-dashed', cross && 'cmap-cross'].filter(Boolean).join(' ');
+    const path = svg('path', {d: `M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}`, class: names, 'data-from': edge.from, 'data-to': edge.to});
     edgesLayer.append(path); return {edge, path};
   });
   const bandLabels = layout.bands.map(band => h('h3', {className: 'cmap-band', style: `top:${band.y}px`},
@@ -153,6 +157,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   const legend = h('div', {className: 'cmap-legend'},
     h('span', {}, h('span', {className: 'cmap-legend-line', 'aria-hidden': 'true'}), '실선: 자료가 있는 개념으로 이어짐'),
     h('span', {}, h('span', {className: 'cmap-legend-line cmap-dashed', 'aria-hidden': 'true'}), '점선: 자료가 없는 개념으로 이어짐'),
+    h('span', {}, h('span', {className: 'cmap-legend-line cmap-cross', 'aria-hidden': 'true'}), '흐린 선: 다른 분야로 이어짐 · 개념을 고르면 진해짐'),
     h('span', {className: 'cmap-muted', text: '선은 선수 개념에서 그 개념이 필요한 개념으로 갑니다'}));
   const viewport = h('section', {className: 'cmap-graph', tabindex: '0', 'aria-label': '개념 그래프. 더하기·빼기로 확대·축소, 0으로 화면 맞춤, 화살표로 이동, Tab으로 개념 이동'}, layer, legend, controls, note);
   root.replaceChildren(viewport);
@@ -234,9 +239,9 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
 
 /**
  * Full 개념 지도 page: header (search, 그래프/표 toggle, evidence note), graph or table, and the inspector.
- * Returns {select(id), setView('graph'|'table'), search(query)}.
+ * Returns {select(id), setView('graph'|'table'), search(query), view, selected}; the shell re-mounts with view and selected.
  */
-export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, focusConceptIds, view = 'graph'} = {}) {
+export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, focusConceptIds, view = 'graph', selected: initial = null} = {}) {
   const total = data.concepts.length, gaps = data.concepts.filter(concept => concept.gap).length;
   const search = h('input', {type: 'search', className: 'cmap-search', placeholder: '개념 찾기', 'aria-label': '개념 찾기'});
   const status = h('p', {className: 'cmap-status', role: 'status'});
@@ -272,8 +277,8 @@ export function renderConceptMap(root, {data, state = {}, evidence, onOpenLectur
     if (event.key !== 'Enter') return;
     const [first] = applySearch(); if (first && query.trim()) select(first);
   });
-  setView(view); select(null);
-  return {select, setView, search(text) { search.value = text; query = text; return applySearch(); }};
+  setView(view); select(initial);
+  return {select, setView, search(text) { search.value = text; query = text; return applySearch(); }, get view() { return view; }, get selected() { return selected; }};
 }
 
 /** Lecture panel tab: the concepts this lecture is linked to, each opening its place in the map. */

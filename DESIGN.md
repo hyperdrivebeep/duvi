@@ -323,8 +323,8 @@ Shell: a 76px rail (`--rail-width`) on every screen, top to bottom Duvi, ▶ 강
 ◇ 개념 지도, ◆ 확인 문제, ≡ 돌아보기, then ⚙ 설정 at the bottom. Each item is a glyph over
 a 14px label; the current item has the neutral `--fill` (#eef1f5) background and bold
 weight, never an accent bar. 개념 지도, 확인 문제 and 돌아보기 are views at the stable mount
-points `#view-map`, `#view-quiz`, `#view-review`; 개념 지도 says "준비 중" plainly until the
-concept map lands, and 확인 문제 and 돌아보기 are the screens of §14. Switching views hides the lecture view without rebuilding the media
+points `#view-map`, `#view-quiz`, `#view-review`; 개념 지도 is §15, 확인 문제 and 돌아보기 are the
+screens of §14. Switching views hides the lecture view without rebuilding the media
 element and pauses playback, so returning finds the same time (`src/app-shell.mjs`).
 
 내 강의: the former sidebar is a panel (fixed, left of the main area, 300–380px wide,
@@ -339,8 +339,8 @@ at full column width; the time strip and both caption lines on the dark band
 three lines before it scrolls); then the sentence toolbar and the status rows. Both
 caption lines are inside the first viewport at 1280×800 and 1536×864. The right panel
 is 372px (`--panel-width`), full height and sticky, with tabs 질문 · 개념 · 확인 문제 ·
-대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) is a mount
-point with an empty state; 확인 문제 (`#lectureQuiz`) is the checkpoint list of §14. The panel is always
+대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) lists the
+lecture's concepts (§15); 확인 문제 (`#lectureQuiz`) is the checkpoint list of §14. The panel is always
 present in the normal view; only fullscreen can close it (its × and 대본 toggle).
 Fullscreen keeps §8/§12: 380px panel, hidden header and status rows, captions docked.
 
@@ -374,7 +374,7 @@ The shell of §13 now mounts the quiz and evidence modules of docs/LEARNING_DESI
 
 Screens: rail **확인 문제** shows `renderQuizScreen` in `#view-quiz` for the current lecture and
 the ten-minute segment that holds the playback time (`segmentIdAt`, `s<start>`); a 강의 select
-above it switches lectures, and with no lecture it shows only that select and one line. Rail
+in its title row (`lecturePicker`) switches lectures, and with no lecture it shows only that select and one line. Rail
 **돌아보기** shows `renderReviewScreen` in `#view-review`. Both fill the height beside the rail,
 scroll their own page above a 60px bottom bar, and are mounted once and reloaded when shown
 again. The lecture panel's 확인 문제 tab shows `renderLectureQuizTab` (one checkpoint per
@@ -435,3 +435,16 @@ groups from the 2026-11-23 curriculum review with no material). The app shell mo
   (● ◐ ○); accent only for links, the pressed view, the selection and focus; 14px minimum.
 - Preview without the app: `npx vite`, then `/dev/concept-map.html?view=graph|table&select=<개념>&zoom=<n>`
   (fixture state, not learner data; `dev/` is not a build entry).
+- In the app (2026-11-24 integration): rail **개념 지도** mounts `renderConceptMap` in `#view-map` each time it is shown,
+  with the learning state's progress and records, quiz attempts and repository evidence, keeping the chosen view and
+  selection. Attempts (`attemptsByConcept`) count for the concepts their question names, else for their lecture's
+  concepts (the rule questions use). Commits and test cases (`evidenceByConcept`) count for a concept only when the
+  subject or test name contains its id or full name; with no repository configured the column reads 아직 증거 없음.
+  `focusConceptIds` are the current lecture's concepts; a lecture link only switches back to the lecture view, so
+  the media element and time are kept. The lecture panel's 개념 tab (개념 n) mounts `renderLectureConcepts`; a
+  concept there opens the map with it selected (leaving fullscreen first).
+- Edges between two fields cross the bands, so at rest they are drawn faint (opacity .18, legend "흐린 선") and at
+  full strength when one of their ends is selected; every resolved edge is still drawn.
+- Inside the app: positions and sizes are set through the CSSOM (`el.style`), never a style attribute, because the
+  server's Content-Security-Policy is `style-src 'self'`; `concept-map.css` is imported after the app CSS and resets the
+  global button rule (height, centring, radius, hover fill) for the map's own buttons.

@@ -225,3 +225,43 @@ test('lecture panel lists the lecture concepts and opens one', () => withDom(() 
   renderLectureConcepts(root, {data, lectureId: 'no-such-lecture'});
   assert.equal(root.textContent, '이 강의에 연결된 개념이 아직 없습니다.');
 }));
+
+import {attemptsByConcept, evidenceByConcept} from '../src/concept-map-model.mjs';
+test('quiz attempts count for the concepts they name, else for their lecture\'s concepts', () => {
+  const concept = named('연쇄법칙(합성함수의 미분)'), [lecture] = lecturesOf(concept), lectureIds = lectureConcepts(data, lecture.lectureId).map(item => item.id);
+  const rows = attemptsByConcept(data, [
+    {lectureId: lecture.lectureId, result: 'right', item: {concepts: [` ${concept.name.toUpperCase()} `]}},
+    {lectureId: lecture.lectureId, result: 'wrong', item: {concepts: ['지도에 없는 이름']}},
+  ]);
+  assert.deepEqual(rows[0], {conceptId: concept.id, correct: true});
+  assert.deepEqual(rows.slice(1).map(row => row.conceptId), lectureIds);
+  assert.ok(rows.slice(1).every(row => row.correct === false));
+  const counts = conceptCounts(data, concept, {attempts: rows});
+  assert.deepEqual(counts.checks, {total: 1 + (lectureIds.includes(concept.id) ? 1 : 0), correct: 1});
+  assert.deepEqual(attemptsByConcept(data, []), []);
+});
+test('repository evidence counts only commits and tests that name a concept; no repository means no evidence', () => {
+  const concept = named('연쇄법칙(합성함수의 미분)'), other = data.concepts.find(item => item.id !== concept.id && !concept.name.includes(item.name));
+  const evidence = {configured: true, repos: [{commits: [{subject: `${concept.id}: 미분 연습 추가`}, {subject: '오타 수정'}],
+    tests: [{cases: [{name: `test_${concept.name}`, status: 'passed'}, {name: `test_${concept.name}_edge`, status: 'failed'}, {name: 'test_misc', status: 'passed'}]}]}]};
+  const byConcept = evidenceByConcept(data, evidence);
+  assert.deepEqual(byConcept[concept.id], {commits: 1, testsPassed: 1, testsFailed: 1});
+  assert.equal(byConcept[other.id], undefined);
+  assert.equal(conceptCounts(data, other, {}, byConcept).work, null);
+  assert.equal(evidenceByConcept(data, {configured: false, repos: []}), undefined);
+});
+test('edges between fields are faint at rest and full strength when an end is selected; the map keeps view and selection', () => withDom(() => {
+  const root = new FakeNode('div'), layout = graphLayout(data), field = new Map(layout.nodes.map(node => [node.id, node.field]));
+  const map = renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const paths = root.all(node => node.tagName === 'PATH'), cross = paths.filter(hasClass('cmap-cross'));
+  assert.equal(paths.length, layout.edges.length, 'no edge is dropped');
+  assert.equal(cross.length, layout.edges.filter(edge => field.get(edge.from) !== field.get(edge.to)).length);
+  assert.ok(cross.length > 0 && cross.every(path => !hasClass('cmap-on')(path)));
+  const edge = cross[0], end = edge.getAttribute('data-to');
+  map.select(end);
+  assert.ok(hasClass('cmap-on')(edge) && hasClass('cmap-cross')(edge));
+  assert.equal(map.selected, end);assert.equal(map.view, 'graph');
+  map.setView('table');assert.equal(map.view, 'table');
+  const again = renderConceptMap(new FakeNode('div'), {data, state: {}, view: map.view, selected: map.selected});
+  assert.equal(again.view, 'table');assert.equal(again.selected, end);
+}));

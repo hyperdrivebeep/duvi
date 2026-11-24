@@ -175,3 +175,35 @@ export function nodesBox(nodes) {
   const left = Math.min(...nodes.map(node => node.x)), top = Math.min(...nodes.map(node => node.y));
   return {x: left, y: top, width: Math.max(...nodes.map(node => node.x + node.width)) - left, height: Math.max(...nodes.map(node => node.y + node.height)) - top};
 }
+
+/**
+ * Quiz attempts (learning state `attempts`) as the map counts them: [{conceptId, correct}]. An attempt counts for the
+ * concepts its question names (a concept id or full name); when it names none on the map, for every concept of its
+ * lecture, the same rule the map uses for questions.
+ */
+export function attemptsByConcept(data, attempts = []) {
+  const byName = new Map(data.concepts.flatMap(concept => [[concept.id.toLowerCase(), concept.id], [concept.name.toLowerCase(), concept.id]]));
+  return attempts.flatMap(attempt => {
+    const named = [...new Set((attempt.item?.concepts || []).map(name => byName.get(String(name).trim().toLowerCase())).filter(Boolean))];
+    const ids = named.length ? named : lectureConcepts(data, attempt.lectureId).map(concept => concept.id);
+    return ids.map(conceptId => ({conceptId, correct: attempt.result === 'right'}));
+  });
+}
+
+/**
+ * Repository evidence (GET /api/learning/evidence) per concept: {[conceptId]: {commits, testsPassed, testsFailed}}. A commit
+ * subject or test-case name counts for a concept only when it contains the concept's id or full name; nothing is inferred
+ * beyond that. Concepts no commit or test names get no entry ('아직 증거 없음'); without a configured repository, none do.
+ */
+export function evidenceByConcept(data, evidence) {
+  if (!evidence?.configured) return undefined;
+  const commits = evidence.repos.flatMap(repo => repo.commits || []).map(row => String(row.subject).toLowerCase());
+  const cases = evidence.repos.flatMap(repo => (repo.tests || []).flatMap(file => file.cases || [])).map(row => ({name: String(row.name).toLowerCase(), status: row.status}));
+  const result = {};
+  for (const concept of data.concepts) {
+    const keys = [concept.id, concept.name].map(key => key.toLowerCase()), hit = text => keys.some(key => text.includes(key));
+    const commitCount = commits.filter(hit).length, named = cases.filter(row => hit(row.name));
+    if (commitCount || named.length) result[concept.id] = {commits: commitCount, testsPassed: named.filter(row => row.status === 'passed').length, testsFailed: named.filter(row => row.status === 'failed').length};
+  }
+  return result;
+}

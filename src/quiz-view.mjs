@@ -39,7 +39,8 @@ function executionNotes(item){
   return notes;
 }
 
-export function renderQuizScreen(root,api,{lectureId,segmentId}={}){
+/** lecturePicker: an optional node (the shell's 강의 select) shown in the title row instead of the lecture title. */
+export function renderQuizScreen(root,api,{lectureId,segmentId,lecturePicker}={}){
   const view={lectureId:String(lectureId),segmentId:segmentId||null,status:null,attempts:[],index:0,phase:'answer',draft:{prediction:'',confidence:''},attempt:null,explanation:'',notice:'',loadError:'',
     gen:{state:'idle',concepts:'',excerpts:[],excerpt:{repo:'',path:'',startLine:'1',endLine:'40'},preview:null,models:[],model:'',error:''}};
   const page=el('div','quiz-page'),bar=el('div','quiz-bar'),screen=el('section','quiz-screen');screen.append(page,bar);root.replaceChildren(screen);
@@ -57,7 +58,9 @@ export function renderQuizScreen(root,api,{lectureId,segmentId}={}){
   }
   function selectSegment(id){view.segmentId=id;view.index=0;view.regenerate=false;resetQuestion();view.gen={...view.gen,state:'idle',preview:null,error:''};render();}
   function header(){
-    const head=el('div','quiz-head'),title=el('h1','','확인 문제'),place=segment()?`${view.status.title} · ${segmentLabel(segment())} 구간`:view.status?.title||'';
+    const head=el('div','quiz-head'),title=el('h1','','확인 문제');
+    if(lecturePicker){head.append(title,lecturePicker,el('span','quiz-muted quiz-cut',segment()?`${segmentLabel(segment())} 구간`:''));return head;}
+    const place=segment()?`${view.status.title} · ${segmentLabel(segment())} 구간`:view.status?.title||'';
     head.append(title,el('span','quiz-muted quiz-cut',place));return head;
   }
   function picker(){
@@ -186,8 +189,9 @@ export function renderQuizScreen(root,api,{lectureId,segmentId}={}){
   function syncBar(){if(primary&&view.phase==='answer')primary.disabled=!view.draft.prediction.trim()||!view.draft.confidence;}
   function render(){
     page.replaceChildren();bar.replaceChildren();primary=null;
-    if(view.loadError){page.append(el('h1','','확인 문제'),el('p','quiz-state','✕ '+view.loadError),button('다시 불러오기',load,'quiz-button'));return;}
-    if(!view.status){page.append(el('h1','','확인 문제'),el('p','quiz-muted','불러오는 중…'));return;}
+    const bare=()=>{const head=el('div','quiz-head');head.append(el('h1','','확인 문제'));if(lecturePicker)head.append(lecturePicker);return head;};
+    if(view.loadError){page.append(bare(),el('p','quiz-state','✕ '+view.loadError),button('다시 불러오기',load,'quiz-button'));return;}
+    if(!view.status){page.append(bare(),el('p','quiz-muted','불러오는 중…'));return;}
     page.append(header());
     if(!view.status.segments.length){page.append(el('p','quiz-state','○ 이 강의에는 아직 영어 자막이 없습니다. 자막을 준비하면 10분 구간마다 확인 문제를 만들 수 있습니다.'));return;}
     page.append(picker());

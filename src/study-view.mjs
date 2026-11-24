@@ -11,7 +11,7 @@ export function hideControls(stage,toolbar,handle){
  * The lecture stage: one media instance, captions, the side panel (질문 / 개념 / 확인 문제 / 대본) and fullscreen.
  * The panel is always beside the lecture in the normal view; only fullscreen can close it.
  */
-export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()=>{}}){
+export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()=>{},onConceptsOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
@@ -117,6 +117,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
     if(name==='transcript')onTranscriptOpen();
     if(name==='chat')onChatOpen(focus);
     if(name==='quiz')onQuizOpen();
+    if(name==='concepts')onConceptsOpen();
   }
   function openPanel(name,options){showPanel(true);selectTab(name,options);}
   const tabs=[...document.querySelectorAll('[data-stage-tab]')];
