@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Duvi 돌아보기 · 미리보기 (예시 데이터)</title>
+<link rel="stylesheet" href="/src/quiz-view.css"><link rel="stylesheet" href="/src/review-view.css">
+<style>html,body{margin:0;height:100%;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}#root{height:100%}</style>
+</head><body><div id="root"></div><pre id="metrics" hidden></pre>
+<script type="module">
+// Dev preview: mounts the real review view with fixture data (examples only, no server, no repository access).
+import {renderReviewScreen} from '/src/review-view.mjs';
+import {fakeApi} from '/tests/quiz-fixtures.mjs';
+const view=renderReviewScreen(document.getElementById('root'),fakeApi());
+await view.ready;
+const page=document.querySelector('.review-page');
+document.getElementById('metrics').textContent=JSON.stringify({innerWidth,scrollWidth:document.documentElement.scrollWidth,pageOverflow:page.scrollWidth-page.clientWidth,minFont:Math.min(...[...document.querySelectorAll('#root *')].filter(node=>node.textContent.trim()).map(node=>parseFloat(getComputedStyle(node).fontSize)))});
+</script></body></html>

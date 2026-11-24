@@ -49,7 +49,7 @@ export class LearningBackup{
     v.keys(body,['backup']);const incoming=backup(body.backup);
     return this.store.exclusive(async()=>{
       await this.recover();const current=await this.capture(),counts={},conflicts={};
-      const groups={records:[current.learning.records,incoming.learning.records,row=>row.id],chats:[current.learning.chats,incoming.learning.chats,row=>row.id],progress:[Object.keys(current.learning.progress),Object.keys(incoming.learning.progress),row=>row],lectures:[current.library,incoming.library,row=>String(row.number)],folders:[current.folders,incoming.folders,row=>row.id],translations:[current.translations,incoming.translations,row=>String(row.lecture)]};
+      const groups={records:[current.learning.records,incoming.learning.records,row=>row.id],chats:[current.learning.chats,incoming.learning.chats,row=>row.id],attempts:[current.learning.attempts,incoming.learning.attempts,row=>row.id],progress:[Object.keys(current.learning.progress),Object.keys(incoming.learning.progress),row=>row],lectures:[current.library,incoming.library,row=>String(row.number)],folders:[current.folders,incoming.folders,row=>row.id],translations:[current.translations,incoming.translations,row=>String(row.lecture)]};
       for(const [name,[local,rows,key]]of Object.entries(groups)){const ids=new Set(local.map(key));counts[name]=rows.length;conflicts[name]=rows.map(key).filter(id=>ids.has(id));}
       const now=this.now();for(const [key,entry]of this.tokens)if(entry.expires<=now)this.tokens.delete(key);
       if(this.tokens.size>=8)this.tokens.delete(this.tokens.keys().next().value);
@@ -70,7 +70,7 @@ export class LearningBackup{
         const localRecords=new Map(current.learning.records.map(row=>[row.id,row]));
         incoming.learning.records=incoming.learning.records.map(row=>localRecords.has(row.id)?{...row,revision:Math.max(row.revision,localRecords.get(row.id).revision)+1}:row);
       }
-      const learning=v.state({...current.learning,revision:current.learning.revision+1,records:merge(current.learning.records,incoming.learning.records,row=>row.id,replace),chats:merge(current.learning.chats,incoming.learning.chats,row=>row.id,replace),progress:replace?{...current.learning.progress,...incoming.learning.progress}:{...incoming.learning.progress,...current.learning.progress}});
+      const learning=v.state({...current.learning,revision:current.learning.revision+1,records:merge(current.learning.records,incoming.learning.records,row=>row.id,replace),chats:merge(current.learning.chats,incoming.learning.chats,row=>row.id,replace),attempts:merge(current.learning.attempts,incoming.learning.attempts,row=>row.id,replace),progress:replace?{...current.learning.progress,...incoming.learning.progress}:{...incoming.learning.progress,...current.learning.progress}});
       const combined=backup({schemaVersion:1,exportedAt:new Date(this.now()).toISOString(),learning,library:merge(current.library,incoming.library,row=>String(row.number),replace),folders:merge(current.folders,incoming.folders,row=>row.id,replace),translations:merge(current.translations,incoming.translations,row=>String(row.lecture),replace)});
       const files=[];
       const existingLectures=new Set(current.library.map(row=>String(row.number)));

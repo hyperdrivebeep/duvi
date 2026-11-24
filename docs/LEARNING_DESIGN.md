@@ -190,3 +190,41 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
 완료 상태는 이 PC의 학습 저장소와 학습 백업에 포함된다. 다른 PC에서는 최신 코드를
 받은 뒤 **학습 로드맵 → 백업·복원**으로 학습 백업을 옮긴다. GitHub push는 개인 학습
 진행률을 동기화하지 않는다.
+
+## 확인 문제와 돌아보기 근거 (2026-11-24)
+
+구현 범위는 백엔드와 화면 모듈이다(`backend/learning-quiz.mjs`, `backend/python-runner*.mjs`,
+`backend/learning-sources.mjs`, `backend/learning-evidence.mjs`, `src/quiz-view.mjs`, `src/review-view.mjs`).
+앱 셸에 붙이는 작업과 실제 ChatGPT 계정으로 만든 문제의 품질은 이 작업에서 확인하지 않았다.
+
+- **만들기**: 학습자가 10분 구간을 고르고 **보낼 자료 확인**을 눌러 실제로 보낼 내용(영어·한국어 정렬 대본,
+  선택한 저장소·위키 발췌의 경로와 줄 범위, 개념 이름)을 본 뒤 **보내고 만들기**를 눌러야만 내 ChatGPT 연결로
+  보낸다. 미리보기 토큰은 10분 유효하고 실패하면 같은 입력으로 다시 시도할 수 있다. 결과는 번역처럼 생성 자산
+  `backend/quizzes/<강의>.json`(Git 제외)에 구간별 대본 hash·정렬 revision과 함께 저장하고, 자막이 바뀌면
+  "예전 대본 기준"으로 표시한다. `DUVI_CHAT_MOCK=1`의 모의 문제는 QA 전용이다.
+- **정답 근거**: `executed`(정답: 실제 실행 결과) · `source_quoted`(원문 인용 확인) · `learner_confirmed`(내가 확인)
+  · `ai_unverified`(AI 제안 · 정답 미검증) · `retired`(신고해 뺌). 인용은 대본 구간이나 인용한 파일 줄에
+  글자 그대로(공백 차이만 허용) 있어야 통과한다. AI만 정한 답은 검증으로 바꾸지 않는다.
+- **실행 경계**: 실행하는 것은 생성된 문제에 들어 있는 고정 Python 코드(`code`)뿐이고, 세트를 만들 때 한 번만
+  Pyodide(WebAssembly)로 실행한다. 문제마다 새 worker thread, 불러온 뒤 3초 강제 종료, 출력 4,000자 제한,
+  메모리 안의 기본 파일 시스템만 쓰며 `js`·`pyodide`·`micropip` 같은 JavaScript 연결 모듈은 지우고 import를 막는다.
+  실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를 기록한다. 시간 초과나 Pyodide 로딩 실패는
+  `ai_unverified`와 이유로 남는다. **학습자가 쓴 답·설명은 어떤 경우에도 실행하지 않는다**(실행되는 입력 칸이 없다).
+  import 차단은 JavaScript로 나가는 길을 막는 방어 장치이지 검증된 보안 격리(sandbox)가 아니다. 그래서 실행 대상을
+  생성된 문제 코드로 한정한다.
+- **푼 기록**: 학습 상태 schema 3의 `attempts`. 문제 스냅샷, 예측, 확신(낮음/보통/높음), 결과, 채점 방식(보기 자동
+  /내가 채점), 내 설명, 근거 상태 스냅샷, 다음 복습. 틀림(확실했는데 틀림 포함) 1일, 맞았지만 확신 낮음·보통 3일,
+  확실히 맞음 7일. 백업·동기화는 기록처럼 ID 단위로 합치고 설명은 나중에 고친 쪽을 쓴다. schema 2 이하 파일은
+  빈 `attempts`로 올라가며, schema 2만 아는 PC는 새 파일을 읽지 못하므로 두 PC 모두 새 버전이 필요하다.
+- **읽기 전용 저장소**: 학습자 저장소(예: glorious-purpose 로컬 클론)는 이 PC의 `backend/learning/sources.json`
+  (Git 제외, 백업 제외) 또는 환경 변수 `DUVI_EVIDENCE_REPOS`(경로를 `;`로 구분, 예
+  `DUVI_EVIDENCE_REPOS=C:\Users\<사용자>\glorious-purpose`)로 정한다. 코드에 기본 경로는 없다. Duvi는 파일을
+  읽고 `git log`(고정 인자, 셸 없음, 5초 제한)와 JUnit XML 테스트 결과 파일을 읽기만 하며, 그 저장소에서
+  코드를 실행하거나 쓰거나 push하지 않는다. 저장소 밖으로 나가는 경로·심볼릭 링크와 `.git` 안은 읽지 않는다.
+- **돌아보기**: 왼쪽은 자기 완료 표시(이해나 숙달이 아님), 오른쪽은 기록이 보여 주는 근거 수(질문 기록 열린 질문/내
+  설명, 확인 문제 근거 상태별, 커밋·테스트, 오늘 복습). 근거가 없으면 0 대신 "아직 증거 없음", 저장소가 없으면
+  "설정된 저장소 없음"이라고 쓴다. 숫자는 변화 기록이지 점수가 아니다.
+- **화면 모듈 연결**: `createLearningViewApi(request,{open,lectureName})`로 api를 만들고
+  `renderQuizScreen(root,api,{lectureId,segmentId})`, `renderLectureQuizTab(root,api,{lectureId})`,
+  `renderReviewScreen(root,api)`를 부른다. 스타일은 `src/quiz-view.css`, `src/review-view.css`.
+  `node scripts/preview-views.mjs <폴더>`는 예시 데이터로 두 화면을 1536·1280 폭에서 찍는다.
