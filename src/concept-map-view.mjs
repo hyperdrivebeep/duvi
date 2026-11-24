@@ -185,7 +185,8 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   }
   function focusCurrent() {
     if (!focusIds.length) return;
-    const ok = fitBox(nodesBox(focusIds.map(id => nodeOf.get(id))), 1);
+    // Include the band heading row above the concepts so it is not left under the note line.
+    const box = nodesBox(focusIds.map(id => nodeOf.get(id))), ok = fitBox({...box, y: box.y - GRAPH.bandHeader, height: box.height + GRAPH.bandHeader}, 1);
     note.textContent = ok ? `지금 강의의 개념 ${focusIds.length}개로 옮겼습니다.` : `지금 강의의 개념 ${focusIds.length}개가 화면보다 넓게 퍼져 있어 첫 개념부터 보입니다.`;
   }
   function reveal(id) {

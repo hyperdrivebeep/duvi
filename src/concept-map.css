@@ -2,7 +2,7 @@
    No left accent bars, no nested bordered boxes, no colored pills; status is text (with a glyph), 14px minimum. */
 .cmap, .cmap-graph, .cmap-lecture {
   --cmap-ink: #111a2d; --cmap-muted: #617088; --cmap-line: #e5eaf1; --cmap-soft: #f2f5fa; --cmap-canvas: #f8fafd;
-  --cmap-selected: #eaf2ff; --cmap-accent: #1769e8; --cmap-focus: #75a6f0; --cmap-edge: #8a96a8;
+  --cmap-selected: #eaf2ff; --cmap-accent: #1769e8; --cmap-focus: #3b7ddd; --cmap-edge: #7b8799;
 }
 .cmap {
   display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px); grid-template-rows: auto minmax(0, 1fr);
@@ -82,9 +82,9 @@
 .cmap-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .cmap-legend-line { display: inline-block; width: 28px; border-top: 2px solid var(--cmap-edge); }
 .cmap-legend-line.cmap-dashed { border-top-style: dashed; }
-.cmap-fit-note { position: absolute; left: 16px; top: 12px; right: 16px; margin: 0; font-size: 14px; color: var(--cmap-ink); pointer-events: none; }
-.cmap-fit-note:empty { display: none; }
-.cmap-fit-note:not(:empty) { width: fit-content; max-width: calc(100% - 32px); padding: 4px 10px; background: rgb(255 255 255 / 92%); border-radius: 6px; }
+.cmap-fit-note { position: absolute; left: 0; top: 0; right: 0; min-height: 40px; margin: 0; padding: 9px 16px; font-size: 14px; line-height: 22px; color: var(--cmap-ink);
+  background: var(--cmap-canvas); border-bottom: 1px solid var(--cmap-line); pointer-events: none; }
+/* The note line is reserved even when empty; fits start content below it (64px), so a note never covers a heading or node. */
 
 /* Inspector */
 .cmap-inspector { min-height: 0; overflow: auto; padding: 20px 24px; border-left: 1px solid var(--cmap-line); }

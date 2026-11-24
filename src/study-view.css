@@ -158,3 +158,5 @@
 /* At 1536×864 a 16:9 video at full column width pushes the toolbar below the fold; the video yields the difference
    (pillarboxed) so header, video, time strip, both caption lines, toolbar and status row fit the first viewport. */
 @media(min-width:1101px){.stage:not(.study-focus)>.media-slot{width:100%;max-height:calc(100dvh - 312px)}}
+/* The video's own UA ring is 1px dark on the dark stage; the media slot clips outside, so the ring sits inside the video. */
+.media-slot video:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}

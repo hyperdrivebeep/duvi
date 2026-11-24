@@ -47,6 +47,8 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   }
   function setActive(active){
     if(active===entered)return;
+    // The ⚙ popover holds different settings in each mode; leaving or entering fullscreen (also by the browser's own Escape) closes it.
+    setSettings(false);
     isolate(active);
     entered=active;stage.classList.toggle('study-focus',active);
     document.body.classList.toggle('study-focused',active);
