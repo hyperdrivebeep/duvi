@@ -14,7 +14,8 @@
     "start": "node server.mjs",
     "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/sentences.test.mjs \"backend/tests/learning*.test.mjs\" tests/library-ui.test.mjs \"tests/learning-ui*.test.mjs\" tests/media.test.mjs tests/study-guide.test.mjs tests/study-view.test.mjs tests/sites-worker.test.mjs",
     "pretest": "vite build && node scripts/prepare-sites-build.mjs",
-    "docs:study-guide": "node scripts/study-guide.mjs"
+    "docs:study-guide": "node scripts/study-guide.mjs",
+    "data:concept-map": "node scripts/concept-map-data.mjs"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-kr": "^5.3.0",
