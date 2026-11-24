@@ -207,3 +207,15 @@
 .study-focus .cite-preview{background:#232e40;box-shadow:0 6px 20px #0008}
 .study-focus .chat-anchor,.study-focus .chat-send-context{color:#bfcada}
 .study-focus .chat-send-title{color:#fff}
+/* 2026-11-24 integration: under the composer only the auto-record line and one "⋯ 보낼 설정" line; the model, auto pause,
+   새 대화 and 보낼 자료 open from it, and its summary states what the next question carries. */
+.learning-stage-content .chat-context{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-settings{flex:none;font-size:14px}
+.chat-settings>summary{display:flex;gap:var(--space-2);min-height:32px;align-items:center;cursor:pointer;list-style:none;color:var(--muted)}
+.chat-settings>summary::-webkit-details-marker{display:none}
+.chat-settings-title{flex:none;color:var(--blue);font-weight:600}
+.chat-settings-state{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-settings[open]{display:grid;gap:var(--space-2);padding-bottom:var(--space-1)}
+.chat-keys{margin:0;font-size:14px}
+.study-focus .chat-settings>summary{color:#bfcada}
+.study-focus .chat-settings-title{color:#9cc3ff}

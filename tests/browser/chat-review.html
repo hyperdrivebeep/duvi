@@ -36,6 +36,20 @@ await check('Starter buttons keep keyboard focus as playback advances',()=>{
   const {state,chat}=panel();state.records=[];chat.sync();const starter=root.querySelector('.chat-starters button');
   starter.focus();chat.tick(8);chat.tick(9);eq(document.activeElement,starter);
 });
+await check('The composer keeps one auto-record line; model, auto pause, 새 대화 and 보낼 자료 sit behind ⋯ 보낼 설정 with a summary',()=>{
+  localStorage.removeItem('duvi-chat-context');localStorage.setItem('duvi-chat-autopause','off');
+  const counts=[];const {chat}=panel({onCount:count=>counts.push(count)});
+  const settings=root.querySelector('details.chat-settings');eq(!!settings,true);eq(settings.open,false);
+  for(const selector of ['select[aria-label="답변 모델"]','.chat-toggle input','.chat-new','.chat-send-context'])eq(settings.contains(root.querySelector(selector)),true);
+  eq(root.querySelector('.chat-context').textContent,'보내면 이 시각의 질문으로 자동 기록 · AI 답은 제안');
+  eq(settings.contains(root.querySelector('.chat-context')),false);eq(settings.contains(root.querySelector('.chat-composer')),false);
+  eq([...root.querySelectorAll('.chat-filters button')].map(node=>node.textContent).join(),'전체 1,열린 질문 0');
+  const state=()=>root.querySelector('.chat-settings-state').textContent;eq(state(),'대본 ±1분 · 노트 포함');
+  const transcript=root.querySelector('.chat-send-context input');transcript.click();eq(state(),'대본 안 보냄 · 노트 포함');
+  chat.autoPause.click();eq(state(),'대본 안 보냄 · 노트 포함 · 보내면 멈춤');
+  root.querySelector('.chat-new').click();eq(state().endsWith('새 대화'),true);
+  eq(counts.at(-1),1);transcript.click();
+});
 await check('Equal span counts across lectures still update the last option',()=>{
   const strip=new TimeStrip(root,{jump(){}});strip.set([],1100);eq(strip.range.options[1].textContent,'10:00–18:20');
   strip.set([],1120);eq(strip.range.options[1].textContent,'10:00–18:40');

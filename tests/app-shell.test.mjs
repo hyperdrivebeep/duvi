@@ -46,3 +46,39 @@ test('the first explanation on an open question schedules a review the next day;
   await ui.saveExplanation({record:{...open,reviewDueAt:'2026-12-01T00:00:00.000Z'}},'고침','none',2);
   assert.equal(saved[1].reviewDueAt,'2026-12-01T00:00:00.000Z');
 });
+import {setupShell} from '../src/app-shell.mjs';
+import {routeTarget,segmentIdAt,ROUTE_KINDS} from '../src/app-routes.mjs';
+import {sendSettingsSummary} from '../src/learning-chat-model.mjs';
+test('switching rail views only hides sections; the lecture stage keeps the same media element and is shown again',()=>{
+  const saved=globalThis.document,node=(id,extra={})=>({id,hidden:false,attributes:{},dataset:{},setAttribute(k,v){this.attributes[k]=String(v);},getAttribute(k){return this.attributes[k]??null;},removeAttribute(k){delete this.attributes[k];},getClientRects:()=>[{}],focus(){},contains:()=>false,addEventListener(){},...extra});
+  const video=node('video'),study=node('study',{children:[video]});
+  const nodes={study,video,'view-map':node('view-map',{hidden:true}),'view-quiz':node('view-quiz',{hidden:true}),'view-review':node('view-review',{hidden:true}),libraryPanel:node('libraryPanel',{hidden:true}),openLibrary:node('openLibrary'),closeLibrary:node('closeLibrary'),librarySearch:node('librarySearch')};
+  const items=['lecture','map','quiz','review'].map(view=>node(`rail-${view}`,{dataset:{view}}));
+  globalThis.document={getElementById:id=>nodes[id],querySelectorAll:()=>items,activeElement:null};
+  try{
+    const shown=[],shell=setupShell({onShow:(view,previous)=>shown.push(`${previous}>${view}`)});
+    shell.show('quiz');assert.equal(study.hidden,true);assert.equal(nodes['view-quiz'].hidden,false);assert.equal(items[2].getAttribute('aria-current'),'page');
+    items[3].onclick();shell.show('settings');assert.equal(shell.current(),'review');
+    shell.show('lecture');assert.equal(study.hidden,false);assert.equal(study.children[0],video);assert.equal(nodes.video,video);
+    assert.deepEqual(shown,['lecture>quiz','quiz>review','review>lecture']);
+    shell.show('lecture');assert.equal(shown.length,3,'showing the current view again does not re-run onShow');
+  }finally{globalThis.document=saved;}
+});
+test('open(target) from the quiz and review modules reaches one handler per kind; an unknown kind does nothing',async()=>{
+  const calls=[],handlers=Object.fromEntries(ROUTE_KINDS.map(kind=>[kind,target=>{calls.push([kind,target]);}]));
+  assert.equal(routeTarget({kind:'quiz',lectureId:'1',segmentId:'s600'},handlers),true);
+  assert.deepEqual(calls[0],['quiz',{kind:'quiz',lectureId:'1',segmentId:'s600'}]);
+  for(const kind of ['lecture','repo','records','review','roadmap','backup','sources','settings','resource','note'])routeTarget({kind},handlers);
+  assert.deepEqual(calls.map(([kind])=>kind),['quiz','lecture','repo','records','review','roadmap','backup','sources','settings','resource','note']);
+  assert.equal(routeTarget({kind:'delete'},handlers),false);assert.equal(routeTarget(null,handlers),false);assert.equal(routeTarget({kind:'map'},{}),false);
+  assert.equal(await routeTarget({kind:'roadmap'},{roadmap:async()=>'opened'}),'opened');
+  assert.equal(calls.length,11);
+});
+test('the rail 확인 문제 opens the ten-minute segment that holds the playback time',()=>{
+  assert.deepEqual([0,22,599.9,600,1325,-5,undefined].map(segmentIdAt),['s0','s0','s0','s600','s1200','s0','s0']);
+});
+test('the composer\'s ⋯ 보낼 설정 summary states what the next question carries',()=>{
+  assert.equal(sendSettingsSummary({transcript:true,notes:true}),'대본 ±1분 · 노트 포함');
+  assert.equal(sendSettingsSummary({transcript:false,notes:false,autoPause:true,startNew:true}),'대본 안 보냄 · 노트 없음 · 보내면 멈춤 · 새 대화');
+  assert.equal(sendSettingsSummary({transcript:true,notes:false,span:30}),'대본 ±30초 · 노트 없음');
+});

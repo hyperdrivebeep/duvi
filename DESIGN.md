@@ -323,10 +323,8 @@ Shell: a 76px rail (`--rail-width`) on every screen, top to bottom Duvi, ▶ 강
 ◇ 개념 지도, ◆ 확인 문제, ≡ 돌아보기, then ⚙ 설정 at the bottom. Each item is a glyph over
 a 14px label; the current item has the neutral `--fill` (#eef1f5) background and bold
 weight, never an accent bar. 개념 지도, 확인 문제 and 돌아보기 are views at the stable mount
-points `#view-map`, `#view-quiz`, `#view-review`; until their features land they say
-"준비 중" plainly. 돌아보기 also holds what the old 학습 tab had: next task, 학습 로드맵,
-내 기록 (count and open questions), 복습, 백업·동기화, 현재 시점 기록 남기기 and this
-lecture's records. Switching views hides the lecture view without rebuilding the media
+points `#view-map`, `#view-quiz`, `#view-review`; 개념 지도 says "준비 중" plainly until the
+concept map lands, and 확인 문제 and 돌아보기 are the screens of §14. Switching views hides the lecture view without rebuilding the media
 element and pauses playback, so returning finds the same time (`src/app-shell.mjs`).
 
 내 강의: the former sidebar is a panel (fixed, left of the main area, 300–380px wide,
@@ -341,8 +339,8 @@ at full column width; the time strip and both caption lines on the dark band
 three lines before it scrolls); then the sentence toolbar and the status rows. Both
 caption lines are inside the first viewport at 1280×800 and 1536×864. The right panel
 is 372px (`--panel-width`), full height and sticky, with tabs 질문 · 개념 · 확인 문제 ·
-대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) and
-확인 문제 (`#lectureQuiz`) are mount points with an empty state. The panel is always
+대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) is a mount
+point with an empty state; 확인 문제 (`#lectureQuiz`) is the checkpoint list of §14. The panel is always
 present in the normal view; only fullscreen can close it (its × and 대본 toggle).
 Fullscreen keeps §8/§12: 380px panel, hidden header and status rows, captions docked.
 
@@ -351,8 +349,7 @@ its time link, 나 and **자동 기록됨**; the answer shows its time link and 
 Under each question: 내 설명 쓰기 / 고치기 (the explanation stays apart from the AI
 answer), **자세히** (opens the full record editor — evidence fields, history, Markdown,
 AI 도움 — as `#recordDialog`), and **다시 묻기** when no complete answer arrived. Time
-links are plain accent text, not pills. The composer note says the question is recorded
-at that time and that the answer is a suggestion from the learner's own connection.
+links are plain accent text, not pills. The composer and its settings are as in §14.
 
 Record contract: sending creates the user message and its record in one server write
 (`LearningStore.askQuestion`); the message carries `recordId`. The record has the
@@ -369,3 +366,49 @@ learner writes an explanation under them.
 Evidence: `npm test` (backend and UI model tests) and a browser run against an
 isolated copy of the data with `DUVI_CHAT_MOCK=1` at 1280×800 and 1536×864, including
 true fullscreen through a real click. Real ChatGPT answers were not observed.
+
+## 14. Integration: 확인 문제, 돌아보기 and lecture polish (2026-11-24)
+
+The shell of §13 now mounts the quiz and evidence modules of docs/LEARNING_DESIGN.md
+(`src/quiz-view.mjs`, `src/review-view.mjs`, styles in `quiz-view.css` / `review-view.css`).
+
+Screens: rail **확인 문제** shows `renderQuizScreen` in `#view-quiz` for the current lecture and
+the ten-minute segment that holds the playback time (`segmentIdAt`, `s<start>`); a 강의 select
+above it switches lectures, and with no lecture it shows only that select and one line. Rail
+**돌아보기** shows `renderReviewScreen` in `#view-review`. Both fill the height beside the rail,
+scroll their own page above a 60px bottom bar, and are mounted once and reloaded when shown
+again. The lecture panel's 확인 문제 tab shows `renderLectureQuizTab` (one checkpoint per
+segment, 풀기/만들기). The old 돌아보기 list (`#learningStudy`) is gone: its next task, roadmap,
+records, review and backup entries are the review module's bottom bar and "다른 곳" links, and
+현재 시점 기록 남기기 is one more link there.
+
+Links (`open(target)`, `src/app-routes.mjs`): lecture → load and seek; quiz → the quiz screen
+at that lecture and segment; roadmap / records / review / backup → the existing 학습 로드맵
+dialog at that tab; settings → 설정; sources and repo → 설정's 읽기 전용 저장소 section
+(`src/sources-settings.mjs`: list with ✓/✕, add a folder by full path, remove, and for a repo
+link the location with 위치 복사, since Duvi does not open repository files); resource → the
+roadmap resource; note → 현재 시점 기록 남기기. An unknown kind does nothing. Quiz, settings,
+sources and repo leave fullscreen first. None of this rebuilds the lecture stage: the media
+element, playback time and composer draft survive every switch.
+
+Sentence toolbar (normal view): one row, ⏮ 이전 · ↻ 다시 · ⏭ 다음 on the left (full names in
+aria-label and title), then 질문하기, **⚙ <speed>** and ⛶. ⚙ opens a popover above the button
+with 속도 and 문장 끝 자동 멈춤; in fullscreen it opens below and adds 자막 위치, 자막 크기 and
+**강의 완료로 표시** (fullscreen hides the header button; both stay in sync). ⚙ again, Escape
+(in native fullscreen the browser's Escape also leaves fullscreen) or a click outside closes it, and the
+fullscreen controls do not auto-hide while it is open. The status row
+holds the translation summary and 재생·자막 정보 on one line; the separate 전체 대본 button is gone
+(대본 is a panel tab). At 1536×864 the video yields up to 60px (pillarboxed,
+`max-height: calc(100dvh - 312px)`) so the lecture screen does not scroll at 1280×800 or 1536×864.
+
+Fullscreen top controls: one row left of the panel — 이전 · 다시 · 다음, then 질문하기, 대본,
+⚙, 나가기. The corner ⚙ handle shows only while the controls are hidden; it reveals them and
+opens the popover.
+
+질문 tab: the head is 이 강의 · 시간순 with 전체 n / 열린 질문 n (no 대본 filter). Under the composer
+there are two lines only: "보내면 이 시각의 질문으로 자동 기록 · AI 답은 제안" (full sentence in its
+title) and the **⋯ 보낼 설정** disclosure, closed by default, whose summary states what the next
+question carries (`sendSettingsSummary`, e.g. "대본 ±1분 · 노트 포함 · 보내면 멈춤"). Inside: model,
+보낼 때 멈추기, 새 대화, the 보낼 자료 checks and the keyboard hint. Tabs show counts when known:
+**질문 n** (items in this lecture's stream) and **확인 문제 n** (items in this lecture's sets, not
+counting reported ones); no number when zero.

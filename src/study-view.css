@@ -108,9 +108,9 @@
    372px panel beside them at full height. Fullscreen keeps its own layout above (380px panel). */
 .study-focus>:is(.study-header,.status-bar,#status,.caption-notice,.lecture-details){display:none}
 @media(min-width:1101px){
-  .stage:not(.study-focus){display:grid;grid-template-columns:minmax(0,1fr) var(--panel-width);grid-template-rows:repeat(9,auto) 1fr;column-gap:0;min-height:100dvh}
+  .stage:not(.study-focus){display:grid;grid-template-columns:minmax(0,1fr) var(--panel-width);grid-template-rows:repeat(9,auto) minmax(0,1fr);column-gap:0;min-height:100dvh}
   .stage:not(.study-focus)>:not(.transcript-panel){grid-column:1}
-  .stage:not(.study-focus)>.transcript-panel{grid-column:2;grid-row:1/-1;position:sticky;top:0;height:100dvh;align-self:start;margin:0;padding:0 var(--space-4);border-top:0;border-left:1px solid var(--line);background:#fff}
+  .stage:not(.study-focus)>.transcript-panel{grid-column:2;grid-row:1/-1;position:sticky;top:0;height:100dvh;align-self:start;contain:size;margin:0;padding:0 var(--space-4);border-top:0;border-left:1px solid var(--line);background:#fff}
   .stage:not(.study-focus) .learning-panel-head{padding:0;min-height:48px}
   .stage:not(.study-focus) .learning-stage-content{max-height:none;flex:1;min-height:0;padding:var(--space-3) 0}
   .stage:not(.study-focus) .learning-chat{height:auto}
@@ -126,3 +126,35 @@
 .stage:not(.study-focus) .korean{font-size:22px;line-height:1.5;letter-spacing:0;color:#fff}
 .stage:not(.study-focus)>.toolbar{padding:var(--space-3) 0}
 .stage:not(.study-focus) .sentence-controls button{min-height:44px;padding:8px 14px}
+
+/* 2026-11-24 integration: the sentence toolbar is one row at 1280 and 1536 (short labels; speed, auto pause and the
+   fullscreen caption settings behind ⚙), and fullscreen's top controls are one row above the video. */
+.toolbar,.stage.has-transcript>.toolbar{flex-wrap:nowrap}
+.view-controls{gap:var(--space-2)}
+.study-settings{position:relative;display:flex}
+#studySettings{gap:6px;min-height:44px;padding:0 12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#studySettings[aria-expanded=true]{background:var(--fill);font-weight:700}
+.settings-popover{position:absolute;z-index:30;right:0;bottom:calc(100% + 8px);display:grid;gap:var(--space-2);min-width:260px;padding:var(--space-3);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px #0002;color:var(--ink)}
+.settings-popover[hidden]{display:none}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:40px;font-size:14px;white-space:nowrap}
+.settings-row select,.view-controls .settings-row select{width:auto;min-width:120px;min-height:36px}
+.settings-popover .toggle{justify-content:space-between}
+.settings-complete:empty{display:none}
+.settings-complete .learning-complete{width:100%;min-height:44px}
+.stage:not(.study-focus) .settings-popover .fullscreen-caption-size{display:none}
+.study-focus>.toolbar{right:12px;flex-wrap:nowrap;overflow:visible;align-items:center}
+.study-focus.has-transcript>.toolbar{right:392px}
+.study-focus .view-controls{flex-wrap:nowrap}
+.study-focus:not(.controls-hidden) .study-controls-handle{display:none}
+.study-focus .settings-popover{top:calc(100% + 8px);bottom:auto;background:#141922;border-color:#ffffff26;color:#fff;box-shadow:0 8px 28px #0008}
+.study-focus .settings-popover select,.study-focus .settings-popover .learning-complete{background:#232e40;color:#fff;border-color:#ffffff26}
+.study-focus #studySettings[aria-expanded=true]{background:#34445d}
+/* The translation status and 재생·자막 정보 share one short row under the toolbar (대본 is the panel's own tab). */
+.stage:not(.study-focus)>.status-bar{padding:4px 0;flex-wrap:wrap}
+.status-bar .translation-summary{min-height:36px}
+.status-bar .lecture-details{margin:0 0 0 auto;padding:0;border:0}
+.status-bar .lecture-details>summary{min-height:36px;display:flex;align-items:center;cursor:pointer}
+.status-bar .lecture-details[open]{flex-basis:100%;margin:0;padding:0 0 var(--space-2)}
+/* At 1536×864 a 16:9 video at full column width pushes the toolbar below the fold; the video yields the difference
+   (pillarboxed) so header, video, time strip, both caption lines, toolbar and status row fit the first viewport. */
+@media(min-width:1101px){.stage:not(.study-focus)>.media-slot{width:100%;max-height:calc(100dvh - 312px)}}

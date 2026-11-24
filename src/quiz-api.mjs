@@ -2,6 +2,7 @@
 // (GET without a body, POST with CSRF otherwise). `open(target)` lets the shell navigate:
 //   {kind:'lecture', lectureId, seconds} · {kind:'quiz', lectureId, segmentId} · {kind:'repo', repo, path, line}
 //   {kind:'records'} · {kind:'review'} · {kind:'roadmap'} · {kind:'backup'} · {kind:'sources'} · {kind:'settings'} · {kind:'resource', resource}
+//   {kind:'note'} (현재 시점 기록 남기기: a record at the lecture's playback time without asking the tutor). See app-routes.mjs.
 export function createLearningViewApi(request,{open=()=>{},lectureName=id=>`강의 ${id}`}={}){
   const id=value=>encodeURIComponent(String(value));
   return {

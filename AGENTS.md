@@ -74,10 +74,10 @@ On 2026-11-21 the user approved the B+ learning-screen direction ("좋다 duvi�
 docs/design/2026-11-19-notebook-ui, section B+). Keep the wide video and two caption lines,
 Duvi's time strip under the player with question markers (filled = my explanation, hollow =
 open question; a marker seeks and pauses), the 질문하기 panel as one lecture-time-ordered stream
-("이 강의 · 시간순") with a 지금 line and 전체/열린 질문/대본 filters, citation previews on time
-chips inside AI answers, the learner's explanation written under its question and saved apart
-from the AI answer, the question time captured when typing starts, and "보낼 자료" checks that
-change what the server sends. (The library sidebar and on-demand panel of B+ were replaced by
+("이 강의 · 시간순") with a 지금 line and 전체/열린 질문 filters (대본 is the panel's own tab since
+2026-11-24), citation previews on time chips inside AI answers, the learner's explanation written under
+its question and saved apart from the AI answer, the question time captured when typing starts, and
+"보낼 자료" checks that change what the server sends. (The library sidebar and on-demand panel of B+ were replaced by
 shell A on 2026-11-24.)
 
 ## App shell A and automatic question records (2026-11-24)
@@ -88,8 +88,14 @@ the 개념 지도 screen. Keep a narrow rail (Duvi, 강의, 개념 지도, 확�
 place on every screen, current item by neutral fill and weight. 내 강의 is a panel opened from the
 lecture header's ☰ 내 강의 button. The lecture screen keeps the wide video, time strip and both
 caption lines in the first viewport at 1280×800 and 1536×864, with a 372px side panel (380px in
-fullscreen) whose tabs are 질문 / 개념 / 확인 문제 / 대본. `#view-map`, `#view-quiz`, `#view-review`,
-`#lectureConcepts` and `#lectureQuiz` are the mount points for the concept map, quiz and evidence work.
+fullscreen) whose tabs are 질문 / 개념 / 확인 문제 / 대본, with counts when known (질문 n, 확인 문제 n).
+`#view-quiz`, `#view-review` and `#lectureQuiz` show the check-question and review modules (below);
+`#view-map` and `#lectureConcepts` stay the concept map's mount points. The lecture screen does not scroll
+at 1280×800 or 1536×864: the sentence toolbar is one row (이전 · 다시 · 다음, 질문하기, ⚙ speed, ⛶), and
+speed, auto pause and fullscreen caption place/size live in the ⚙ popover. Fullscreen top controls are one
+row (이전 · 다시 · 다음, 질문하기, 대본, ⚙, 나가기) and 강의 완료로 표시 is in fullscreen's ⚙. Under the question
+composer keep only the auto-record line and a closed "⋯ 보낼 설정" disclosure whose summary states what is
+sent (model, 보낼 때 멈추기, 새 대화 and the 보낼 자료 checks are inside it). DESIGN.md §13–14.
 Questions are recorded automatically when they are sent: the question becomes an open-question
 learning record at the time typing started, the AI answer is attached when it completes, and the
 기록 tab and the 기록으로 저장 button were removed. The full record editor opens from a question's
@@ -110,4 +116,6 @@ hard timeout and no JavaScript bridge; learner-written code or answers are never
 repositories (default from `DUVI_EVIDENCE_REPOS` or the local, gitignored `backend/learning/sources.json`,
 e.g. a glorious-purpose clone; never a hard-coded path) are read-only: Duvi reads files, `git log` and test
 result files and never runs, writes or pushes there. 돌아보기 keeps self-marks apart from evidence and shows
-"아직 증거 없음" instead of a zero. Details: docs/LEARNING_DESIGN.md.
+"아직 증거 없음" instead of a zero. Links from these screens open the existing places (lecture at a time,
+the roadmap dialog's tabs, 설정's read-only repository list) and never rebuild the lecture stage, so
+media, time and drafts survive. Details: docs/LEARNING_DESIGN.md.

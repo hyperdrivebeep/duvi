@@ -35,6 +35,13 @@ export function composerAction(event){
  */
 export function typingAnchor(anchor,value,now){if(!value.trim())return null;return anchor??now;}
 export function questionSeconds(anchor,now){return typeof anchor==='number'?anchor:now;}
+/** The summary line of the composer's ⋯ 보낼 설정 disclosure: what the next question carries, e.g. "대본 ±1분 · 노트 포함". */
+export function sendSettingsSummary({transcript,notes,autoPause=false,startNew=false,span=CONTEXT_SECONDS}){
+  const parts=[transcript?`대본 ±${span%60?`${span}초`:`${span/60}분`}`:'대본 안 보냄',notes?'노트 포함':'노트 없음'];
+  if(autoPause)parts.push('보내면 멈춤');
+  if(startNew)parts.push('새 대화');
+  return parts.join(' · ');
+}
 export function contextRange(seconds,span=CONTEXT_SECONDS){return `${formatTime(Math.max(0,seconds-span))}–${formatTime(seconds+span)}`;}
 /** Which extra material goes with a question; both are on unless the learner turned one off. */
 export function chatContextChoice(storage){let saved={};try{saved=JSON.parse(storage.getItem(CHAT_CONTEXT_KEY)||'{}')||{};}catch{}return {transcript:saved.transcript!==false,notes:saved.notes!==false};}

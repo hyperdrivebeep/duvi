@@ -1,6 +1,6 @@
 import {el,button,busy} from './learning-dom.mjs';
 import {formatTime,HELP,apiErrorMessage} from './learning-model.mjs';
-import {CHAT_AUTOPAUSE_KEY,CHAT_MODEL_KEY,CHAT_CONTEXT_KEY,chatAutoPause,chatContextChoice,textSegments,composerAction,lectureThreads,typingAnchor,questionSeconds,contextRange,lectureNoteCount} from './learning-chat-model.mjs';
+import {CHAT_AUTOPAUSE_KEY,CHAT_MODEL_KEY,CHAT_CONTEXT_KEY,chatAutoPause,chatContextChoice,textSegments,composerAction,lectureThreads,typingAnchor,questionSeconds,contextRange,lectureNoteCount,sendSettingsSummary} from './learning-chat-model.mjs';
 import {lectureStream,filterStream,streamCounts,nowIndex,unanswered} from './learning-stream-model.mjs';
 
 const STARTERS=['방금 부분을 쉬운 비유로 설명해 줘','지금 코드가 한 줄씩 무슨 일을 하는지 알려 줘','이 개념을 확인할 작은 문제 하나 내 줘'];
@@ -12,8 +12,8 @@ const dayText=value=>new Date(value).toLocaleDateString('ko-KR',{month:'long',da
  * order, with a "지금" line, a composer that keeps the time the learner started typing, and answers streamed live.
  */
 export class ChatPanel{
-  constructor(root,{api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails=()=>{},openSettings,openTranscript,cueAt,saveExplanation,latestExplanation}){
-    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation});
+  constructor(root,{api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails=()=>{},openSettings,cueAt,saveExplanation,latestExplanation,onCount=()=>{}}){
+    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails,openSettings,cueAt,saveExplanation,latestExplanation,onCount});
     this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.filter='all';this.anchor=null;
     this.nodes=new Map();this.editing=new Set();this.clock='';this.questions=new Map();
     try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
@@ -24,14 +24,19 @@ export class ChatPanel{
     const head=el('div','chat-head');
     this.filters=el('div','chat-filters');this.filters.setAttribute('role','group');this.filters.setAttribute('aria-label','흐름 보기');
     this.allButton=button('전체',()=>this.setFilter('all'));this.openButton=button('열린 질문',()=>this.setFilter('open'));
-    this.filters.append(this.allButton,this.openButton,button('대본',()=>this.openTranscript()));
+    // 대본 is the panel's own tab, so the stream filters are only 전체 and 열린 질문.
+    this.filters.append(this.allButton,this.openButton);
     head.append(el('h3','chat-title','이 강의 · 시간순'),this.filters);
+    // ⋯ 보낼 설정: the model, auto pause, 새 대화 and the 보낼 자료 checks sit behind one disclosure whose summary line
+    // always states what the next question will carry.
+    this.settings=el('details','chat-settings');const settingsSummary=el('summary');
+    this.settingsState=el('span','chat-settings-state');settingsSummary.append(el('span','chat-settings-title','⋯ 보낼 설정'),this.settingsState);
     const options=el('div','chat-options');
     this.modelSelect=el('select');this.modelSelect.setAttribute('aria-label','답변 모델');this.modelSelect.append(new Option('모델 불러오는 중…',''));
     this.modelSelect.addEventListener('change',()=>{try{localStorage.setItem(CHAT_MODEL_KEY,this.modelSelect.value);}catch{}});
     const pause=el('label','chat-toggle');this.autoPause=el('input');this.autoPause.type='checkbox';this.autoPause.checked=chatAutoPause(localStorage);
     this.autoPause.addEventListener('change',()=>{try{localStorage.setItem(CHAT_AUTOPAUSE_KEY,this.autoPause.checked?'on':'off');}catch{}});
-    pause.append(this.autoPause,document.createTextNode('보낼 때 멈추기'));
+    pause.append(this.autoPause,document.createTextNode('보낼 때 멈추기'));this.autoPause.addEventListener('change',()=>this.renderComposer());
     this.newButton=button('새 대화',()=>{this.startNew=!this.startNew;this.threadId=this.startNew?null:this.threads()[0]?.id||null;this.notice.textContent='';this.render();this.input.focus();},'chat-new');
     this.newButton.title='다음 질문을 이전 대화와 따로 시작합니다';
     options.append(this.modelSelect,pause,this.newButton);
@@ -54,11 +59,13 @@ export class ChatPanel{
     const sendContext=el('div','chat-send-context');sendContext.setAttribute('role','group');sendContext.setAttribute('aria-label','보낼 자료');
     const choice=chatContextChoice(localStorage),check=(name,checked)=>{const label=el('label'),input=el('input'),text=el('span');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>this.saveContextChoice());label.append(input,text);this[name]={input,text};return label;};
     sendContext.append(el('span','chat-send-title','보낼 자료'),check('sendTranscript',choice.transcript),check('sendNotes',choice.notes));
-    const hint=el('p','muted chat-context','보내면 이 시각의 질문 기록으로 자동 저장됩니다. AI 답은 제안이며 내 ChatGPT 연결로 받습니다. Enter 보내기 · Shift+Enter 줄바꿈');
-    root.append(head,options,this.log,this.cite,this.notice,this.form,sendContext,hint);
+    const full='보내면 이 시각의 질문 기록으로 자동 저장됩니다. AI 답은 제안이며 내 ChatGPT 연결로 받습니다.';
+    const hint=el('p','muted chat-context','보내면 이 시각의 질문으로 자동 기록 · AI 답은 제안');hint.title=full;
+    this.settings.append(settingsSummary,options,sendContext,el('p','muted chat-keys','Enter 보내기 · Shift+Enter 줄바꿈 · AI 답은 내 ChatGPT 연결로 받습니다.'));
+    root.append(head,this.log,this.cite,this.notice,this.form,hint,this.settings);
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
-  saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}}
+  saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}this.renderComposer();}
   open(focus=true){this.sync();this.reveal(this.nodes.get('now')?.node,'center');void this.loadModels();if(focus)this.input.focus({preventScroll:true});}
   /** A newly opened lecture, or a panel whose threads just loaded, continues the most recent conversation unless the learner chose 새 대화. */
   sync(){
@@ -90,6 +97,7 @@ export class ChatPanel{
     this.sendTranscript.text.textContent=`${contextRange(seconds)} 대본`;
     const notes=lectureNoteCount(this.getState().records,this.lectureId,this.getState().chats);
     this.sendNotes.text.textContent=`이 강의 내 노트 ${notes}`;this.sendNotes.input.disabled=!notes;
+    this.settingsState.textContent=sendSettingsSummary({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked&&!!notes,autoPause:this.autoPause.checked,startNew:!!this.startNew});
   }
   items(){
     const items=this.lectureId===undefined?[]:lectureStream(this.getState(),this.lectureId),live=this.streaming;
@@ -102,7 +110,7 @@ export class ChatPanel{
     return items;
   }
   renderLog(){
-    const items=this.items(),shown=filterStream(items,this.filter),counts=streamCounts(items);
+    const items=this.items(),shown=filterStream(items,this.filter),counts=streamCounts(items);this.onCount(counts.all);
     this.allButton.textContent=`전체 ${counts.all}`;this.openButton.textContent=`열린 질문 ${counts.open}`;
     this.allButton.setAttribute('aria-pressed',String(this.filter==='all'));this.openButton.setAttribute('aria-pressed',String(this.filter==='open'));
     if(!items.length||!shown.length){

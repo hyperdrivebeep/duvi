@@ -59,7 +59,7 @@ export function renderReviewScreen(root,api){
   }
   function more(){
     const nav=el('div','review-more');nav.append(el('span','review-muted','다른 곳:'));
-    for(const [label,kind] of [['학습 로드맵','roadmap'],['내 기록','records'],['복습','review'],['백업·복원','backup']])nav.append(linkButton(label,()=>api.open({kind})));
+    for(const [label,kind] of [['학습 로드맵','roadmap'],['내 기록','records'],['복습','review'],['백업·복원','backup'],['현재 시점 기록 남기기','note']])nav.append(linkButton(label,()=>api.open({kind})));
     return nav;
   }
   function nextStep(){
