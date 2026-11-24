@@ -59,7 +59,7 @@ export function renderQuizScreen(root,api,{lectureId,segmentId,lecturePicker}={}
   function selectSegment(id){view.segmentId=id;view.index=0;view.regenerate=false;resetQuestion();view.gen={...view.gen,state:'idle',preview:null,error:''};render();}
   function header(){
     const head=el('div','quiz-head'),title=el('h1','','확인 문제');
-    if(lecturePicker){head.append(title,lecturePicker,el('span','quiz-muted quiz-cut',segment()?`${segmentLabel(segment())} 구간`:''));return head;}
+    if(lecturePicker){const cut=el('span','quiz-muted quiz-cut',segment()?`${segmentLabel(segment())} 구간`:'');cut.title=cut.textContent;head.append(title,lecturePicker,cut);return head;}
     const place=segment()?`${view.status.title} · ${segmentLabel(segment())} 구간`:view.status?.title||'';
     head.append(title,el('span','quiz-muted quiz-cut',place));return head;
   }

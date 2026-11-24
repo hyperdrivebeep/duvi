@@ -81,7 +81,7 @@ export class LearningUI{
   /** The lecture header: curriculum place and completion (돌아보기 is review-view.mjs). */
   renderPanel(){
     const current=this.capture(),resource=current?lectureResource(this.roadmap,current.lectureId,current.title):null,done=resource&&resourceCompleted(this.roadmap,this.state.progress,resource);
-    document.getElementById('lecturePlace').textContent=current?curriculumPlace(this.roadmap,current.lectureId):'';
+    const place=document.getElementById('lecturePlace');place.textContent=place.title=current?curriculumPlace(this.roadmap,current.lectureId):'';
     if(this.completionLectureId!==current?.lectureId){this.completionNotice.textContent='';this.completionLectureId=current?.lectureId;}
     for(const node of this.completeButtons||[]){node.disabled=!this.loaded||!current||this.saving;node.textContent=done?'✓ 강의 완료 · 취소':'○ 강의 완료로 표시';node.setAttribute('aria-pressed',String(!!done));}
   }

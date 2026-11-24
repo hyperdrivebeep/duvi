@@ -120,10 +120,11 @@
 .stage:not(.study-focus)>.time-strip{padding:var(--space-1) var(--space-5);background:var(--stage);color:#bfcada}
 .stage:not(.study-focus)>.captions{margin:0;min-height:0;max-height:none;height:auto;padding:var(--space-2) var(--space-6) var(--space-4);gap:var(--space-1);border-radius:0;background:var(--stage);text-align:center;grid-template-rows:auto auto}
 .stage:not(.study-focus) .caption-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.stage:not(.study-focus) .caption-row{max-height:4.5em;overflow:auto;scrollbar-width:thin;scrollbar-gutter:auto}
+.stage:not(.study-focus) .caption-row{max-height:calc(4.5 * 19px);overflow:auto;scrollbar-width:thin;scrollbar-gutter:auto}
 .stage:not(.study-focus) .caption-row+.caption-row{border:0;margin:0;padding:0}
 .stage:not(.study-focus) .english{font-size:19px;line-height:1.5;letter-spacing:0;color:#dce3ee}
 .stage:not(.study-focus) .korean{font-size:22px;line-height:1.5;letter-spacing:0;color:#fff}
+.stage:not(.study-focus) .caption-row:has(.korean){max-height:calc(4.5 * 22px)}
 .stage:not(.study-focus)>.toolbar{padding:var(--space-3) 0}
 .stage:not(.study-focus) .sentence-controls button{min-height:44px;padding:8px 14px}
 
@@ -157,6 +158,6 @@
 .status-bar .lecture-details[open]{flex-basis:100%;margin:0;padding:0 0 var(--space-2)}
 /* At 1536×864 a 16:9 video at full column width pushes the toolbar below the fold; the video yields the difference
    (pillarboxed) so header, video, time strip, both caption lines, toolbar and status row fit the first viewport. */
-@media(min-width:1101px){.stage:not(.study-focus)>.media-slot{width:100%;max-height:calc(100dvh - 312px)}}
+@media(min-width:1101px){.stage:not(.study-focus)>.media-slot{width:100%;max-height:min(calc(100dvh - 312px),var(--media-fit,100dvh))}}
 /* The video's own UA ring is 1px dark on the dark stage; the media slot clips outside, so the ring sits inside the video. */
 .media-slot video:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}

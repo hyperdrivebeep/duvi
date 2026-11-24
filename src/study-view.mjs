@@ -16,12 +16,20 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
   const captionRows=[...stage.querySelectorAll('.captions .caption-row')];
-  // Docked captions keep the tallest height seen in the current layout, so the video does not jump between sentences.
+  // Docked captions (fullscreen dock and the normal desktop view) keep the tallest height seen in the current layout, so
+  // the video does not jump between sentences. In the normal view a sentence taller than the reserved caption space
+  // would scroll the page; the video yields that height instead (--media-fit caps the video, at most 160px shorter).
+  const desktop=matchMedia('(min-width:1101px)'),slot=stage.querySelector('.media-slot');
+  let fullHeight=0;
   function holdCaptions(){
-    if(!entered||stage.dataset.captionPlacement!=='dock')return;
+    if(entered?stage.dataset.captionPlacement!=='dock':!desktop.matches)return;
     for(const row of captionRows){const height=row.getBoundingClientRect().height;if(height>parseFloat(row.style.minHeight||'0'))row.style.minHeight=`${height}px`;}
+    if(entered)return;
+    const over=document.documentElement.scrollHeight-innerHeight,height=slot.getBoundingClientRect().height;
+    if(!stage.style.getPropertyValue('--media-fit'))fullHeight=height;
+    if(over>0)stage.style.setProperty('--media-fit',`${Math.max(fullHeight-160,height-over)}px`);
   }
-  function resetCaptions(){for(const row of captionRows)row.style.minHeight='';requestAnimationFrame(holdCaptions);}
+  function resetCaptions(){for(const row of captionRows)row.style.minHeight='';stage.style.removeProperty('--media-fit');requestAnimationFrame(holdCaptions);}
   new MutationObserver(holdCaptions).observe(stage.querySelector('.captions'),{childList:true,characterData:true,subtree:true});
   addEventListener('resize',resetCaptions);
   function isolate(active){
