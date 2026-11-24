@@ -80,8 +80,14 @@ export function mergeThread(local,incoming){
     messages:groups.flat()};
   return {thread:merged,changed:JSON.stringify(merged)!==JSON.stringify(local)};
 }
+/** An attempt is only edited to add the learner's explanation, so the copy edited last wins. */
+export function mergeAttempt(local,incoming){
+  if(JSON.stringify(local)===JSON.stringify(incoming))return {attempt:local,changed:false};
+  const incomingWins=time(incoming.updatedAt)>time(local.updatedAt)||(time(incoming.updatedAt)===time(local.updatedAt)&&incoming.revision>local.revision);
+  return incomingWins?{attempt:{...incoming,revision:Math.max(local.revision,incoming.revision)},changed:true}:{attempt:local,changed:false};
+}
 export function mergeLearning(current,incoming,devices){
-  const summary={added:0,updated:0,kept:0,same:0,conflicts:[],progressAdded:0,progressUpdated:0,chatsAdded:0,chatsUpdated:0};
+  const summary={added:0,updated:0,kept:0,same:0,conflicts:[],progressAdded:0,progressUpdated:0,chatsAdded:0,chatsUpdated:0,attemptsAdded:0,attemptsUpdated:0};
   const records=new Map(current.records.map(row=>[row.id,row]));
   for(const row of incoming.records){
     const local=records.get(row.id);if(!local){records.set(row.id,row);summary.added++;continue;}
@@ -99,7 +105,12 @@ export function mergeLearning(current,incoming,devices){
     const local=chats.get(row.id);if(!local){chats.set(row.id,row);summary.chatsAdded++;continue;}
     const {thread,changed}=mergeThread(local,row);chats.set(row.id,thread);if(changed)summary.chatsUpdated++;
   }
-  return {learning:{...current,records:[...records.values()],progress,chats:[...chats.values()]},summary};
+  const attempts=new Map(current.attempts.map(row=>[row.id,row]));
+  for(const row of incoming.attempts){
+    const local=attempts.get(row.id);if(!local){attempts.set(row.id,row);summary.attemptsAdded++;continue;}
+    const {attempt,changed}=mergeAttempt(local,row);attempts.set(row.id,attempt);if(changed)summary.attemptsUpdated++;
+  }
+  return {learning:{...current,records:[...records.values()],progress,chats:[...chats.values()],attempts:[...attempts.values()]},summary};
 }
 
 export class LearningSync{
@@ -204,7 +215,7 @@ export class LearningSync{
       await this.writer(this.before,structuredClone(current));
       const captions=await this.captions.receive(entry.folder,entry.peer.deviceId,entry.captions);
       Object.assign(summary,captions.summary);
-      current.records=merged.learning.records;current.progress=merged.learning.progress;current.chats=merged.learning.chats;
+      current.records=merged.learning.records;current.progress=merged.learning.progress;current.chats=merged.learning.chats;current.attempts=merged.learning.attempts;
     }).then(state=>{this.tokens.delete(body.token);return {state,summary,positions:entry.peer.positions};});
   }
 }

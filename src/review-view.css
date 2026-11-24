@@ -1,0 +1,25 @@
+/* 돌아보기 (redesign A, #a-review). Shares the tokens and table rules declared in quiz-view.css. */
+.review-screen{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;background:var(--q-bg)}
+.review-page{flex:1;min-height:0;overflow:auto;padding:22px 28px}
+.review-page h1{font-size:22px;line-height:1.3;margin:0 0 8px}
+.review-page h2{font-size:16px;margin:0}
+.review-muted{color:var(--q-muted);font-size:14px;margin:0}
+.review-state{margin:6px 0}
+.review-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 36px;padding:12px 0 18px}
+.review-big{font-size:28px;font-weight:700;line-height:1.2;margin:2px 0;font-variant-numeric:tabular-nums}
+.review-counts th{width:110px;color:var(--q-ink);font-weight:400}
+.review-counts td:last-child{white-space:nowrap;width:1%}
+.review-log{padding:18px 0;border-top:1px solid var(--q-line)}
+.review-log-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:6px}
+.review-filters{display:flex;flex-wrap:wrap;gap:4px}
+.review-filter{border:0;background:none;font:inherit;font-size:14px;color:var(--q-muted);min-height:32px;padding:0 10px;border-radius:8px;cursor:pointer}
+.review-filter[aria-pressed=true]{background:var(--q-fill);color:var(--q-ink);font-weight:600}
+.review-num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.review-log td:nth-child(2){white-space:nowrap}
+.review-log .review-muted{margin-top:8px}
+.review-link{border:0;background:none;padding:0;font:inherit;font-size:14px;color:var(--q-accent);cursor:pointer}
+.review-more{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:12px 0;border-top:1px solid var(--q-line)}
+.review-next{flex:1;min-width:0}
+.review-next p{margin:0}
+.review-cut{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.review-primary{flex:none;white-space:nowrap;min-height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--q-accent);color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}

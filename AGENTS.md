@@ -98,3 +98,16 @@ until the learner writes their own explanation; the first explanation schedules 
 same way the explanation-save path does (next day). Visual rules: no left accent bars, no nested
 bordered boxes, no repeated coloured pills, accent only for the primary action, current position
 and links, status by glyph and text, text at least 14px.
+
+
+## Check questions and review evidence
+
+On 2026-11-24 the user chose the redesign and answered its defaults: check questions (확인 문제) are
+generated only on an explicit, previewed request through the learner's ChatGPT connection, and each answer
+carries its evidence: real output of the question's fixed code, a verbatim quote, the learner's own
+confirmation, or "AI 제안 · 정답 미검증". Only fixed problem code runs, once at generation, in Pyodide with a
+hard timeout and no JavaScript bridge; learner-written code or answers are never run. The learner's
+repositories (default from `DUVI_EVIDENCE_REPOS` or the local, gitignored `backend/learning/sources.json`,
+e.g. a glorious-purpose clone; never a hard-coded path) are read-only: Duvi reads files, `git log` and test
+result files and never runs, writes or pushes there. 돌아보기 keeps self-marks apart from evidence and shows
+"아직 증거 없음" instead of a zero. Details: docs/LEARNING_DESIGN.md.
