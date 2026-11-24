@@ -3,7 +3,7 @@
 .video-fullscreen:hover{background:#26344b}
 .transcript-actions{display:flex;align-items:center;gap:4px}
 .cue .ko{word-break:keep-all;overflow-wrap:anywhere}
-.stage.has-transcript{display:grid;grid-template-columns:minmax(0,1fr) 320px;column-gap:20px}
+.stage.has-transcript{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-width);column-gap:0}
 .stage.has-transcript>.media-slot,.stage.has-transcript>.time-strip,.stage.has-transcript>.captions,.stage.has-transcript>.toolbar{grid-column:1}
 .stage.has-transcript>.transcript-panel{grid-column:2;grid-row:1/5;margin:0;padding-left:16px;border-top:0;border-left:1px solid var(--line);min-width:0;min-height:0;display:flex;flex-direction:column}
 .stage.has-transcript .transcript{flex:1;min-height:0}
@@ -29,14 +29,14 @@
 /* B+ widens the fullscreen panel to 380px so a question, its answer and my explanation read as one group. */
 .stage.study-focus.has-transcript{grid-template-columns:minmax(0,1fr) 380px}
 .study-focus>.time-strip{grid-column:1;grid-row:2;padding:4px 16px;background:#0f141d;color:#bfcada}
-.study-focus .strip-range{background:#0f141d;color:#dce3ee}
-.study-focus .strip-track::before{background:#ffffff2e}
-.study-focus .strip-played{background:#75a6f0}
-.study-focus .strip-head{background:#9cc3ff}
-.study-focus .strip-marker::before{border-color:#9cc3ff;background:#0f141d}
-.study-focus .strip-marker.filled::before{background:#9cc3ff}
-.study-focus .strip-marker:hover{background:#26344b}
-.study-focus .strip-clock{color:#fff}
+.stage .strip-range{background:#0f141d;color:#dce3ee}
+.stage .strip-track::before{background:#ffffff2e}
+.stage .strip-played{background:#75a6f0}
+.stage .strip-head{background:#9cc3ff}
+.stage .strip-marker::before{border-color:#9cc3ff;background:#0f141d}
+.stage .strip-marker.filled::before{background:#9cc3ff}
+.stage .strip-marker:hover{background:#26344b}
+.stage .strip-clock{color:#fff}
 .study-focus>.media-slot{grid-column:1;grid-row:1;width:100%;height:100%;min-height:0;min-width:0;aspect-ratio:auto;border-radius:0}
 .study-focus .video-fullscreen,.study-focus #fullscreen{display:none}
 .study-focus>.captions{grid-column:1;grid-row:3;min-height:0;max-height:none;height:auto;margin:0;padding:8px 20px;gap:12px;border-radius:0;background:#141922;text-align:center;grid-template-rows:repeat(2,minmax(0,auto))}
@@ -61,10 +61,10 @@
 .study-focus .toolbar button,.study-focus .toolbar select,.study-focus .study-controls-handle{min-height:44px;background:#232e40;color:#fff;border-color:#ffffff26}
 .study-focus .toolbar button:hover,.study-focus .study-controls-handle:hover{background:#34445d}
 .study-focus .sentence-controls{gap:6px}
-.study-focus .sentence-controls button{padding:8px 10px;font-size:13px;min-height:44px}
+.study-focus .sentence-controls button{padding:8px 10px;font-size:14px;min-height:44px}
 .study-focus .sentence-controls button[aria-pressed=true]{background:#194989;color:#fff;border-color:#75a6f0;box-shadow:none}
 .study-focus .view-controls{margin:0 0 0 auto;gap:8px;flex-wrap:wrap}
-.study-focus .fullscreen-caption-size{display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
+.study-focus .fullscreen-caption-size{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap}
 .study-focus #captionPlacement{width:140px}
 .study-focus #captionSize{width:85px}
 .study-focus .immersive-only{display:inline-flex}
@@ -73,7 +73,7 @@
 .study-focus.has-transcript>.study-controls-handle{right:392px}
 .study-focus>.transcript-panel{grid-column:2;grid-row:1/4;min-height:0;padding:0;border-left:1px solid #ffffff26;background:#141922;color:#fff}
 .study-focus .transcript-head{padding:10px;flex:none}
-.study-focus .transcript-head button{background:#232e40;border-color:#ffffff26;color:#fff;font-size:12px;padding:8px}
+.study-focus .transcript-head button{background:#232e40;border-color:#ffffff26;color:#fff;font-size:14px;padding:8px}
 .study-focus .transcript-head h3 span{display:none}
 .study-focus .transcript{max-height:none}
 .study-focus .cue{background:transparent;color:#e8edf5;border-color:#ffffff1a;grid-template-columns:40px minmax(0,1fr);gap:4px 8px;padding:12px}
@@ -95,7 +95,7 @@
   .study-focus.has-transcript>.toolbar{right:58px}
   .study-focus.has-transcript>.study-controls-handle{right:6px}
   .study-focus .sentence-controls{width:100%}
-  .study-focus .sentence-controls button{padding:6px;font-size:12px;gap:4px}
+  .study-focus .sentence-controls button{padding:6px;font-size:14px;gap:4px}
   .study-focus .sentence-controls svg{width:14px}
   .study-focus .view-controls{justify-content:flex-start;margin:0;gap:6px}
 }
@@ -103,3 +103,26 @@
   .study-focus>.captions{max-height:none;padding:4px 12px;gap:10px}
   .study-focus .caption-row,.study-focus .english,.study-focus .korean{font-size:min(var(--fullscreen-caption-size,22px),20px);line-height:1.5}
 }
+
+/* App shell A (2026-11-24): the lecture header, a dark band with video, time strip and both caption lines, and the
+   372px panel beside them at full height. Fullscreen keeps its own layout above (380px panel). */
+.study-focus>:is(.study-header,.status-bar,#status,.caption-notice,.lecture-details){display:none}
+@media(min-width:1101px){
+  .stage:not(.study-focus){display:grid;grid-template-columns:minmax(0,1fr) var(--panel-width);grid-template-rows:repeat(9,auto) 1fr;column-gap:0;min-height:100dvh}
+  .stage:not(.study-focus)>:not(.transcript-panel){grid-column:1}
+  .stage:not(.study-focus)>.transcript-panel{grid-column:2;grid-row:1/-1;position:sticky;top:0;height:100dvh;align-self:start;margin:0;padding:0 var(--space-4);border-top:0;border-left:1px solid var(--line);background:#fff}
+  .stage:not(.study-focus) .learning-panel-head{padding:0;min-height:48px}
+  .stage:not(.study-focus) .learning-stage-content{max-height:none;flex:1;min-height:0;padding:var(--space-3) 0}
+  .stage:not(.study-focus) .learning-chat{height:auto}
+  .stage:not(.study-focus)>:is(.toolbar,.status-bar,#status,.caption-notice,.lecture-details){margin-left:var(--space-5);margin-right:var(--space-5)}
+}
+.stage:not(.study-focus)>.media-slot{border-radius:0}
+.stage:not(.study-focus)>.time-strip{padding:var(--space-1) var(--space-5);background:var(--stage);color:#bfcada}
+.stage:not(.study-focus)>.captions{margin:0;min-height:0;max-height:none;height:auto;padding:var(--space-2) var(--space-6) var(--space-4);gap:var(--space-1);border-radius:0;background:var(--stage);text-align:center;grid-template-rows:auto auto}
+.stage:not(.study-focus) .caption-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.stage:not(.study-focus) .caption-row{max-height:4.5em;overflow:auto;scrollbar-width:thin;scrollbar-gutter:auto}
+.stage:not(.study-focus) .caption-row+.caption-row{border:0;margin:0;padding:0}
+.stage:not(.study-focus) .english{font-size:19px;line-height:1.5;letter-spacing:0;color:#dce3ee}
+.stage:not(.study-focus) .korean{font-size:22px;line-height:1.5;letter-spacing:0;color:#fff}
+.stage:not(.study-focus)>.toolbar{padding:var(--space-3) 0}
+.stage:not(.study-focus) .sentence-controls button{min-height:44px;padding:8px 14px}

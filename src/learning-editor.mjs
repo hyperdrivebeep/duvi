@@ -13,7 +13,7 @@ export class LearningEditor{
     const top=el('div','learning-actions');this.newButton=button('현재 시점에서 새 기록',()=>this.newRecord());top.append(this.newButton);
     const pause=el('label','learning-confirm');this.autoPause=el('input');this.autoPause.type='checkbox';this.autoPause.checked=questionAutoPause(localStorage);this.autoPause.addEventListener('change',()=>{try{localStorage.setItem(QUESTION_AUTOPAUSE_KEY,this.autoPause.checked?'on':'off');}catch{}});pause.append(this.autoPause,document.createTextNode('질문을 열면 영상 멈추기'));top.append(pause);root.append(top);
     this.anchorSummary=el('p','muted');this.anchorText=el('blockquote','learning-anchor');this.notice=el('p','notice');this.notice.setAttribute('role','status');
-    this.aiAnswer=el('details','learning-ai-saved');this.aiAnswerText=el('p','learning-preserve');this.aiAnswer.append(el('summary','','질문하기에서 저장한 AI 튜터 답변 · 제안'),this.aiAnswerText);
+    this.aiAnswer=el('details','learning-ai-saved');this.aiAnswerText=el('p','learning-preserve');this.aiAnswer.append(el('summary','','AI 제안 · 질문 탭에서 받은 답'),this.aiAnswerText);
     this.form=el('form');this.fields=el('fieldset','learning-fields');this.form.append(this.fields);root.append(this.anchorSummary,this.anchorText,this.aiAnswer,this.form,this.notice);
     for(const name of ['title','question','explanation']){const entry=field(labels[name],name,{rows:name==='title'?1:3});this.inputs[name]=entry.input;this.fields.append(entry.wrap);}
     const optional=el('details','learning-evidence');optional.append(el('summary','','이 설명을 시험하기 · 근거·가정 보기'));

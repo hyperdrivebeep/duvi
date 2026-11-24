@@ -2,8 +2,9 @@ import {cueAt} from './core.mjs';
 import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
+import {setupShell} from './app-shell.mjs';
 import {LearningUI} from './learning-ui.mjs';
-import {makeAnchor,anchorState,questionAutoPause} from './learning-model.mjs';
+import {makeAnchor,anchorState} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
 import {parseEvents} from './learning-chat-model.mjs';
 import './library.css';
@@ -204,7 +205,9 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시 듣기';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
-const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:()=>learningUI.chat.open(),onQuestionOpen:()=>{const paused=!!lecture&&!video.paused&&questionAutoPause(localStorage);if(paused)video.pause();if(!learningUI.editor.record)learningUI.editor.newRecord();if(paused)learningUI.editor.notePaused(video.currentTime);},onLearningOpen:()=>learningUI.renderPanel()});
+const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:focus=>learningUI.chat.open(focus)});
+// Leaving the lecture pauses it, so 개념 지도·확인 문제·돌아보기 return to the same time; the media instance is only hidden, never rebuilt.
+const shell=setupShell({onShow:(view,previous)=>{if(previous==='lecture')video.pause();if(view==='review')learningUI.renderPanel();}});
 video.addEventListener('timeupdate',update);video.addEventListener('seeked',()=>{positionState.allowWrite(lecture?.number);lastTime=video.currentTime;update();void translateAhead();});
 video.addEventListener('error',()=>{$('status').textContent=video.lastError||'영상을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.';});
 window.addEventListener('beforeunload',()=>{save();savePosition();});
@@ -212,26 +215,23 @@ async function refreshLibrary(selected){return libraryUI.refresh(selected);}
 function savePosition(){if(!lecture||!lectureReady||video.lastError||!Number.isFinite(video.currentTime))return;try{positionState.save(lecture.number,video.currentTime);}catch{}resumeSaved=Date.now();}
 function renderLibrary(){libraryUI.render();}
 const dialogOpeners=new Map();
-function openDialog(id,opener=document.activeElement){if($('mobileLibrary').open&&id!=='mobileLibrary')closeDialog('mobileLibrary');dialogOpeners.set(id,opener);$(id).showModal();if(id==='importDialog')$('youtubeUrl').focus();}
+function openDialog(id,opener=document.activeElement){dialogOpeners.set(id,opener);$(id).showModal();if(id==='importDialog')$('youtubeUrl').focus();}
 function closeDialog(id){if($(id).open)$(id).close();}
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDialog(b.dataset.open,b));
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeDialog(b.dataset.close));
 document.querySelectorAll('dialog').forEach(d=>d.addEventListener('close',()=>{
-  if(d.id==='mobileLibrary')$('shell').prepend($('libraryPanel'));
   const opener=dialogOpeners.get(d.id),key=opener?.dataset.libraryFocus;
   const target=opener?.isConnected?opener:key?[...document.querySelectorAll('[data-library-focus]')].find(node=>node.dataset.libraryFocus===key):null;
-  if(target?.getClientRects().length)target.focus();else $(matchMedia('(max-width:960px)').matches?'openLibrary':'addLecture').focus();
+  if(target?.getClientRects().length)target.focus();else $(shell.current()==='lecture'?'openLibrary':'study').focus();
 }));
-$('openLibrary').onclick=()=>{$('mobileLibrary').append($('libraryPanel'));openDialog('mobileLibrary',$('openLibrary'));$('librarySearch').focus();};
-matchMedia('(max-width:960px)').addEventListener('change',e=>{if(!e.matches)closeDialog('mobileLibrary');});
 $('translationToSettings').onclick=()=>{closeDialog('translationDialog');openDialog('settingsDialog',document.querySelector('[data-open="translationDialog"]'));};
 function scrollToCue(){const node=nodes[current];if(node)$('transcript').scrollTop=node.offsetTop-20;}
 $('followTranscript').onclick=()=>{follow=true;scrollToCue();};
 for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEventListener(event,()=>{follow=false;},{passive:true});
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
-document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,button,a,[contenteditable=true]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
-const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,playPositions,format:fmt});
-const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>closeDialog('mobileLibrary'),getModel:()=>$('model').value,
+document.addEventListener('keydown',e=>{if(shell.current()!=='lecture'||e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,button,a,[contenteditable=true]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
+const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,closeLibrary:()=>shell.closeLibrary(),playPositions,format:fmt});
+const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>shell.closeLibrary(),showView:view=>shell.show(view),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),
   onRestorePositions:()=>positionState.restore(lecture?.number,video.paused),
   resumeSync:{
@@ -240,12 +240,13 @@ const learningUI=new LearningUI({api,stream:streamApi,player:{time:()=>video.cur
   },
   cueAt:seconds=>{const i=lecture?.cues.length?cueAt(lecture.cues,seconds):-1;return i>=0?{en:lecture.cues[i].en,ko:translated(i)||''}:null;},
   capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,
-  onOpen:async resource=>{await refreshLibrary(resource.lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(resource.lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=resource.lectureId;await load(resource.lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
+  onOpen:async resource=>{shell.show('lecture');await refreshLibrary(resource.lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(resource.lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=resource.lectureId;await load(resource.lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
   onPrepare:()=>refreshLibrary($('lecture').value),
-  onJump:async anchor=>{if(!anchor)throw new Error('저장한 원문 연결이 없습니다.');const target=await api(`/api/lectures/${encodeURIComponent(anchor.lectureId)}`),cache=await api(`/api/translations/${encodeURIComponent(anchor.lectureId)}`);const aligned=cache.cues&&cache.alignmentRevision?{...target,cues:cache.cues,alignmentRevision:cache.alignmentRevision}:target,result=anchorState(anchor,aligned);if(result.status!=='matched')return result;if(String(lecture?.number)!==String(anchor.lectureId)){$('lecture').value=anchor.lectureId;await load(anchor.lectureId);}video.currentTime=anchor.seconds;update();return result;}
+  onJump:async anchor=>{if(!anchor)throw new Error('저장한 원문 연결이 없습니다.');const target=await api(`/api/lectures/${encodeURIComponent(anchor.lectureId)}`),cache=await api(`/api/translations/${encodeURIComponent(anchor.lectureId)}`);const aligned=cache.cues&&cache.alignmentRevision?{...target,cues:cache.cues,alignmentRevision:cache.alignmentRevision}:target,result=anchorState(anchor,aligned);if(result.status!=='matched')return result;shell.show('lecture');if(String(lecture?.number)!==String(anchor.lectureId)){$('lecture').value=anchor.lectureId;await load(anchor.lectureId);}video.currentTime=anchor.seconds;update();return result;}
 });
 try{
   await refreshSession();const wanted=new URLSearchParams(location.search).get('lecture')||localStorage.getItem('mit6100-lecture')||'1';await refreshLibrary(wanted);await load($('lecture').value);
 }catch(error){$('aiStatus').textContent=error.message;$('status').textContent=error.message;}
+studyView.openPanel('chat',{focus:false});
 void learningUI.init();
 setInterval(async()=>{if(polling||accountBusy)return;polling=true;try{await refreshSession();}catch(error){$('aiStatus').textContent=error.message;}finally{polling=false;}},3000);

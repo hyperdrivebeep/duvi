@@ -4,15 +4,20 @@ import {isOpenQuestion,formatTime} from './learning-model.mjs';
 const sameLecture=(record,id)=>String(record.lectureId??record.anchor?.lectureId)===id;
 /**
  * One lecture's questions in lecture-time order: each chat question with the answers that followed it,
- * plus records written outside the chat. A chat answer saved as a record carries that record, so the
- * learner's own explanation stays separate from the AI answer.
+ * plus records written outside the chat. A question sent since 2026-11-24 carries its own record; an older
+ * answer saved with 기록으로 저장 carries it on the answer. Either way the learner's own explanation stays
+ * separate from the AI answer.
  */
 export function lectureStream({chats=[],records=[]},lectureId){
   const id=String(lectureId),local=new Map(records.filter(row=>sameLecture(row,id)).map(row=>[row.id,row])),linked=new Set(),items=[];
   for(const thread of chats.filter(row=>row.lectureId===id)){
     let group=null;
     for(const message of thread.messages){
-      if(message.role==='user'){group={kind:'qa',key:`${thread.id}:${message.id}`,threadId:thread.id,seconds:message.seconds,at:message.at,question:message,answers:[],record:null};items.push(group);continue;}
+      if(message.role==='user'){
+        const own=message.recordId&&local.get(message.recordId);
+        group={kind:'qa',key:`${thread.id}:${message.id}`,threadId:thread.id,seconds:message.seconds,at:message.at,question:message,answers:[],record:own||null};items.push(group);
+        if(own)linked.add(own.id);continue;
+      }
       if(!group)continue;
       group.answers.push(message);
       const record=message.recordId&&local.get(message.recordId);
@@ -23,6 +28,8 @@ export function lectureStream({chats=[],records=[]},lectureId){
   for(const item of items){item.explained=!!item.record?.explanation?.trim();item.open=item.record?isOpenQuestion(item.record):true;}
   return items.sort((a,b)=>a.seconds-b.seconds||String(a.at).localeCompare(String(b.at)));
 }
+/** A chat question with no complete answer yet (none arrived, or it was stopped or cut off): it can be asked again. */
+export function unanswered(item){return item.kind==='qa'&&!item.answers.some(row=>row.role==='assistant'&&!['stopped','interrupted'].includes(row.status));}
 export function streamCounts(items){return {all:items.length,open:items.filter(item=>item.open).length};}
 export function filterStream(items,filter){return filter==='open'?items.filter(item=>item.open):items;}
 /** Where the "지금 mm:ss" line goes: before the first item asked after the playback time. */

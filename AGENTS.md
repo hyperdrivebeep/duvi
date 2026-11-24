@@ -66,9 +66,9 @@ On 2026-11-18 the user asked for real-time answers while watching, "like using G
 as a side chat", instead of a question that is only saved. Keep the 질문하기 chat
 beside the video (normal and fullscreen) streaming answers through the learner's own
 ChatGPT connection, with conversations kept per lecture in local learning state.
-The answer is labelled as an AI suggestion and becomes a learning record only when
-the learner presses 기록으로 저장. `DUVI_CHAT_MOCK=1` is a QA-only stand-in and
-must never be enabled by default or reported as real answer quality.
+The answer is labelled as an AI suggestion (AI 제안). Since 2026-11-24 a question is
+recorded automatically when it is sent (see below). `DUVI_CHAT_MOCK=1` is a QA-only
+stand-in and must never be enabled by default or reported as real answer quality.
 
 On 2026-11-21 the user approved the B+ learning-screen direction ("좋다 duvi는 구현하거라";
 docs/design/2026-11-19-notebook-ui, section B+). Keep the wide video and two caption lines,
@@ -77,4 +77,24 @@ open question; a marker seeks and pauses), the 질문하기 panel as one lecture
 ("이 강의 · 시간순") with a 지금 line and 전체/열린 질문/대본 filters, citation previews on time
 chips inside AI answers, the learner's explanation written under its question and saved apart
 from the AI answer, the question time captured when typing starts, and "보낼 자료" checks that
-change what the server sends. The library sidebar stays; the panel still opens on demand.
+change what the server sends. (The library sidebar and on-demand panel of B+ were replaced by
+shell A on 2026-11-24.)
+
+## App shell A and automatic question records (2026-11-24)
+
+On 2026-11-24 the user chose alternative A of docs/design/2026-11-24-app-redesign (branch
+design/app-redesign) as the app structure, with alternative C's concept map + progress table as
+the 개념 지도 screen. Keep a narrow rail (Duvi, 강의, 개념 지도, 확인 문제, 돌아보기, 설정) in the same
+place on every screen, current item by neutral fill and weight. 내 강의 is a panel opened from the
+lecture header's ☰ 내 강의 button. The lecture screen keeps the wide video, time strip and both
+caption lines in the first viewport at 1280×800 and 1536×864, with a 372px side panel (380px in
+fullscreen) whose tabs are 질문 / 개념 / 확인 문제 / 대본. `#view-map`, `#view-quiz`, `#view-review`,
+`#lectureConcepts` and `#lectureQuiz` are the mount points for the concept map, quiz and evidence work.
+Questions are recorded automatically when they are sent: the question becomes an open-question
+learning record at the time typing started, the AI answer is attached when it completes, and the
+기록 tab and the 기록으로 저장 button were removed. The full record editor opens from a question's
+자세히. User decision (confirmed 2026-11-24): an automatically recorded question has no review date
+until the learner writes their own explanation; the first explanation schedules the review the
+same way the explanation-save path does (next day). Visual rules: no left accent bars, no nested
+bordered boxes, no repeated coloured pills, accent only for the primary action, current position
+and links, status by glyph and text, text at least 14px.

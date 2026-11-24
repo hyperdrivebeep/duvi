@@ -7,7 +7,11 @@ export function hideControls(stage,toolbar,handle){
   if(toolbar.contains(document.activeElement))stage.focus({preventScroll:true});
   stage.classList.add('controls-hidden');handle.setAttribute('aria-expanded','false');
 }
-export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
+/**
+ * The lecture stage: one media instance, captions, the side panel (질문 / 개념 / 확인 문제 / 대본) and fullscreen.
+ * The panel is always beside the lecture in the normal view; only fullscreen can close it.
+ */
+export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
@@ -49,7 +53,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
     $('exitFullscreen').hidden=!active;
     $('fullscreen').setAttribute('aria-label',active?'전체화면 종료':'자막 포함 전체화면');
     if(active){stage.focus({preventScroll:true});showControls();}
-    else{clearTimeout(hideTimer);stage.classList.remove('controls-hidden');opener.focus({preventScroll:true});}
+    else{clearTimeout(hideTimer);stage.classList.remove('controls-hidden');showPanel(true);opener.focus({preventScroll:true});}
     resetCaptions();
   }
   async function exit(){
@@ -88,24 +92,23 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
   $('captionPlacement').value=['dock','bottom','top'].includes(placement)?placement:'dock';
   const updatePlacement=()=>{stage.dataset.captionPlacement=$('captionPlacement').value;persist('duvi-caption-placement',$('captionPlacement').value);resetCaptions();};
   $('captionPlacement').onchange=updatePlacement;updatePlacement();
-  function transcript(open){
+  function showPanel(open){
     $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);resetCaptions();
-    for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded',String(open));
-    if(open)selectTab('transcript');
+    $('studyTranscript').setAttribute('aria-expanded',String(open));
   }
-  function selectTab(name){
+  /** focus:false selects a tab without moving the keyboard into it (the first paint, a click on the tab itself). */
+  function selectTab(name,{focus=true}={}){
     for(const tab of document.querySelectorAll('[data-stage-tab]')){const selected=tab.dataset.stageTab===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
     for(const panel of document.querySelectorAll('[data-stage-panel]'))panel.hidden=panel.dataset.stagePanel!==name;
     if(name==='transcript')onTranscriptOpen();
-    if(name==='chat')onChatOpen();
-    if(name==='question')onQuestionOpen();
-    if(name==='learning')onLearningOpen();
+    if(name==='chat')onChatOpen(focus);
   }
-  function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');resetCaptions();for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
+  function openPanel(name,options){showPanel(true);selectTab(name,options);}
   const tabs=[...document.querySelectorAll('[data-stage-tab]')];
-  tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab);tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab);tabs[target].focus();}};});
+  tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab,{focus:false});tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab,{focus:false});tabs[target].focus();}};});
   $('openQuestion').onclick=()=>openPanel('chat');
-  for(const id of ['toggleTranscript','studyTranscript'])$(id).onclick=()=>transcript($('transcriptPanel').hidden);
-  $('closeTranscript').onclick=()=>{transcript(false);showControls();$(entered?'studyTranscript':'toggleTranscript').focus();};
+  $('toggleTranscript').onclick=()=>openPanel('transcript');
+  $('studyTranscript').onclick=()=>{if($('transcriptPanel').hidden)openPanel('transcript');else showPanel(false);};
+  $('closeTranscript').onclick=()=>{showPanel(false);showControls();$('studyTranscript').focus();};
   return {openPanel,exit};
 }

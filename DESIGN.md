@@ -288,6 +288,7 @@ textarea up to 160px, 보내기 / 멈추기 in the same slot); one line naming w
 Messages: learner turns right-aligned on the selected surface, tutor turns labelled
 "AI 튜터 · 제안" on the soft surface with the model name, a stopped/interrupted tag
 in the existing notice colour, and 복사 / 기록으로 저장 (or ✓ 기록에 저장됨 · 열린 질문 보기).
+(2026-11-24: the save button and the 기록 tab were removed; see §13.)
 Each turn shows its playback time as a chip; [mm:ss] inside an answer becomes a chip
 too, and every chip seeks the video. The empty state offers three starter questions.
 Dark fullscreen variants reuse #090b10/#141922/#203652/#232e40 and focus #75a6f0.
@@ -303,10 +304,68 @@ text, time, playback seconds, model, stop status and linked record). Version 1 f
 migrate to an empty list; backup counts and merges threads; folder sync merges a
 thread as the union of both PCs' messages. A saved answer becomes a record with the
 learner's question, an empty own explanation, `aiAnswer` kept apart from the
-learner fields, help level "full", and a review the next day.
+learner fields, help level "full", and a review the next day. Since §13 this path
+only serves questions asked before automatic records.
 
 Evidence: isolated server with the explicit `DUVI_CHAT_MOCK=1` test provider, the
 micrograd lecture, headed Chrome with a temporary profile, true fullscreen through a
 real click at 1280, 1536 and 1920. Captures are local files in
 `../fs-qa-shots/side-chat/` and are not committed. Real ChatGPT answers, their
 quality and latency were not observed.
+
+## 13. App shell A and automatic question records (2026-11-24)
+
+User decision: alternative A of `docs/design/2026-11-24-app-redesign` (rail + lecture +
+side panel) is the app structure; alternative C's concept map with its progress table
+becomes the 개념 지도 screen (built separately). Questions are recorded when they are sent.
+
+Shell: a 76px rail (`--rail-width`) on every screen, top to bottom Duvi, ▶ 강의,
+◇ 개념 지도, ◆ 확인 문제, ≡ 돌아보기, then ⚙ 설정 at the bottom. Each item is a glyph over
+a 14px label; the current item has the neutral `--fill` (#eef1f5) background and bold
+weight, never an accent bar. 개념 지도, 확인 문제 and 돌아보기 are views at the stable mount
+points `#view-map`, `#view-quiz`, `#view-review`; until their features land they say
+"준비 중" plainly. 돌아보기 also holds what the old 학습 tab had: next task, 학습 로드맵,
+내 기록 (count and open questions), 복습, 백업·동기화, 현재 시점 기록 남기기 and this
+lecture's records. Switching views hides the lecture view without rebuilding the media
+element and pauses playback, so returning finds the same time (`src/app-shell.mjs`).
+
+내 강의: the former sidebar is a panel (fixed, left of the main area, 300–380px wide,
+one shadow) opened by **☰ 내 강의** in the lecture header; × or Escape closes it and
+choosing a lecture closes it. Folders, import, playlist and move dialogs are unchanged.
+
+Lecture screen, top to bottom in the left column: a 56px header (☰ 내 강의, title with
+ellipsis, curriculum place such as "1. Python과 자료 생성 · 1/16" or the course when the
+lecture is outside the roadmap, **○ 강의 완료로 표시** / **✓ 강의 완료 · 취소**); the video
+at full column width; the time strip and both caption lines on the dark band
+(`--stage` #0b0d11, English 19px #dce3ee, Korean 22px #fff, centred, each line at most
+three lines before it scrolls); then the sentence toolbar and the status rows. Both
+caption lines are inside the first viewport at 1280×800 and 1536×864. The right panel
+is 372px (`--panel-width`), full height and sticky, with tabs 질문 · 개념 · 확인 문제 ·
+대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) and
+확인 문제 (`#lectureQuiz`) are mount points with an empty state. The panel is always
+present in the normal view; only fullscreen can close it (its × and 대본 toggle).
+Fullscreen keeps §8/§12: 380px panel, hidden header and status rows, captions docked.
+
+질문 tab: one time-ordered list separated by 1px lines, no bubbles. A question shows
+its time link, 나 and **자동 기록됨**; the answer shows its time link and **AI 제안**.
+Under each question: 내 설명 쓰기 / 고치기 (the explanation stays apart from the AI
+answer), **자세히** (opens the full record editor — evidence fields, history, Markdown,
+AI 도움 — as `#recordDialog`), and **다시 묻기** when no complete answer arrived. Time
+links are plain accent text, not pills. The composer note says the question is recorded
+at that time and that the answer is a suggestion from the learner's own connection.
+
+Record contract: sending creates the user message and its record in one server write
+(`LearningStore.askQuestion`); the message carries `recordId`. The record has the
+question, an empty explanation, help `none`, the cue at the typing-start time as its
+anchor and `reviewDueAt: null`, so it is an open question and not yet due. A complete
+answer fills `aiAnswer` without a new record revision; a stopped, cut-off or failed
+answer leaves it empty. The browser sends a `questionId`; sending the same id again
+(다시 묻기, or a resend after a lost start event) reuses the question and its record.
+The first explanation sets the review for the next day. No schema change: v2 already
+allowed `recordId` on any message, so backup and folder sync are unchanged. Questions
+from before this change keep the old route (`/api/learning/chat/record`) when the
+learner writes an explanation under them.
+
+Evidence: `npm test` (backend and UI model tests) and a browser run against an
+isolated copy of the data with `DUVI_CHAT_MOCK=1` at 1280×800 and 1536×864, including
+true fullscreen through a real click. Real ChatGPT answers were not observed.

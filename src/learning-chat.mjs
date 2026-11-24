@@ -1,7 +1,7 @@
 import {el,button,busy} from './learning-dom.mjs';
 import {formatTime,HELP,apiErrorMessage} from './learning-model.mjs';
 import {CHAT_AUTOPAUSE_KEY,CHAT_MODEL_KEY,CHAT_CONTEXT_KEY,chatAutoPause,chatContextChoice,textSegments,composerAction,lectureThreads,typingAnchor,questionSeconds,contextRange,lectureNoteCount} from './learning-chat-model.mjs';
-import {lectureStream,filterStream,streamCounts,nowIndex} from './learning-stream-model.mjs';
+import {lectureStream,filterStream,streamCounts,nowIndex,unanswered} from './learning-stream-model.mjs';
 
 const STARTERS=['방금 부분을 쉬운 비유로 설명해 줘','지금 코드가 한 줄씩 무슨 일을 하는지 알려 줘','이 개념을 확인할 작은 문제 하나 내 줘'];
 const STATUS={stopped:'멈춤 · 받은 부분까지',interrupted:'중간에 끊김'};
@@ -12,8 +12,8 @@ const dayText=value=>new Date(value).toLocaleDateString('ko-KR',{month:'long',da
  * order, with a "지금" line, a composer that keeps the time the learner started typing, and answers streamed live.
  */
 export class ChatPanel{
-  constructor(root,{api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation}){
-    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,applyState,seek,pause,isPlaying,openRecords,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation});
+  constructor(root,{api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails=()=>{},openSettings,openTranscript,cueAt,saveExplanation,latestExplanation}){
+    Object.assign(this,{root,api,stream,capture,time,getState,applyThread,seek,pause,isPlaying,openDetails,openSettings,openTranscript,cueAt,saveExplanation,latestExplanation});
     this.threadId=null;this.lectureId=undefined;this.streaming=null;this.models=null;this.filter='all';this.anchor=null;
     this.nodes=new Map();this.editing=new Set();this.clock='';this.questions=new Map();
     try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
@@ -48,26 +48,27 @@ export class ChatPanel{
     this.stopButton=button('멈추기',()=>void this.stop(),'chat-stop');this.stopButton.hidden=true;
     this.form.append(this.anchorChip,this.input,this.sendButton,this.stopButton);
     this.input.addEventListener('keydown',event=>{if(composerAction(event)==='send'){event.preventDefault();void this.send();}});
-    this.input.addEventListener('input',()=>{this.fit();this.anchor=typingAnchor(this.anchor,this.input.value,this.time());this.renderComposer();});
+    // An edited question is a new question; only an unchanged one sent again keeps its id (and so its record).
+    this.input.addEventListener('input',()=>{this.fit();this.questionId=null;this.anchor=typingAnchor(this.anchor,this.input.value,this.time());this.renderComposer();});
     this.form.addEventListener('submit',event=>{event.preventDefault();void this.send();});
     const sendContext=el('div','chat-send-context');sendContext.setAttribute('role','group');sendContext.setAttribute('aria-label','보낼 자료');
     const choice=chatContextChoice(localStorage),check=(name,checked)=>{const label=el('label'),input=el('input'),text=el('span');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>this.saveContextChoice());label.append(input,text);this[name]={input,text};return label;};
     sendContext.append(el('span','chat-send-title','보낼 자료'),check('sendTranscript',choice.transcript),check('sendNotes',choice.notes));
-    const hint=el('p','muted chat-context','Enter 보내기 · Shift+Enter 줄바꿈 · 이 대화의 앞선 질문과 답도 함께 보냅니다');
+    const hint=el('p','muted chat-context','보내면 이 시각의 질문 기록으로 자동 저장됩니다. AI 답은 제안이며 내 ChatGPT 연결로 받습니다. Enter 보내기 · Shift+Enter 줄바꿈');
     root.append(head,options,this.log,this.cite,this.notice,this.form,sendContext,hint);
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
   saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}}
-  open(){this.sync();this.reveal(this.nodes.get('now')?.node,'center');void this.loadModels();this.input.focus({preventScroll:true});}
+  open(focus=true){this.sync();this.reveal(this.nodes.get('now')?.node,'center');void this.loadModels();if(focus)this.input.focus({preventScroll:true});}
   /** A newly opened lecture, or a panel whose threads just loaded, continues the most recent conversation unless the learner chose 새 대화. */
   sync(){
     const lectureId=this.capture()?.lectureId;
     if(lectureId!==this.lectureId){
-      if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor,unsent:this.unsent});
+      if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor,unsent:this.unsent,questionId:this.questionId});
       else this.questions.delete(this.lectureId);
       const draft=this.questions.get(lectureId);
       this.lectureId=lectureId;this.input.value=draft?.text||'';this.anchor=draft?.anchor??null;
-      this.unsent=!!draft?.unsent;this.fit();this.startNew=false;this.threadId=null;this.editing.clear();this.hideCite();
+      this.unsent=!!draft?.unsent;this.questionId=draft?.questionId||null;this.fit();this.startNew=false;this.threadId=null;this.editing.clear();this.hideCite();
       this.notice.textContent=this.unsent?'전송되지 않음 · 질문을 확인하고 다시 보내세요.':'';
     }
     if(!this.thread()&&!this.startNew&&!this.streaming)this.threadId=this.threads()[0]?.id||null;
@@ -87,13 +88,13 @@ export class ChatPanel{
     const seconds=questionSeconds(this.anchor,this.time());
     this.anchorChip.hidden=typeof this.anchor!=='number';this.anchorTime.textContent=formatTime(seconds);
     this.sendTranscript.text.textContent=`${contextRange(seconds)} 대본`;
-    const notes=lectureNoteCount(this.getState().records,this.lectureId);
+    const notes=lectureNoteCount(this.getState().records,this.lectureId,this.getState().chats);
     this.sendNotes.text.textContent=`이 강의 내 노트 ${notes}`;this.sendNotes.input.disabled=!notes;
   }
   items(){
     const items=this.lectureId===undefined?[]:lectureStream(this.getState(),this.lectureId),live=this.streaming;
     if(live&&String(live.lectureId)===String(this.lectureId)){
-      const own=live.started&&items.find(item=>item.question?.id===live.messageId);
+      const own=(live.started||live.retry)&&items.find(item=>item.question?.id===live.messageId);
       if(own)own.live=live;
       else if(!live.started)items.push({kind:'qa',key:'live',seconds:live.seconds,question:{role:'user',text:live.question,seconds:live.seconds},answers:[],open:true,explained:false,live});
       items.sort((a,b)=>a.seconds-b.seconds);
@@ -111,7 +112,7 @@ export class ChatPanel{
     shown.forEach((item,index)=>{
       if(index===now)entries.push(nowEntry);
       entries.push({key:item.key,sig:this.groupSig(item),build:()=>this.group(item)});
-      if(!item.live&&(item.kind==='record'||item.answers.length))entries.push({key:`${item.key}:mine`,sig:this.editing.has(item.key)?'edit':JSON.stringify([item.record?.explanation,item.record?.reviewDueAt,item.record?.id]),build:()=>this.mine(item)});
+      if(!item.live&&(item.kind==='record'||item.answers.length||item.record))entries.push({key:`${item.key}:mine`,sig:this.editing.has(item.key)?'edit':JSON.stringify([item.record?.explanation,item.record?.reviewDueAt,item.record?.id,unanswered(item)]),build:()=>this.mine(item)});
     });
     if(now>=shown.length)entries.push(nowEntry);
     this.reconcile(entries);
@@ -141,7 +142,7 @@ export class ChatPanel{
   }
   groupSig(item){
     if(item.live)return `live:${item.key}`;
-    return JSON.stringify([item.kind,item.question?.text,item.answers?.map(row=>[row.id,row.text,row.status,row.recordId,row.model]),item.record?.id,item.record?.question,item.explained,item.open,this.models?.length]);
+    return JSON.stringify([item.kind,item.question?.text,item.question?.recordId,item.answers?.map(row=>[row.id,row.text,row.status,row.recordId,row.model]),item.record?.id,item.record?.question,item.explained,item.open,this.models?.length]);
   }
   group(item){
     const node=el('div','chat-group');
@@ -152,14 +153,15 @@ export class ChatPanel{
     }
     if(!item.explained&&item.open&&!item.live){const state=el('div','chat-meta');state.append(el('span','chat-state','열린 질문 · 내 설명 아직 없음'));node.append(state);}
     node.append(this.message(item.question));
-    for(const answer of item.answers)node.append(this.message(answer,false,item));
+    for(const answer of item.answers)node.append(this.message(answer));
     if(item.live){const live=item.live;node.append(this.message({role:'assistant',text:live.text,seconds:live.seconds,model:live.model},true));}
     return node;
   }
   modelName(id){return [...this.modelSelect.options].find(option=>option.value===id)?.textContent||id;}
-  message(message,streaming=false,item=null){
+  message(message,streaming=false){
     const user=message.role==='user',node=el('article',`chat-message ${user?'chat-user':'chat-assistant'}`),meta=el('div','chat-meta');
-    meta.append(el('strong','',user?'나':'AI 튜터 · 제안'),this.chip(message.seconds,`질문한 시점 ${formatTime(message.seconds)}로 이동`));
+    meta.append(this.chip(message.seconds,`질문한 시점 ${formatTime(message.seconds)}로 이동`),el('strong','',user?'나':'AI 제안'));
+    if(user&&message.recordId&&this.getState().records.some(row=>row.id===message.recordId))meta.append(el('span','chat-recorded','자동 기록됨'));
     if(!user&&message.model)meta.append(el('span','',this.modelName(message.model)));
     if(STATUS[message.status])meta.append(el('span','chat-status-tag',STATUS[message.status]));
     const text=el('div','chat-text');this.fill(text,message.text,!user);
@@ -167,28 +169,34 @@ export class ChatPanel{
     node.append(meta,text);
     if(!user&&!streaming){
       const actions=el('div','chat-actions');
-      const copy=button('복사',()=>this.copy(message.text));copy.setAttribute('aria-label','답변 복사');actions.append(copy);
-      const saved=message.recordId&&this.getState().records.some(row=>row.id===message.recordId);
-      if(saved)actions.append(button('✓ 기록에 저장됨',()=>this.openRecords()));
-      else{const save=button('기록으로 저장',()=>busy(save,()=>this.saveRecord(message,item)));actions.append(save);}
+      const copy=button('복사',()=>this.copy(message.text),'chat-link');copy.setAttribute('aria-label','답변 복사');actions.append(copy);
       node.append(actions);
     }
     return node;
   }
-  /** 내 설명: written right under its question and answer, saved as the learner's own explanation apart from the AI answer. */
+  /**
+   * 내 설명: written right under its question and answer, saved as the learner's own explanation apart from the AI answer.
+   * 자세히 opens the full record (evidence, history, Markdown, tutor); 다시 묻기 resends a question that has no complete answer.
+   */
   mine(item){
-    const node=el('div','chat-mine'),record=item.record;
+    const node=el('div','chat-mine'),record=item.record,at=formatTime(item.seconds);
     if(!this.editing.has(item.key)){
-      if(!item.explained){const write=button('내 설명 쓰기',()=>this.edit(item),'chat-link');write.setAttribute('aria-label',`내 설명 쓰기 · ${formatTime(item.seconds)} 질문`);node.append(write);return node;}
-      const view=el('div','chat-mine-view');
-      view.append(el('p','chat-mine-label',`내 설명${record.reviewDueAt?` · 복습 ${dayText(record.reviewDueAt)}`:''}`),el('p','chat-mine-text',record.explanation));
-      const fix=button('고치기',()=>this.edit(item),'chat-link');fix.setAttribute('aria-label',`내 설명 고치기 · ${formatTime(item.seconds)} 질문`);view.append(fix);node.append(view);return node;
+      const links=el('div','chat-mine-links');
+      if(!item.explained){const write=button('내 설명 쓰기',()=>this.edit(item),'chat-link');write.setAttribute('aria-label',`내 설명 쓰기 · ${at} 질문`);links.append(write);}
+      else{
+        const view=el('div','chat-mine-view');
+        view.append(el('p','chat-mine-label',`내 설명${record.reviewDueAt?` · 복습 ${dayText(record.reviewDueAt)}`:''}`),el('p','chat-mine-text',record.explanation));node.append(view);
+        const fix=button('고치기',()=>this.edit(item),'chat-link');fix.setAttribute('aria-label',`내 설명 고치기 · ${at} 질문`);links.append(fix);
+      }
+      if(record){const details=button('자세히',()=>this.openDetails(record),'chat-link');details.setAttribute('aria-label',`자세히 · ${at} 질문 기록 (근거·이력·Markdown)`);links.append(details);}
+      if(unanswered(item)){const retry=button('다시 묻기',()=>void this.send(item.question.text,{id:item.question.id,threadId:item.threadId,seconds:item.seconds}),'chat-link');retry.setAttribute('aria-label',`다시 묻기 · ${at} 질문`);links.append(retry);}
+      node.append(links);return node;
     }
     const form=el('form','chat-mine-edit'),id=`mine-${item.key.replace(/[^A-Za-z0-9_-]/g,'-')}`,label=el('label','chat-mine-label');
     label.htmlFor=id;label.append('내 설명 ',el('span','muted','AI 답과 따로 저장돼요'));
     const draft=this.drafts[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
     let base=record,revision=draft===undefined||typeof draft==='string'?record?.revision:draft.revision;
-    const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||record?.help||(item.answers?.length?'full':'none');
+    const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||(record?.explanation?record.help:item.answers?.length?'full':record?.help||'none');
     const stash=()=>{this.drafts[item.key]={text:text.value,help:help.value,revision:revision??1};this.saveDrafts();};
     text.addEventListener('input',stash);help.addEventListener('change',stash);
     const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
@@ -252,25 +260,28 @@ export class ChatPanel{
       else this.notice.append(' ',button('다시 불러오기',()=>{this.notice.textContent='';void this.loadModels();}));
     }
   }
-  async send(text=this.input.value){
+  /** retry: {id, threadId, seconds} of a stored question to ask again; the server then reuses that question and its record. */
+  async send(text=this.input.value,retry=null){
     const question=text.trim(),context=this.capture();
     if(!question||this.streaming)return;
     if(!context||context.lectureId!==this.lectureId){this.notice.textContent='강의가 열리면 다시 보내 주세요.';return;}
     if(!this.modelSelect.value){this.notice.textContent='ChatGPT에 연결하고 답변 모델을 고른 뒤 질문하세요. 적은 질문은 그대로 있습니다.';await this.loadModels();return;}
-    const fromBox=text===this.input.value,seconds=questionSeconds(fromBox?this.anchor:null,this.time()),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
+    const fromBox=!retry&&text===this.input.value,seconds=retry?retry.seconds:questionSeconds(fromBox?this.anchor:null,this.time()),paused=this.autoPause.checked&&this.isPlaying();if(paused)this.pause();
     const controller=new AbortController(),withTranscript=this.sendTranscript.input.checked,withNotes=this.sendNotes.input.checked&&!this.sendNotes.input.disabled;
-    this.streaming={threadId:this.threadId,lectureId:context.lectureId,question,seconds,model:this.modelSelect.value,text:'',started:false,controller};
-    if(fromBox){this.input.value='';this.anchor=null;this.unsent=false;}this.fit();
+    // The id is kept while a question waits in the box after a failed send, so sending it again cannot record it twice.
+    const questionId=retry?.id||(fromBox&&this.questionId)||crypto.randomUUID(),threadId=retry?retry.threadId:this.threadId;
+    this.streaming={threadId,lectureId:context.lectureId,question,seconds,model:this.modelSelect.value,text:'',started:false,retry:!!retry,messageId:questionId,controller};
+    if(fromBox){this.input.value='';this.anchor=null;this.unsent=false;this.questionId=null;}this.fit();
     this.notice.textContent=paused?`영상을 ${formatTime(this.time())}에서 멈췄습니다. 답을 읽고 다시 재생하세요.`:'';this.render();this.reveal(this.liveNode());
-    try{await this.stream('/api/learning/chat',{threadId:this.threadId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
+    try{await this.stream('/api/learning/chat',{threadId,questionId,lectureId:context.lectureId,seconds,text:question,model:this.modelSelect.value,transcript:withTranscript,notes:withNotes},{signal:controller.signal,onEvent:(event,data)=>this.onEvent(event,data)});}
     catch(error){
       const started=this.streaming?.started;
       const here=context.lectureId===this.lectureId;
       if(here)this.notice.textContent=controller.signal.aborted?'답변을 멈췄습니다.':error.message;
       // A question the server never stored goes back into the box, still tied to the time it was asked at.
-      if(!started){
-        if(here&&!this.input.value){this.input.value=question;this.anchor=fromBox?seconds:null;this.unsent=true;this.fit();}
-        if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:fromBox?seconds:null,unsent:true});
+      if(!started&&!retry){
+        if(here&&!this.input.value){this.input.value=question;this.anchor=fromBox?seconds:null;this.unsent=true;this.questionId=questionId;this.fit();}
+        if(!here&&!this.questions.has(context.lectureId))this.questions.set(context.lectureId,{text:question,anchor:fromBox?seconds:null,unsent:true,questionId});
       }
       if(here&&(error.code==='not_connected'||error.code==='plan_disabled'))this.notice.append(' ',button('연결 설정 열기',()=>this.openSettings()));
     }finally{this.streaming=null;this.render();}
@@ -278,7 +289,7 @@ export class ChatPanel{
   onEvent(event,data){
     const live=this.streaming;if(!live)return;
     if(event==='start'){
-      this.applyThread(data.thread,data.revision);live.started=true;live.threadId=data.thread.id;live.messageId=data.thread.messages.findLast(row=>row.role==='user')?.id;
+      this.applyThread(data.thread,data.revision,data.record);live.started=true;live.threadId=data.thread.id;live.messageId=data.questionId;
       if(this.lectureId===data.thread.lectureId){this.threadId=data.thread.id;this.startNew=false;}this.render();if(!this.writing())this.reveal(this.liveNode());
     }
     if(event==='delta'){
@@ -287,19 +298,14 @@ export class ChatPanel{
       const node=this.liveNode(),box=this.log.getBoundingClientRect(),follow=node&&!this.writing()&&node.getBoundingClientRect().bottom<=box.bottom+80;
       this.fill(this.streamText,live.text,true);if(follow)this.reveal(node);
     }
-    if(event==='done'){this.applyThread(data.thread,data.revision);if(live.lectureId===this.lectureId&&data.status==='stopped')this.notice.textContent='답변을 멈췄습니다. 받은 부분까지 저장했습니다.';}
-    if(event==='error'){if(data.thread)this.applyThread(data.thread,data.revision);if(live.lectureId===this.lectureId)this.notice.textContent=data.message;}
+    if(event==='done'){this.applyThread(data.thread,data.revision,data.record);if(live.lectureId===this.lectureId&&data.status==='stopped')this.notice.textContent='답변을 멈췄습니다. 받은 부분까지 저장했습니다.';}
+    if(event==='error'){if(data.thread)this.applyThread(data.thread,data.revision,data.record);if(live.lectureId===this.lectureId)this.notice.textContent=data.message;}
   }
   async stop(){
     const live=this.streaming;if(!live)return;
     if(!live.started){live.controller.abort();return;}
     try{await this.api('/api/learning/chat/stop',{threadId:live.threadId});}catch(error){this.notice.textContent=error.message;live.controller.abort();}
   }
-  async saveRecord(message,item){
-    try{
-      const {state}=await this.api('/api/learning/chat/record',{threadId:item?.threadId||this.threadId,messageId:message.id});this.applyState(state);this.renderLog();
-      this.notice.textContent='질문과 답변을 학습 기록으로 저장했습니다. 열린 질문과 내일 복습에 나타납니다.';this.notice.append(' ',button('열린 질문 보기',()=>this.openRecords()));
-    }catch(error){this.notice.textContent=error.message;}
-  }
+
   async copy(text){try{await navigator.clipboard.writeText(text);this.notice.textContent='답변을 복사했습니다.';}catch{this.notice.textContent='복사하지 못했습니다. 답변을 드래그해 직접 복사하세요.';}}
 }
