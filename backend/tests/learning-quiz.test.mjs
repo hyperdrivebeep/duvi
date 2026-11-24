@@ -4,6 +4,7 @@ import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import net from 'node:net';
+import dgram from 'node:dgram';
 import os from 'node:os';
 import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
@@ -162,6 +163,8 @@ test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output
     const result=await runPython(code);assert.equal(result.status,'executed');assert.match(result.error,/^(ImportError|ModuleNotFoundError)/,code);
   }
   assert.equal((await runPython('print(1/0)')).error,'ZeroDivisionError: division by zero');
+  assert.deepEqual(await runPython('import hashlib, json, re, collections, math, random, itertools, functools, datetime, decimal, fractions, statistics\nprint(json.dumps(sorted({3, 1, 2})), end="")'),
+    {status:'executed',output:'[1, 2, 3]',error:null,truncated:false},'stdlib imports and output without a final newline still work after the Pyodide modules are emptied');
   const long=await runPython('print("x" * 100000)',{maxOutput:100});assert.equal(long.output.length,100);assert.equal(long.truncated,true);
   assert.deepEqual(await runPython('while True: pass',{runMs:300}),{status:'timeout',reason:'0.3초 안에 끝나지 않아 멈췄습니다.'});
   const controller=new AbortController(),cancelled=runPython('while True: pass',{runMs:60000,signal:controller.signal});
@@ -169,12 +172,22 @@ test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output
   assert.deepEqual(await cancelled,{status:'cancelled',reason:'실행을 취소했습니다.'},'cancel kills the run long before its own timeout');
 });
 
-/** A local TCP server that counts connections, and a host temp directory; both cleaned up after the test. */
+/**
+ * A host temp directory, a local TCP server that counts connections and a local UDP server that keeps every datagram;
+ * all cleaned up after the test. datagrams() sends a sentinel to the UDP server and, once it has arrived, returns
+ * what came before it, so a datagram the runner sent before it exited cannot arrive after the check.
+ */
 async function host(t){
-  const directory=await dir(t,'duvi-runner-host-'),connections=[];
+  const directory=await dir(t,'duvi-runner-host-'),connections=[],received=[];
   const server=net.createServer(socket=>{connections.push(socket.remoteAddress);socket.destroy();});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
-  return {connections,port:server.address().port,file:name=>path.join(directory,name)};
+  const udp=dgram.createSocket('udp4');udp.on('message',message=>received.push(message.toString('latin1')));
+  await new Promise(resolve=>udp.bind(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>udp.close(resolve)));
+  const datagrams=async()=>{
+    const sentinel=`sentinel-${received.length}`,arrived=new Promise(resolve=>udp.on('message',message=>{if(message.toString()===sentinel)resolve();}));
+    udp.send(sentinel,udp.address().port,'127.0.0.1');await arrived;return received.filter(row=>!row.startsWith('sentinel-'));
+  };
+  return {connections,port:server.address().port,udpPort:udp.address().port,datagrams,file:name=>path.join(directory,name)};
 }
 const py=value=>JSON.stringify(value);
 
@@ -211,6 +224,123 @@ test('below the Python guard the process still fails closed: child_process and t
     const result=await runPython(code,{pythonGuard:false});assert.equal(result.status,'executed');assert.match(result.error,/Error/,code);
   }
   assert.deepEqual(connections,[]);
+});
+
+// The re-review's escape: a Pyodide module object → create_proxy → Function('return globalThis') → Node APIs, with
+// process.send/exit replaced so the run is only stopped at its timeout and queued sends get out. The module comes from gc
+// (the re-review's route) or is created again as a builtin, which emptying the modules cannot prevent.
+const CORE={
+  gc:"import gc\ncore = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')",
+  builtin:"import importlib._bootstrap as b\ncore = b._builtin_from_name('_pyodide_core')",
+};
+const reviewerEscape=({route,udpPort,port,target})=>`${CORE[route]}
+g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+get = g.process.getBuiltinModule
+def attempt(action):
+    try:
+        action()
+    except Exception:
+        pass
+def query():
+    resolver = get('dns').Resolver.new()
+    resolver.setServers(g.JSON.parse('["127.0.0.1:${udpPort}"]'))
+    resolver.resolve4('duvi-test.invalid', core.create_proxy(lambda *args: None))
+attempt(lambda: get('dgram').Socket.new('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'))
+attempt(query)
+attempt(lambda: get('net').Socket.new().connect(${port}, '127.0.0.1'))
+attempt(lambda: get('child_process').spawnSync('cmd', ['/c', ${py(`echo RAN> "${target}"`)}]))
+attempt(lambda: get('fs').writeFileSync(${py(target)}, 'RAN'))
+g.process.send = g.process.exit = core.create_proxy(lambda *args: None)`;
+
+test('the re-review escape sends no datagram, DNS query or connection: gc has no Pyodide module, and Function(string) is refused',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t);
+  for(const [route,error] of [['gc',/^StopIteration$/],['builtin',/EvalError: Code generation from strings disallowed/]]){
+    const target=file(`escape-${route}.txt`),result=await runPython(reviewerEscape({route,udpPort,port,target}),{runMs:2000});
+    assert.deepEqual(await datagrams(),[],`${route}: no UDP datagram and no DNS query reached the local server`);
+    assert.deepEqual(connections,[]);assert.equal(existsSync(target),false);
+    assert.equal(result.status,'executed',route);assert.match(result.error,error,route);
+  }
+});
+
+test('with JavaScript reached, every network, process, file, worker, inspector, vm and binding path throws',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t),target=file('reached.txt'),url=`http://127.0.0.1:${port}/`;
+  // Without the Python layer \`import js\` is globalThis; code that cannot import js falls back to the re-review's path.
+  const code=`import json, gc
+try:
+    import js as g
+except ImportError:
+    core = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')
+    g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+get = g.process.getBuiltinModule
+options = g.JSON.parse
+def resolver(module, callback):
+    r = module.Resolver.new()
+    r.setServers(options('["127.0.0.1:${udpPort}"]'))
+    r.resolve4('duvi-test.invalid', *callback)
+def restore():
+    dgram = get('dgram')
+    try:
+        dgram.createSocket = get('net').isIP
+    except Exception:
+        pass
+    dgram.createSocket('udp4').send('restored', ${udpPort}, '127.0.0.1')
+cases = {
+    'dgram.Socket': lambda: get('dgram').Socket.new('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'),
+    'dgram.createSocket': lambda: get('dgram').createSocket('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'),
+    'dgram restore': restore,
+    'dns.Resolver': lambda: resolver(get('dns'), [lambda *args: None]),
+    'dns.promises.Resolver': lambda: resolver(get('dns').promises, []),
+    'dns.lookup': lambda: get('dns').lookup('localhost', lambda *args: None),
+    'net.Socket': lambda: get('net').Socket.new().connect(${port}, '127.0.0.1'),
+    'net.connect': lambda: get('net').connect(${port}, '127.0.0.1'),
+    'net.Server.listen': lambda: get('net').Server.new().listen(0),
+    'http.request': lambda: get('http').request('${url}').end(),
+    'http.ClientRequest': lambda: get('http').ClientRequest.new('${url}'),
+    'http.Agent': lambda: get('http').Agent.new().createConnection(options('{"port":${port},"host":"127.0.0.1"}')),
+    'tls.connect': lambda: get('tls').connect(${port}, '127.0.0.1'),
+    'http2.connect': lambda: get('http2').connect('${url}'),
+    'fetch': lambda: g.fetch('${url}'),
+    'WebSocket': lambda: g.WebSocket.new('ws://127.0.0.1:${port}/'),
+    'child_process': lambda: get('child_process').spawnSync('cmd', ['/c', ${py(`echo RAN> "${target}"`)}]),
+    'fs.writeFileSync': lambda: get('fs').writeFileSync(${py(target)}, 'RAN'),
+    'worker_threads': lambda: get('worker_threads').Worker.new('1', options('{"eval":true}')),
+    'inspector.open': lambda: get('inspector').open(0),
+    'inspector.Session': lambda: get('inspector').Session.new().connect(),
+    'vm': lambda: get('vm').runInThisContext('1'),
+    'wasi': lambda: get('wasi').WASI.new(options('{"version":"preview1"}')),
+    'Function': lambda: g.Function('return 1'),
+    'process.binding': lambda: g.process.binding('udp_wrap'),
+    'process._linkedBinding': lambda: g.process._linkedBinding('udp_wrap'),
+    'process.kill': lambda: g.process.kill(g.process.ppid, 0),
+}
+results = {}
+for name, action in cases.items():
+    try:
+        action()
+        results[name] = 'allowed'
+    except Exception:
+        results[name] = 'blocked'
+print(json.dumps(results))`;
+  const result=await runPython(code,{pythonGuard:false,runMs:10000});
+  assert.equal(result.status,'executed',result.reason);assert.equal(result.error,null);
+  const results=JSON.parse(result.output);
+  assert.deepEqual(Object.entries(results).filter(([,value])=>value!=='blocked'),[],'nothing is allowed');
+  assert.equal(Object.keys(results).length,27);
+  assert.deepEqual(await datagrams(),[]);assert.deepEqual(connections,[]);assert.equal(existsSync(target),false);
+});
+
+test('the re-review bypasses of the Python layer still start no process and write no host file',async t=>{
+  const {file}=await host(t),command=name=>py(`echo RAN> "${file(name)}"`);
+  const cases=[
+    ['_builtin_from_name posix',`import importlib._bootstrap as b\nb._builtin_from_name('posix').system(${command('posix.txt')})`,'posix.txt'],
+    ['meta_path removed, subprocess',`import sys\nsys.meta_path.pop(0)\nimport subprocess\nsubprocess.run(['cmd', '/c', ${command('subprocess.txt')}])`,'subprocess.txt'],
+    ['meta_path removed, ctypes system',`import sys\nsys.meta_path.pop(0)\nimport ctypes\nctypes.CDLL(None).system(${command('ctypes.txt')}.encode())`,'ctypes.txt'],
+  ];
+  for(const [name,code,created] of cases){
+    const result=await runPython(code);
+    assert.equal(result.status,'executed',name);assert.ok(result.error,`${name} fails`);
+    assert.equal(existsSync(file(created)),false,`${name} must not create a host file`);
+  }
 });
 
 test('the runner process flags grant no file write, process, worker or read outside the Pyodide package',async t=>{

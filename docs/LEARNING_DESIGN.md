@@ -236,27 +236,42 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
 - **실행 경계**: 실행하는 것은 생성된 문제에 들어 있는 고정 Python 코드(`code`)뿐이고, 세트를 만들 때 한 번만
   Pyodide(WebAssembly)로 실행한다. **학습자가 쓴 답·설명은 어떤 경우에도 실행하지 않는다**(실행되는 입력 칸이 없다).
   문제 코드는 AI가 만들고, 그 AI 입력에는 제3자 자막과 저장소 발췌가 들어가므로 신뢰하지 않는 코드로 다룬다.
-  Node에서 돌아가는 Pyodide는 C `system()`을 `child_process.spawnSync(shell:true)`로 구현하고 소켓도 열 수 있어서
-  (1a0d7e7에서 `os.system`이 호스트 파일을 만들고 Python 소켓이 127.0.0.1에 연결됨을 재현), 격리를 세 겹으로 둔다.
-  1. **별도 프로세스와 Node 권한 모델**: 문제마다 새 Node 프로세스(`backend/python-runner-worker.mjs`)를
-     `--permission --allow-fs-read=<pyodide 패키지 폴더>`와 메모리 256MB로 띄운다. 쓰기·자식 프로세스·worker·addon·WASI·
-     inspector 권한은 주지 않는다(Node 24에서 Pyodide를 불러오는 데 필요한 권한은 이 읽기 하나였다). 환경 변수는
-     물려주지 않고, 결과는 IPC로 받는다. 불러온 뒤 3초가 지나거나 취소하면 프로세스를 죽이고, 끝난 뒤에야 결과를
-     돌려준다. 출력은 4,000자에서 자른다.
-  2. **그 프로세스 안의 JavaScript 차단**: Node 24 권한 모델은 네트워크를 막지 않는다. 그래서 Pyodide를 불러오기 전에
-     `child_process`의 실행 함수, `net`·`tls`·`http`·`https`·`http2`·`dgram`·`dns`, `fetch`·`WebSocket`을 예외를 던지는
-     함수로 바꾼다. `process.binding`은 Emscripten이 읽는 fs 상수만 돌려준다.
-  3. **Python 안의 차단**: `js`·`pyodide`·`micropip` 같은 JavaScript 연결 모듈과 `subprocess`·`ctypes`·`socket`·`ssl`·
-     `multiprocessing` import를 막고, `os`·`posix`의 `system`·`popen`·`fork`·`exec*`·`spawn*`·`posix_spawn*`을 지운다.
-  `backend/tests/learning-quiz.test.mjs`가 각 겹을 따로 확인한다. 권한 플래그만으로 파일 쓰기·바깥 읽기·자식 프로세스·
-  worker가 `ERR_ACCESS_DENIED`인지, Python 차단을 끈 상태에서도 `os.system`과 소켓·urllib 연결이 JavaScript에서
-  막히는지, 모두 켠 상태에서 `os.system`·`subprocess`·`open()`·소켓·urllib가 호스트 파일을 만들지 못하고 로컬
-  서버에 연결되지 않는지 본다. Python `open()`은 메모리 안 파일 시스템에만 쓴다. 보장하지 않는 것: Node·V8·
-  WebAssembly 자체의 취약점, 이 테스트가 다루지 않은 탈출 경로, CPU·메모리 사용(시간과 old-space 크기만 제한한다),
-  Windows 밖(Windows에서만 확인했다)의 동작. 실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를
-  기록한다. 시간 초과, 취소, 격리된 프로세스를 띄우지 못했거나 Pyodide를 불러오지 못한 경우는 실행하지 않은 채
-  `ai_unverified`와 이유로 남는다. 격리 없이 실행하는 대체 경로는 없다. 생성 중 취소하면 실행 중인 프로세스를
-  죽이고 남은 문제는 실행하지 않으며 아무것도 저장하지 않는다.
+  재현한 위험: 1a0d7e7에서는 `os.system`이 호스트 파일을 만들었고 Python 소켓이 127.0.0.1에 연결됐다. cd326e8에서는
+  Python이 gc에 남은 `_pyodide_core` → `create_proxy(...).constructor.constructor('return globalThis')`로 JavaScript에
+  닿았고, 거기서 `new dgram.Socket` UDP 패킷과 `dns.Resolver` 질의를 보낼 수 있었다. 지금의 겹과 그 성격은 다음과 같다.
+  1. **Node 권한 모델(프로세스·파일의 실제 경계)**: 문제마다 새 Node 프로세스(`backend/python-runner-worker.mjs`)를
+     `--permission --allow-fs-read=<pyodide 패키지 폴더> --disallow-code-generation-from-strings`와 old-space 256MB로
+     띄운다. 쓰기·자식 프로세스·worker·addon·WASI·inspector 권한은 주지 않는다(Pyodide에 필요한 권한은 이 읽기 하나였다).
+     환경 변수는 물려주지 않고 결과는 IPC로 받는다. 불러온 뒤 3초가 지나거나 취소하면 프로세스를 죽이고, 끝난 뒤에야
+     결과를 돌려준다. 출력은 4,000자에서 자른다. JavaScript에 닿은 코드도 이 권한 밖으로는 못 나간다.
+  2. **JavaScript 차단(네트워크의 경계, OS가 아니라 이 프로세스 안의 패치)**: Node 24 권한 모델은 네트워크를 막지 않는다.
+     그래서 Pyodide를 불러오기 전에 `dgram`·`dns`(Resolver와 promises 포함)의 함수·클래스·prototype 메서드,
+     `net.Socket.prototype.connect`·`net.Server.prototype.listen`·`net.connect` 등, `tls`, `http`·`https`의 요청 함수와
+     `ClientRequest`·`Agent.prototype.createConnection`, `http2`, `vm`, `child_process`, 전역 `fetch`·`WebSocket`·`EventSource`,
+     `process.binding`(fs 상수만 돌려줌)·`_linkedBinding`·`dlopen`·`kill`, `os.setPriority`를 예외를 던지게 바꾸고, 바꾼 모듈
+     객체와 prototype은 얼리거나 다시 쓸 수 없게 한다. `--disallow-code-generation-from-strings`는 Pyodide 로딩과 실행을
+     깨지 않음을 확인했고, `Function('return globalThis')` 탈출을 `EvalError`로 막는다.
+  3. **Python 층(우회할 수 있는 한 겹)**: JavaScript 연결 모듈과 `subprocess`·`ctypes`·`socket`·`ssl`·`multiprocessing`
+     import를 막고, `os`·`posix`의 프로세스 함수를 지우고, 코드 실행 전에 gc에서 보이는 Pyodide 모듈 객체를 모두 비운다
+     (그 뒤 Pyodide의 `runPython`이 동작하지 않아 문제 코드는 미리 받아 둔 작은 `exec` 함수로 돌린다). 비운 뒤 gc와
+     `object.__subclasses__()`를 훑어도 JsProxy 인스턴스나 내용이 남은 Pyodide 모듈은 없었다. 그러나 이 층은 우회된다.
+     `_builtin_from_name('_pyodide_core')`로 모듈을 다시 만들면 `create_proxy`가 다시 JavaScript 객체(`Function` 생성자까지)를
+     돌려준다. 이때 `Function('return globalThis')`는 코드 생성 금지 플래그 때문에 `EvalError`로 끝난다(측정).
+     `_builtin_from_name('posix')`나 `sys.meta_path`에서 차단기를 빼는 우회도 여전히 된다. 그래서 이 층에는 기대지 않고,
+     위 두 겹이 생성된 코드가 JavaScript에 닿았다는 전제에서 막는다.
+  `backend/tests/learning-quiz.test.mjs`가 보장하는 것은 이것뿐이다. 권한 플래그만으로 파일 쓰기·바깥 읽기·자식 프로세스·
+  worker가 `ERR_ACCESS_DENIED`다. 재리뷰의 탈출 경로는 gc로 가면 `StopIteration`, 모듈을 다시 만들어 가면
+  `EvalError`로 끝나고, 로컬 UDP 서버가 받는 패킷(DNS 질의 포함)과 TCP 연결이 0이다(cd326e8에서는 `exfil-udp`와 DNS
+  질의 패킷이 도착해 실패한다). Python 층을 끄고 `import js`로
+  globalThis를 쥔 상태에서도 UDP·DNS·TCP·TLS·HTTP·HTTP2·fetch·WebSocket·자식 프로세스·파일 쓰기·worker·inspector·vm·
+  WASI·`Function`·binding·`process.kill`·막은 함수 되돌리기 27가지가 모두 예외이고 패킷·연결·파일이 0이다. Python 층 우회로도
+  프로세스나 호스트 파일이 생기지 않는다. Python `open()`은 메모리 안 파일 시스템에만 쓴다. 보장하지 않는 것: Node·V8·
+  WebAssembly·Pyodide 자체의 취약점, 테스트하지 않은 Node API나 탈출 경로(네트워크 차단은 OS가 아니라 JavaScript 패치라서
+  빠진 API가 있으면 열린다), 생성된 코드가 IPC로 거짓 실행 결과를 보내는 것(결과는 "실행됨" 근거로 저장된다),
+  CPU 사용(시간과 old-space만 제한), Windows 밖의 동작(Windows에서만 확인). 실제 출력이 AI 예상 답과 다르면 실제
+  출력을 정답으로 쓰고 불일치를 기록한다. 시간 초과, 취소, 격리된 프로세스를 띄우지 못했거나 Pyodide를 불러오지 못한
+  경우는 실행하지 않은 채 `ai_unverified`와 이유로 남는다. 격리 없이 실행하는 대체 경로는 없다. 생성 중 취소하면 실행
+  중인 프로세스를 죽이고 남은 문제는 실행하지 않으며 아무것도 저장하지 않는다.
 - **푼 기록**: 학습 상태 schema 3의 `attempts`. 문제 스냅샷, 예측, 확신(낮음/보통/높음), 결과, 채점 방식(보기 자동
   /내가 채점), 내 설명, 근거 상태 스냅샷, 다음 복습. 틀림(확실했는데 틀림 포함) 1일, 맞았지만 확신 낮음·보통 3일,
   확실히 맞음 7일. 백업·동기화는 기록처럼 ID 단위로 합치고 설명은 나중에 고친 쪽을 쓴다. schema 2 이하 파일은

@@ -115,12 +115,15 @@ On 2026-11-24 the user chose the redesign and answered its defaults: check quest
 generated only on an explicit, previewed request through the learner's ChatGPT connection, and each answer
 carries its evidence: real output of the question's fixed code, a verbatim quote, the learner's own
 confirmation, or "AI 제안 · 정답 미검증". Only fixed problem code runs, once at generation, in Pyodide inside a
-separate Node process started with `--permission` and read access to the Pyodide package only (no write, child-process,
-worker, addon or WASI grant), with child_process and network APIs replaced by throwing functions in that process, the
-Python process/network modules removed, a hard timeout that kills the process, and cancel that kills it and saves
-nothing. Treat that code as untrusted (its prompt includes third-party captions); if the isolated process cannot run,
-the answer stays "AI 제안 · 정답 미검증" and nothing runs unisolated. The guarantees are only what
-backend/tests/learning-quiz.test.mjs checks (docs/LEARNING_DESIGN.md, 실행 경계); learner-written code or answers are never run. The learner's
+separate Node process started with `--permission`, read access to the Pyodide package only (no write, child-process,
+worker, addon, WASI or inspector grant) and `--disallow-code-generation-from-strings`, killed on timeout or cancel
+(cancel saves nothing). Treat that code as untrusted (its prompt includes third-party captions) and assume it can reach
+JavaScript in that process: the Python layer (blocked imports, removed os/posix calls, emptied Pyodide modules) is
+bypassable. The permission model is the boundary for processes and files; the network is closed only by patching and
+freezing the Node network, vm, binding and child_process APIs in that process (Node 24 has no network permission), not
+by the OS. If the isolated process cannot run, the answer stays "AI 제안 · 정답 미검증" and nothing runs unisolated.
+The guarantees are only what backend/tests/learning-quiz.test.mjs checks (docs/LEARNING_DESIGN.md, 실행 경계);
+learner-written code or answers are never run. The learner's
 repositories (default from `DUVI_EVIDENCE_REPOS` or the local, gitignored `backend/learning/sources.json`,
 e.g. a glorious-purpose clone; never a hard-coded path) are read-only: Duvi reads files, `git log` and test
 result files and never runs, writes or pushes there. 돌아보기 keeps self-marks apart from evidence and shows
