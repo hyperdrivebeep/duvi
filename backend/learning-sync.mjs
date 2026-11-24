@@ -30,8 +30,13 @@ function resumePositions(value,now){
 async function read(file,fallback){try{return JSON.parse(await readFile(file,'utf8'));}catch(error){if(error.code==='ENOENT')return fallback;throw error;}}
 async function exists(file){try{await stat(file);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}}
 
-/** Text and anchor of a record; the review schedule is compared separately through reviews. */
-function content(record){const {reviewDueAt,...rest}=v.snapshot(record);return JSON.stringify(rest);}
+/**
+ * Text and anchor of a record. The review schedule is compared separately through reviews. aiAnswer is left out: the
+ * server attaches it once, when the answer completes, without a new revision, so a copy taken between sending a question
+ * and its answer is not a different edit. mergeRecord carries the attached answer over instead.
+ */
+function content(record){const {reviewDueAt,aiAnswer,...rest}=v.snapshot(record);return JSON.stringify(rest);}
+const answered=(record,other)=>record.aiAnswer||!other.aiAnswer?record:{...record,aiAnswer:other.aiAnswer};
 /** True when `newer` already contains every edit and review of `older` (copied from it, then changed). */
 export function descends(newer,older){
   if(newer.revision<older.revision)return false;
@@ -42,15 +47,17 @@ export function descends(newer,older){
 const later=(a,b)=>!a?b:!b?a:time(a)>=time(b)?a:b;
 export function mergeRecord(local,incoming,{localDevice,incomingDevice}){
   if(JSON.stringify(local)===JSON.stringify(incoming))return {record:local,result:'same'};
-  if(descends(incoming,local))return {record:{...incoming,revision:Math.max(incoming.revision,local.revision+1)},result:'updated'};
-  if(descends(local,incoming))return {record:local,result:'kept'};
+  const forward=descends(incoming,local),back=descends(local,incoming);
+  // Equal content on both sides keeps the local copy unless only the incoming one has the AI answer.
+  if(back&&(!forward||local.aiAnswer||!incoming.aiAnswer)){const record=answered(local,incoming);return {record,result:record===local?'kept':'updated'};}
+  if(forward)return {record:answered({...incoming,revision:Math.max(incoming.revision,local.revision+1)},local),result:'updated'};
   // Both PCs changed the record: keep the later edit as current and the other edit as a labelled history entry.
   const incomingWins=time(incoming.updatedAt)>time(local.updatedAt),winner=incomingWins?incoming:local,loser=incomingWins?local:incoming;
   const top=Math.max(local.revision,incoming.revision,...winner.history.map(entry=>entry.revision));
   const history=[...winner.history,{revision:top+1,at:loser.updatedAt,record:v.snapshot(loser),device:incomingWins?localDevice:incomingDevice}].slice(-500);
   const reviews=[...new Map([...local.reviews,...incoming.reviews].map(row=>[row.id,row])).values()].sort((a,b)=>time(a.at)-time(b.at)).slice(-500);
   const first=time(local.createdAt)<=time(incoming.createdAt)?local:incoming;
-  return {record:{...winner,revision:top+2,history,reviews,reviewDueAt:later(local.reviewDueAt,incoming.reviewDueAt),createdAt:first.createdAt,originalExplanation:first.originalExplanation},result:'conflict'};
+  return {record:answered({...winner,revision:top+2,history,reviews,reviewDueAt:later(local.reviewDueAt,incoming.reviewDueAt),createdAt:first.createdAt,originalExplanation:first.originalExplanation},loser),result:'conflict'};
 }
 /** Chat messages are never edited, so two copies of a thread merge into the union of their messages. */
 export function mergeThread(local,incoming){

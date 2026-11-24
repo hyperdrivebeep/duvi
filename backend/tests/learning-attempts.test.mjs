@@ -48,3 +48,11 @@ test('backup preview counts attempts and merge restore keeps local copies while 
   const merged=await restore.commit({revision:1,token:preview.token,mode:'merge'});
   assert.deepEqual(merged.attempts.map(row=>[row.id,row.explanation]).sort(),[['a1','이 PC'],['a2','']]);
 });
+
+test('attempt copies with the same updatedAt are decided by revision, so both PCs keep the same copy',()=>{
+  const first=attempt('a1',{explanation:'첫 설명',updatedAt:at(4),revision:2}),second=attempt('a1',{explanation:'고친 설명',updatedAt:at(4),revision:3});
+  assert.deepEqual(mergeAttempt(first,second),{attempt:second,changed:true});
+  assert.deepEqual(mergeAttempt(second,first),{attempt:second,changed:false});
+  const tie=attempt('a1',{explanation:'다른 PC',updatedAt:at(4),revision:2});
+  assert.deepEqual(mergeAttempt(first,tie),{attempt:first,changed:false},'a full tie keeps the local copy');
+});

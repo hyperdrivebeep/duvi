@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LearningSources} from '../learning-sources.mjs';
 import {LearningQuiz,transcriptWindow,windowHash,verifyTranscriptQuote,verifyRepoQuote,parseQuiz,reviewDays,segmentsFor,executeItem} from '../learning-quiz.mjs';
-import {runPython} from '../python-runner.mjs';
+import {runPython,runnerArgs} from '../python-runner.mjs';
 import {createMockChatProvider} from '../chat-mock.mjs';
 import {createServer} from '../http-server.mjs';
 import {LectureLibrary} from '../library.mjs';
@@ -107,6 +110,22 @@ test('cancel aborts an in-flight generation and the input stays usable',async t=
   await assert.rejects(pending,{code:'cancelled'});assert.equal(quiz.tokens.has(preview.token),true);assert.equal((await quiz.status('1')).generating,false);
 });
 
+test('cancel during code execution stops it and saves nothing, even when the run itself returns afterwards',async t=>{
+  const runs=[
+    (code,{signal})=>new Promise(resolve=>signal.addEventListener('abort',()=>resolve({status:'cancelled',reason:'실행을 취소했습니다.'}),{once:true})),
+    (code,{signal})=>new Promise(resolve=>signal.addEventListener('abort',()=>resolve({status:'executed',output:'3.5\n3\n',error:null,truncated:false}),{once:true})),
+  ];
+  for(const run of runs){
+    let running;const started=new Promise(resolve=>{running=resolve;});
+    const {quiz,root}=await fixture(t,{run:(code,options)=>{running();return run(code,options);}}),preview=await quiz.preview({lectureId:'1',segmentId:'s0'});
+    const pending=quiz.generate({token:preview.token,model:'duvi-mock-tutor'});await started;
+    assert.deepEqual(quiz.cancel({lectureId:'1'}),{cancelled:true});
+    await assert.rejects(pending,{code:'cancelled'});
+    assert.equal((await quiz.status('1')).segments[0].set,undefined,'nothing of the cancelled generation is saved');
+    assert.equal(existsSync(path.join(root,'quizzes','1.json')),false);assert.equal(quiz.tokens.has(preview.token),true);
+  }
+});
+
 test('attempts snapshot the question, grade options automatically and schedule review 1/3/7 days',async t=>{
   const {quiz,store}=await fixture(t);
   const status=await quiz.generate({token:(await quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'});
@@ -137,7 +156,7 @@ test('confirm, retire and restore change only the evidence label; AI answers are
   after=await act(recall,'restore');assert.equal(after.segments[0].set.items[0].evidence,'source_quoted');
 });
 
-test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output is capped and runaway code times out',async()=>{
+test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output is capped and runaway code is killed',async()=>{
   assert.deepEqual(await runPython('print(7 / 2)\nprint(7 // 2)'),{status:'executed',output:'3.5\n3\n',error:null,truncated:false});
   for(const code of ['import js','import pyodide','from pyodide.http import pyfetch','import micropip','import sys\nsys.meta_path.clear()\nimport js']){
     const result=await runPython(code);assert.equal(result.status,'executed');assert.match(result.error,/^(ImportError|ModuleNotFoundError)/,code);
@@ -145,6 +164,69 @@ test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output
   assert.equal((await runPython('print(1/0)')).error,'ZeroDivisionError: division by zero');
   const long=await runPython('print("x" * 100000)',{maxOutput:100});assert.equal(long.output.length,100);assert.equal(long.truncated,true);
   assert.deepEqual(await runPython('while True: pass',{runMs:300}),{status:'timeout',reason:'0.3초 안에 끝나지 않아 멈췄습니다.'});
+  const controller=new AbortController(),cancelled=runPython('while True: pass',{runMs:60000,signal:controller.signal});
+  setTimeout(()=>controller.abort(),200);
+  assert.deepEqual(await cancelled,{status:'cancelled',reason:'실행을 취소했습니다.'},'cancel kills the run long before its own timeout');
+});
+
+/** A local TCP server that counts connections, and a host temp directory; both cleaned up after the test. */
+async function host(t){
+  const directory=await dir(t,'duvi-runner-host-'),connections=[];
+  const server=net.createServer(socket=>{connections.push(socket.remoteAddress);socket.destroy();});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+  return {connections,port:server.address().port,file:name=>path.join(directory,name)};
+}
+const py=value=>JSON.stringify(value);
+
+test('generated code cannot start a host process, write a host file or open a connection',async t=>{
+  const {connections,port,file}=await host(t);
+  const cases=[
+    ['os.system',`import os\nos.system(${py(`echo RAN> "${file('system.txt')}"`)})`,'system.txt',/^AttributeError/],
+    ['posix.system',`import posix\nposix.system(${py(`echo RAN> "${file('posix.txt')}"`)})`,'posix.txt',/^AttributeError/],
+    ['os.popen',`import os\nos.popen(${py(`echo RAN> "${file('popen.txt')}"`)})`,'popen.txt',/^AttributeError/],
+    ['subprocess',`import subprocess\nsubprocess.run(['cmd','/c','echo x'])`,null,/^ImportError/],
+    ['ctypes','import ctypes',null,/^ImportError/],
+    ['socket',`import socket\nsocket.create_connection(('127.0.0.1',${port}),timeout=1)`,null,/^ImportError/],
+    ['urllib',`import urllib.request\nurllib.request.urlopen('http://127.0.0.1:${port}/',timeout=1)`,null,/Error/],
+  ];
+  for(const [name,code,created,error] of cases){
+    const result=await runPython(code);
+    assert.equal(result.status,'executed',name);assert.match(result.error||'',error,name);
+    if(created)assert.equal(existsSync(file(created)),false,`${name} must not create a host file`);
+  }
+  // Python's open() writes to Pyodide's in-memory file system, never to the host path.
+  const target=file('open.txt');
+  const opened=await runPython(`import os\nos.makedirs(${py(path.dirname(target))}, exist_ok=True)\nwith open(${py(target)}, 'w') as f:\n    f.write('RAN')\nprint(os.path.exists(${py(target)}))`);
+  assert.deepEqual([opened.status,opened.error,opened.output],['executed',null,'True\n']);
+  assert.equal(existsSync(target),false,'open() must not create a host file');
+  assert.deepEqual(connections,[],'no connection reached the local server');
+});
+
+test('below the Python guard the process still fails closed: child_process and the network throw in JavaScript',async t=>{
+  const {connections,port,file}=await host(t);
+  const system=await runPython(`import os\nprint('rc', os.system(${py(`echo RAN> "${file('system.txt')}"`)}))`,{pythonGuard:false});
+  assert.equal(system.status,'executed');assert.match(system.error,/child_process\.spawnSync/);assert.doesNotMatch(system.output,/rc 0/);
+  assert.equal(existsSync(file('system.txt')),false);
+  for(const code of [`import socket\nsocket.create_connection(('127.0.0.1',${port}),timeout=1)`,`import urllib.request\nurllib.request.urlopen('http://127.0.0.1:${port}/',timeout=1)`]){
+    const result=await runPython(code,{pythonGuard:false});assert.equal(result.status,'executed');assert.match(result.error,/Error/,code);
+  }
+  assert.deepEqual(connections,[]);
+});
+
+test('the runner process flags grant no file write, process, worker or read outside the Pyodide package',async t=>{
+  const {file}=await host(t),outside=file('secret.txt');await writeFile(outside,'secret');
+  const probe=`
+    const fs=await import('node:fs'),cp=await import('node:child_process'),{Worker}=await import('node:worker_threads');
+    const codes={};const attempt=(name,run)=>{try{run();codes[name]='allowed';}catch(error){codes[name]=error.code;}};
+    attempt('write',()=>fs.writeFileSync(${py(file('written.txt'))},'x'));
+    attempt('read',()=>fs.readFileSync(${py(outside)}));
+    attempt('spawn',()=>cp.spawnSync('cmd',['/c','echo x']));
+    attempt('worker',()=>new Worker('1',{eval:true}));
+    console.log(JSON.stringify(codes));`;
+  const result=spawnSync(process.execPath,[...runnerArgs(),'--input-type=module','-e',probe],{encoding:'utf8',env:{},timeout:30000});
+  assert.deepEqual(JSON.parse(result.stdout),{write:'ERR_ACCESS_DENIED',read:'ERR_ACCESS_DENIED',spawn:'ERR_ACCESS_DENIED',worker:'ERR_ACCESS_DENIED'});
+  assert.equal(existsSync(file('written.txt')),false);
+  assert.deepEqual(runnerArgs().filter(flag=>flag.startsWith('--allow')).map(flag=>flag.split('=')[0]),['--allow-fs-read'],'the only grant is reading the Pyodide package');
 });
 
 test('a run that does not match any option keeps the real output; a failed run leaves the answer unverified with its reason',async t=>{

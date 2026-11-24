@@ -234,12 +234,29 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
   · `ai_unverified`(AI 제안 · 정답 미검증) · `retired`(신고해 뺌). 인용은 대본 구간이나 인용한 파일 줄에
   글자 그대로(공백 차이만 허용) 있어야 통과한다. AI만 정한 답은 검증으로 바꾸지 않는다.
 - **실행 경계**: 실행하는 것은 생성된 문제에 들어 있는 고정 Python 코드(`code`)뿐이고, 세트를 만들 때 한 번만
-  Pyodide(WebAssembly)로 실행한다. 문제마다 새 worker thread, 불러온 뒤 3초 강제 종료, 출력 4,000자 제한,
-  메모리 안의 기본 파일 시스템만 쓰며 `js`·`pyodide`·`micropip` 같은 JavaScript 연결 모듈은 지우고 import를 막는다.
-  실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를 기록한다. 시간 초과나 Pyodide 로딩 실패는
-  `ai_unverified`와 이유로 남는다. **학습자가 쓴 답·설명은 어떤 경우에도 실행하지 않는다**(실행되는 입력 칸이 없다).
-  import 차단은 JavaScript로 나가는 길을 막는 방어 장치이지 검증된 보안 격리(sandbox)가 아니다. 그래서 실행 대상을
-  생성된 문제 코드로 한정한다.
+  Pyodide(WebAssembly)로 실행한다. **학습자가 쓴 답·설명은 어떤 경우에도 실행하지 않는다**(실행되는 입력 칸이 없다).
+  문제 코드는 AI가 만들고, 그 AI 입력에는 제3자 자막과 저장소 발췌가 들어가므로 신뢰하지 않는 코드로 다룬다.
+  Node에서 돌아가는 Pyodide는 C `system()`을 `child_process.spawnSync(shell:true)`로 구현하고 소켓도 열 수 있어서
+  (1a0d7e7에서 `os.system`이 호스트 파일을 만들고 Python 소켓이 127.0.0.1에 연결됨을 재현), 격리를 세 겹으로 둔다.
+  1. **별도 프로세스와 Node 권한 모델**: 문제마다 새 Node 프로세스(`backend/python-runner-worker.mjs`)를
+     `--permission --allow-fs-read=<pyodide 패키지 폴더>`와 메모리 256MB로 띄운다. 쓰기·자식 프로세스·worker·addon·WASI·
+     inspector 권한은 주지 않는다(Node 24에서 Pyodide를 불러오는 데 필요한 권한은 이 읽기 하나였다). 환경 변수는
+     물려주지 않고, 결과는 IPC로 받는다. 불러온 뒤 3초가 지나거나 취소하면 프로세스를 죽이고, 끝난 뒤에야 결과를
+     돌려준다. 출력은 4,000자에서 자른다.
+  2. **그 프로세스 안의 JavaScript 차단**: Node 24 권한 모델은 네트워크를 막지 않는다. 그래서 Pyodide를 불러오기 전에
+     `child_process`의 실행 함수, `net`·`tls`·`http`·`https`·`http2`·`dgram`·`dns`, `fetch`·`WebSocket`을 예외를 던지는
+     함수로 바꾼다. `process.binding`은 Emscripten이 읽는 fs 상수만 돌려준다.
+  3. **Python 안의 차단**: `js`·`pyodide`·`micropip` 같은 JavaScript 연결 모듈과 `subprocess`·`ctypes`·`socket`·`ssl`·
+     `multiprocessing` import를 막고, `os`·`posix`의 `system`·`popen`·`fork`·`exec*`·`spawn*`·`posix_spawn*`을 지운다.
+  `backend/tests/learning-quiz.test.mjs`가 각 겹을 따로 확인한다. 권한 플래그만으로 파일 쓰기·바깥 읽기·자식 프로세스·
+  worker가 `ERR_ACCESS_DENIED`인지, Python 차단을 끈 상태에서도 `os.system`과 소켓·urllib 연결이 JavaScript에서
+  막히는지, 모두 켠 상태에서 `os.system`·`subprocess`·`open()`·소켓·urllib가 호스트 파일을 만들지 못하고 로컬
+  서버에 연결되지 않는지 본다. Python `open()`은 메모리 안 파일 시스템에만 쓴다. 보장하지 않는 것: Node·V8·
+  WebAssembly 자체의 취약점, 이 테스트가 다루지 않은 탈출 경로, CPU·메모리 사용(시간과 old-space 크기만 제한한다),
+  Windows 밖(Windows에서만 확인했다)의 동작. 실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를
+  기록한다. 시간 초과, 취소, 격리된 프로세스를 띄우지 못했거나 Pyodide를 불러오지 못한 경우는 실행하지 않은 채
+  `ai_unverified`와 이유로 남는다. 격리 없이 실행하는 대체 경로는 없다. 생성 중 취소하면 실행 중인 프로세스를
+  죽이고 남은 문제는 실행하지 않으며 아무것도 저장하지 않는다.
 - **푼 기록**: 학습 상태 schema 3의 `attempts`. 문제 스냅샷, 예측, 확신(낮음/보통/높음), 결과, 채점 방식(보기 자동
   /내가 채점), 내 설명, 근거 상태 스냅샷, 다음 복습. 틀림(확실했는데 틀림 포함) 1일, 맞았지만 확신 낮음·보통 3일,
   확실히 맞음 7일. 백업·동기화는 기록처럼 ID 단위로 합치고 설명은 나중에 고친 쪽을 쓴다. schema 2 이하 파일은
