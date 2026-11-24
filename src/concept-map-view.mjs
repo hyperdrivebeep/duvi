@@ -32,9 +32,9 @@ const formatMarked = marked => marked ? `${marked.done} / ${marked.total}` : '-'
 const formatQuestions = questions => !questions ? NO_EVIDENCE : questions.total ? `${questions.total} (열린 ${questions.open})` : '없음';
 const formatChecks = checks => !checks ? NO_EVIDENCE : checks.total ? `${checks.correct} / ${checks.total} 맞음` : '없음';
 const formatWork = work => !work ? NO_EVIDENCE : `커밋 ${work.commits ?? 0} · 테스트 ✓ ${work.testsPassed ?? 0} · ✕ ${work.testsFailed ?? 0}`;
-/** One short node line: the evidence that exists, or '아직 증거 없음'. */
-function evidenceLine({marked, questions, checks}) {
-  const parts = [marked && `내가 표시 ${marked.done}/${marked.total}`, questions && `질문 ${questions.total}`, checks && `확인 문제 ${checks.total}`].filter(Boolean);
+/** Node line from the records (questions, checks), or '아직 증거 없음' when neither was supplied. */
+function evidenceLine({questions, checks}) {
+  const parts = [questions && `질문 ${questions.total}`, checks && `확인 문제 ${checks.total}`].filter(Boolean);
   return parts.length ? parts.join(' · ') : NO_EVIDENCE;
 }
 const prerequisiteText = (data, concept) => prerequisites(data, concept).map(item => item.name ?? item.label).join(', ') || '-';
@@ -138,7 +138,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'aria-pressed': 'false', title: concept.name,
       style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id)},
     h('span', {className: 'cmap-node-name', text: concept.name}),
-    h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${material}${concept.level ? ` · 수준 ${concept.level}` : ''}`}),
+    h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${material}${counts.marked ? ` · 내가 표시 ${counts.marked.done}/${counts.marked.total}` : ''}`}),
     h('span', {className: 'cmap-node-line cmap-muted', text: evidenceLine(counts)}));
     return [node.id, button];
   }));
@@ -161,20 +161,22 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   const size = () => ({width: viewport.clientWidth || 1100, height: viewport.clientHeight || 700});
   const apply = () => { layer.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`; };
   const centre = () => { const {width, height} = size(); return {x: width / 2, y: height / 2}; };
-  function zoomBy(factor, point = centre()) { transform = zoomAt(transform, factor, point); apply(); }
-  function panBy(dx, dy) { transform = {...transform, x: transform.x + dx, y: transform.y + dy}; apply(); }
+  // A fit note describes the last fit; moving the view by hand clears it.
+  function zoomBy(factor, point = centre()) { transform = zoomAt(transform, factor, point); note.textContent = ''; apply(); }
+  function panBy(dx, dy) { transform = {...transform, x: transform.x + dx, y: transform.y + dy}; note.textContent = ''; apply(); }
   /** Fit a box; below the readable scale keep GRAPH.minReadableScale and align its top-left instead. */
   function fitBox(box, maxScale = 1.5) {
-    const next = fitTransform(box, size(), 24, maxScale), readable = next.scale >= GRAPH.minReadableScale, scale = GRAPH.minReadableScale;
-    transform = readable ? next : {scale, x: 24 - box.x * scale, y: 56 - box.y * scale};
+    // 64px padding keeps the fit note above the fitted box.
+    const next = fitTransform(box, size(), 64, maxScale), readable = next.scale >= GRAPH.minReadableScale, scale = GRAPH.minReadableScale;
+    transform = readable ? next : {scale, x: 24 - box.x * scale, y: 64 - box.y * scale};
     apply(); return readable;
   }
   function fit() {
     const whole = {x: 0, y: 0, width: layout.width, height: layout.height};
     if (fitTransform(whole, size()).scale >= GRAPH.minReadableScale) { fitBox(whole); note.textContent = ''; return; }
     const field = (selected && nodeOf.get(selected).field) || (focusIds[0] && nodeOf.get(focusIds[0]).field) || layout.bands[0].field;
-    const whole2 = fitBox(nodesBox(layout.nodes.filter(node => node.field === field)));
-    note.textContent = `전체 그래프는 이 화면에서 글자가 너무 작아져 '${field}' 분야에 맞췄습니다.${whole2 ? '' : ' 이 분야도 화면보다 넓어 왼쪽부터 보입니다.'} 축소(−)로 더 넓게 볼 수 있습니다.`;
+    const fits = fitBox(layout.bands.find(band => band.field === field));
+    note.textContent = `전체를 맞추면 글자가 너무 작아져 '${field}' 분야${fits ? '에 맞췄습니다' : '의 왼쪽부터 보여 줍니다'}. 축소(−)로 더 넓게 볼 수 있습니다.`;
   }
   function focusCurrent() {
     if (!focusIds.length) return;

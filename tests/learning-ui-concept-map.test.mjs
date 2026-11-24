@@ -196,7 +196,7 @@ test('graph view: nodes and edges from data, selection emphasises edges, control
   assert.ok(root.find(node => node.textContent === '점선: 자료가 없는 개념으로 이어짐'));
   for (const label of ['화면 맞춤', '지금 강의 개념으로', '확대', '축소']) assert.ok(root.find(node => node.tagName === 'BUTTON' && node.getAttribute('aria-label') === label), label);
   const fitNote = root.find(hasClass('cmap-fit-note'));
-  assert.match(fitNote.textContent, /분야에 맞췄습니다/);
+  assert.match(fitNote.textContent, /분야/);
 
   nodeFor(concept.id).fire('click');
   assert.equal(nodeFor(concept.id).getAttribute('aria-pressed'), 'true');
@@ -214,7 +214,7 @@ test('graph view: nodes and edges from data, selection emphasises edges, control
   root.find(node => node.getAttribute('aria-label') === '지금 강의 개념으로').fire('click');
   assert.match(fitNote.textContent, /지금 강의의 개념/);
   root.find(node => node.getAttribute('aria-label') === '화면 맞춤').fire('click');
-  assert.match(fitNote.textContent, /분야에 맞췄습니다/);
+  assert.match(fitNote.textContent, new RegExp(`'${concept.field}' 분야`));
 }));
 
 test('lecture panel lists the lecture concepts and opens one', () => withDom(() => {

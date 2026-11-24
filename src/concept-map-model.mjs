@@ -110,7 +110,8 @@ export function lectureConcepts(data, lectureId) {
   return data.concepts.filter(concept => concept.resources.some(id => ids.has(id)));
 }
 
-export const GRAPH = Object.freeze({maxRows: 5, nodeWidth: 216, nodeHeight: 84, columnGap: 72, rowGap: 14, bandGap: 40, bandHeader: 40, minReadableScale: 0.6});
+// minReadableScale: below 0.8 the 14px node text renders under ~11px, so fit falls back to one field.
+export const GRAPH = Object.freeze({maxRows: 5, nodeWidth: 256, nodeHeight: 84, columnGap: 72, rowGap: 14, bandGap: 40, bandHeader: 40, minReadableScale: 0.8});
 
 /**
  * Deterministic layout for the graph view. Edges run from a prerequisite to the concept that needs it and exist only
@@ -149,7 +150,7 @@ export function graphLayout(data) {
     }
     const height = bandHeader + rows * (nodeHeight + rowGap) - rowGap;
     const withMaterial = group.concepts.filter(concept => materialLabel(data, concept) === '자료 있음').length;
-    bands.push({field: group.name, gap: !!group.gap, y: top, height, total: group.concepts.length, withMaterial});
+    bands.push({field: group.name, gap: !!group.gap, x: 0, y: top, width: left - columnGap, height, total: group.concepts.length, withMaterial});
     top += height + bandGap;
   }
   const edges = [...incoming].flatMap(([to, froms]) => froms.map(from => ({from, to, dashed: materialLabel(data, byId.get(to)) === '자료 없음'})));
