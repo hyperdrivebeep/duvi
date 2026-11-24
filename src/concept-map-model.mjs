@@ -157,9 +157,9 @@ export function graphLayout(data) {
   return {nodes, edges, bands, width, height: top - bandGap};
 }
 
-/** Scale and offset that fit a box ({x,y,width,height}) into the viewport with padding, centred. */
-export function fitTransform(box, viewport, padding = 24) {
-  const scale = Math.min((viewport.width - padding * 2) / box.width, (viewport.height - padding * 2) / box.height, 1.5);
+/** Scale (at most maxScale) and offset that fit a box ({x,y,width,height}) into the viewport with padding, centred. */
+export function fitTransform(box, viewport, padding = 24, maxScale = 1.5) {
+  const scale = Math.min((viewport.width - padding * 2) / box.width, (viewport.height - padding * 2) / box.height, maxScale);
   return {scale, x: (viewport.width - box.width * scale) / 2 - box.x * scale, y: (viewport.height - box.height * scale) / 2 - box.y * scale};
 }
 
