@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {VIEWS,viewElementId,nextView} from '../src/app-shell.mjs';
+import {VIEWS,viewElementId,nextView,installLectureKeys} from '../src/app-shell.mjs';
 import {lectureStream,unanswered} from '../src/learning-stream-model.mjs';
 import {withThread,lectureNotes} from '../src/learning-chat-model.mjs';
 import {curriculumPlace} from '../src/learning-model.mjs';
@@ -81,4 +81,14 @@ test('the composer\'s ⋯ 보낼 설정 summary states what the next question ca
   assert.equal(sendSettingsSummary({transcript:true,notes:true}),'대본 ±1분 · 노트 포함');
   assert.equal(sendSettingsSummary({transcript:false,notes:false,autoPause:true,startNew:true}),'대본 안 보냄 · 노트 없음 · 보내면 멈춤 · 새 대화');
   assert.equal(sendSettingsSummary({transcript:true,notes:false,span:30}),'대본 ±30초 · 노트 없음');
+});
+
+test('lecture keys run in the capture phase and stop a handled key before the video controls see it',()=>{
+  const added=[];const target={addEventListener:(type,fn,capture)=>added.push({type,fn,capture})};const pressed=[];
+  installLectureKeys(target,{active:()=>true,press:id=>pressed.push(id)});
+  assert.equal(added.length,1);assert.equal(added[0].type,'keydown');assert.equal(added[0].capture,true);
+  const key=(k,el={closest:()=>null})=>{const e={key:k,target:el,prevented:false,stopped:false,preventDefault(){this.prevented=true;},stopPropagation(){this.stopped=true;}};added[0].fn(e);return e;};
+  const right=key('ArrowRight');assert.deepEqual(pressed,['next']);assert.ok(right.prevented&&right.stopped);
+  const field=key('ArrowRight',{closest:()=>({})});assert.deepEqual(pressed,['next']);assert.ok(!field.prevented&&!field.stopped);
+  const other=key('Enter');assert.ok(!other.prevented&&!other.stopped);
 });

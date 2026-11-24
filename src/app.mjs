@@ -2,7 +2,7 @@ import {cueAt} from './core.mjs';
 import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
-import {setupShell} from './app-shell.mjs';
+import {setupShell,installLectureKeys} from './app-shell.mjs';
 import {LearningUI} from './learning-ui.mjs';
 import {makeAnchor,anchorState} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
@@ -247,7 +247,7 @@ function scrollToCue(){const node=nodes[current];if(node)$('transcript').scrollT
 $('followTranscript').onclick=()=>{follow=true;scrollToCue();};
 for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEventListener(event,()=>{follow=false;},{passive:true});
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
-document.addEventListener('keydown',e=>{if(shell.current()!=='lecture'||e.ctrlKey||e.metaKey||e.altKey||e.repeat||document.querySelector('dialog[open]')||e.target.closest('input,textarea,select,[contenteditable=true],[role=tab],[role=slider],[role=radio]'))return;const button={ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'}[e.key];if(button){e.preventDefault();$(button).click();}});
+installLectureKeys(window,{active:()=>shell.current()==='lecture'&&!document.querySelector('dialog[open]'),press:id=>$(id).click()});
 const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,closeLibrary:()=>shell.closeLibrary(),playPositions,format:fmt});
 const learningUI=new LearningUI({api,stream:streamApi,onChatCount:count=>tabLabel('stageChatTab','질문',count),player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>shell.closeLibrary(),showView:view=>shell.show(view),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),
