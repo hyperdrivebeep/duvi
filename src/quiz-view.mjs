@@ -201,7 +201,7 @@ export function renderQuizScreen(root,api,{lectureId,segmentId,lecturePicker}={}
     if(!set||view.regenerate||['generating','failed','preview','previewing'].includes(view.gen.state))page.append(generator());
     if(set&&list.length&&!['generating'].includes(view.gen.state)){
       const item=list[Math.min(view.index,list.length-1)];page.append(question(item,list),table(set));
-      bar.append(el('span','quiz-muted quiz-cut',NOTE));
+      bar.append(el('span','quiz-muted',NOTE));
       if(view.phase==='result'){primary=button(view.index+1<list.length?'다음 문제':'처음 문제로',()=>{view.index=(view.index+1)%list.length;resetQuestion();render();},'quiz-button primary');bar.append(primary);}
       else if(view.phase==='answer'){
         bar.append(button('건너뛰기',()=>{view.index=(view.index+1)%list.length;resetQuestion();render();},'quiz-button'));
@@ -209,7 +209,7 @@ export function renderQuizScreen(root,api,{lectureId,segmentId,lecturePicker}={}
       }
     }else{
       if(set&&!list.length)page.append(el('p','quiz-state','○ 이 구간의 문제를 모두 신고해 뺐습니다.'),table(set));
-      bar.append(el('span','quiz-muted quiz-cut',NOTE));
+      bar.append(el('span','quiz-muted',NOTE));
     }
   }
   render();
