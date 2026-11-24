@@ -2,7 +2,7 @@
    No left accent bars, no nested bordered boxes, no colored pills; status is text (with a glyph), 14px minimum. */
 .cmap, .cmap-graph, .cmap-lecture {
   --cmap-ink: #111a2d; --cmap-muted: #617088; --cmap-line: #e5eaf1; --cmap-soft: #f2f5fa; --cmap-canvas: #f8fafd;
-  --cmap-selected: #eaf2ff; --cmap-accent: #1769e8; --cmap-focus: #3b7ddd; --cmap-edge: #7b8799;
+  --cmap-selected: #eaf2ff; --cmap-accent: #1563d8; --cmap-focus: #3b7ddd; --cmap-edge: #7b8799;
 }
 .cmap {
   display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px); grid-template-rows: auto minmax(0, 1fr);
