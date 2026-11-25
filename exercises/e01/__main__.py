@@ -9,7 +9,7 @@ import sys
 
 from .fixtures import suite
 from .grader import grade, load_rows, read_diagnostics, rescore
-from .protocol import Tools, canonical, digest_bytes
+from .protocol import Tools, canonical, digest_bytes, learner_config, metadata
 from .replay import replay
 
 
@@ -18,14 +18,15 @@ def log_path(directory, case):
 
 
 def run_case(case, agent, directory):
-    config = deepcopy(case.config)
+    config = learner_config(case.config)
     logger = agent.Logger(deepcopy(config))
     tools = Tools(case, logger.record)
     agent.solve(config, tools.measure, tools.submit)
     diagnoses = agent.diagnostics(deepcopy(logger.rows))
     directory.mkdir(parents=True, exist_ok=True)
     path = log_path(directory, case)
-    path.write_bytes("".join(canonical(row) + "\n" for row in logger.rows).encode("utf-8"))
+    meta = metadata(case.config)
+    path.write_bytes("".join(canonical(row | meta) + "\n" for row in logger.rows).encode("utf-8"))
     path.with_suffix(".config.json").write_text(canonical(case.config), encoding="utf-8")
     path.with_suffix(".diagnoses.json").write_text(canonical(diagnoses), encoding="utf-8")
     return path
@@ -77,4 +78,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     sys.exit(main())

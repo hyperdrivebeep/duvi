@@ -1,16 +1,15 @@
 """학습자용: 이 파일을 복사해 TODO를 구현하세요."""
 
-from .protocol import metadata, state_hash
+from .protocol import digest, state_hash
 
 
 class Logger:
     def __init__(self, config):
-        self.meta = metadata(config)
-        self.previous = self.meta["config_hash"]
+        self.previous = digest(config)
         self.rows = []
 
     def record(self, event):
-        # TODO: event와 공통 필드에 다음 seq를 붙인다 (첫 줄은 1).
+        # TODO: event에 다음 seq를 붙인다 (첫 줄은 1). 실행 메타데이터는 실행기가 붙인다.
         # TODO: state_hash(previous, 해시 필드 없는 행)를 붙이고 previous를 갱신한다.
         # TODO: 완성된 행을 self.rows에 추가한다.
         raise NotImplementedError("starter.Logger.record: JSONL 한 행을 만드는 TODO를 구현하세요.")

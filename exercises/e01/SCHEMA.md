@@ -25,10 +25,13 @@
 정규화는 Python JSON에서 키 정렬, ASCII 이스케이프 강제 안 함, 구분자 `,`와 `:`,
 NaN 불허, UTF-8 인코딩이다. 키 순서나 공백을 바꿔도 정규화 해시는 바뀌지 않는다.
 
-* `config_hash = digest(config)`; 같은 이름의 `.config.json`은 공개 설정(버전,
+* `config_hash = digest(config)`; 같은 이름의 `.config.json`은 재생용 전체 설정(버전,
   ID, seed, 턴·측정 상한, 허용 좌표 `points`, 좌표 순의 후보별 `predictions`)이다.
-* `state_hash = digest([이전 state_hash, 현재 행에서 state_hash만 뺀 객체])`.
-  첫 행은 `config_hash`에서 시작한다. 행의 실행 상태와 관측 이력을 묶는 해시다.
+  `version`, `run_id`, `world_id`, `seed`, `config_hash`는 실행기가 로그 저장 시 붙인다.
+* `state_hash = digest([이전 state_hash, event에 seq를 붙인 객체])`.
+  첫 행은 학습자 설정(`turns`, `measurements`, `points`, `predictions`만)의 `digest`에서
+  시작한다. 실행기가 붙이는 메타데이터와 `state_hash` 자신은 계산에 넣지 않는다.
+  재생기는 완성 행을 다시 구성하면서 상태 해시와 실행 메타데이터를 모두 확인한다.
 * 로그의 정규화 해시는 행 객체 **배열**의 `digest`다. 재채점 전후 원본 해시는
   JSON 정규화 없이 파일의 **바이트 그대로** 구한다.
 * `.diagnoses.json`은 오류 반환의 `{"seq": 줄 번호,"label": 라벨}` 목록이다.

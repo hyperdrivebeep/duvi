@@ -43,5 +43,7 @@ def suite(seed=None):
                 "points": points,
                 "predictions": predictions,
             }
-            cases.append(Case(config, rng.choice(keys), faults))
+            # Keep the answer independent of the RNG that generates public settings.
+            answer_bit = sha256(f"answer:{identity}".encode()).digest()[0] & 1
+            cases.append(Case(config, keys[answer_bit], faults))
     return cases

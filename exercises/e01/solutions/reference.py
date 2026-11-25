@@ -1,16 +1,15 @@
 """참조 풀이 — 독립 시도 후 비교할 때만 읽으세요."""
 
-from ..protocol import metadata, state_hash
+from ..protocol import digest, state_hash
 
 
 class Logger:
     def __init__(self, config):
-        self.meta = metadata(config)
-        self.previous = self.meta["config_hash"]
+        self.previous = digest(config)
         self.rows = []
 
     def record(self, event):
-        row = self.meta | event | {"seq": len(self.rows) + 1}
+        row = event | {"seq": len(self.rows) + 1}
         self.previous = state_hash(self.previous, row)
         self.rows.append(row | {"state_hash": self.previous})
 

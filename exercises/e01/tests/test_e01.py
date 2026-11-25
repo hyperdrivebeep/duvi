@@ -1,9 +1,11 @@
 from copy import deepcopy
 import io
 from contextlib import redirect_stderr
+from dataclasses import replace
 from pathlib import Path
 from secrets import randbits
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -11,7 +13,7 @@ from exercises.e01 import starter
 from exercises.e01.__main__ import main, run_case
 from exercises.e01.fixtures import suite
 from exercises.e01.grader import Failure, grade, load_rows, read_diagnostics, rescore
-from exercises.e01.protocol import Tools, canonical, digest, initial, state_hash
+from exercises.e01.protocol import Tools, canonical, digest, initial, learner_config, metadata, state_hash
 from exercises.e01.replay import Diverged, replay
 from exercises.e01.solutions import reference
 
@@ -28,11 +30,13 @@ class E01Tests(unittest.TestCase):
 
     def write_rows(self, rows):
         # Recompute the hash chain so semantic violations, not stale hashes, reject the log.
-        previous = rows[0]["config_hash"]
+        previous = digest(learner_config(self.case.config))
+        meta = metadata(self.case.config)
         for i, row in enumerate(rows, 1):
             row["seq"] = i
-            row.pop("state_hash", None)
-            previous = row["state_hash"] = state_hash(previous, row)
+            payload = {key: value for key, value in row.items() if key not in meta and key != "state_hash"}
+            previous = row["state_hash"] = state_hash(previous, payload)
+            row.update(meta)
         self.path.write_text("".join(canonical(row) + "\n" for row in rows), encoding="utf-8")
 
     def reject(self, criterion, diagnoses=None, **kwargs):
@@ -51,6 +55,30 @@ class E01Tests(unittest.TestCase):
                     self.assertEqual(result["replay_tool_calls"], 0)
                     self.assertEqual(result["measurements_used"], (2, 3, 3, 4)[index])
 
+    def test_agent_configuration_excludes_grading_metadata(self):
+        seed = randbits(60)
+        case = suite(seed)[3]
+        seen = []
+
+        def logger(config):
+            seen.append(deepcopy(config))
+            config["points"].clear()
+            return reference.Logger(seen[-1])
+
+        def solve(config, measure, submit):
+            seen.append(deepcopy(config))
+            reference.solve(config, measure, submit)
+
+        agent = SimpleNamespace(Logger=logger, solve=solve, diagnostics=reference.diagnostics)
+        path = run_case(case, agent, self.directory)
+        for config in seen:
+            self.assertEqual(config, {key: case.config[key]
+                                      for key in ("turns", "measurements", "points", "predictions")})
+        row = load_rows(path)[0]
+        self.assertEqual(row["seed"], seed)
+        self.assertEqual(row["config_hash"], digest(case.config))
+        grade(suite(seed)[3], path, read_diagnostics(path.with_suffix(".diagnoses.json")))
+
     def test_unpaired_request(self):
         self.write_rows(self.rows[:-1])
         self.reject("pairing")
@@ -62,7 +90,7 @@ class E01Tests(unittest.TestCase):
 
     def test_duplicate_success(self):
         case = suite()[2]
-        logger = reference.Logger(case.config)
+        logger = reference.Logger(learner_config(case.config))
         tools = Tools(case, logger.record)
         tools.measure(1)
         tools.measure(1)
@@ -75,12 +103,27 @@ class E01Tests(unittest.TestCase):
         self.write_rows(self.rows)
         self.reject("negative_budget")
 
+    def test_computed_budget_overdraw_even_when_logged_budget_is_nonnegative(self):
+        # A fifth measurement hides the overdraw by reporting zero instead of -1.
+        # Only the computed-budget guard can reject it as negative_budget.
+        self.case = suite()[2]
+        config = self.case.config
+        logger = reference.Logger(learner_config(config))
+        overbudget = replace(self.case, config=config | {"measurements": config["measurements"] + 1})
+        tools = Tools(overbudget, logger.record)
+        for x in config["points"] + [999]:
+            tools.measure(x)
+        for row in logger.rows:
+            row["remaining_measurements"] = max(0, row["remaining_measurements"] - 1)
+        self.write_rows(logger.rows)
+        self.reject("negative_budget")
+
     def test_call_after_end(self):
         self.write_rows(self.rows + deepcopy(self.rows[:2]))
         self.reject("after_end")
 
     def test_two_retries_after_transient(self):
-        logger = reference.Logger(self.case.config)
+        logger = reference.Logger(learner_config(self.case.config))
         tools = Tools(self.case, logger.record)
         for _ in range(3):
             tools.measure(1)
@@ -129,7 +172,7 @@ class E01Tests(unittest.TestCase):
 
     def test_unnecessary_deferral(self):
         case = suite()[2]
-        logger = reference.Logger(case.config)
+        logger = reference.Logger(learner_config(case.config))
         tools = Tools(case, logger.record)
         tools.measure(1)
         tools.submit(None)

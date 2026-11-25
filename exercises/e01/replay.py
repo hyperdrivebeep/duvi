@@ -1,6 +1,6 @@
 """Rebuild events using only recorded returns and the public configuration."""
 
-from .protocol import begin, canonical, digest, end, event, initial, metadata, state_hash
+from .protocol import begin, canonical, digest, end, event, initial, learner_config, metadata, state_hash
 
 
 class Diverged(ValueError):
@@ -11,7 +11,7 @@ def replay(config, rows, actions=None):
     if not rows or len(rows) % 2:
         raise Diverged("diverged: 요청·반환 쌍이 누락됨")
     meta = metadata(config)
-    previous = meta["config_hash"]
+    previous = digest(learner_config(config))
     state = initial(config)
     rebuilt = []
     actions = iter(actions if actions is not None
@@ -19,9 +19,9 @@ def replay(config, rows, actions=None):
 
     def append(payload):
         nonlocal previous
-        row = meta | payload | {"seq": len(rebuilt) + 1}
+        row = payload | {"seq": len(rebuilt) + 1}
         previous = state_hash(previous, row)
-        rebuilt.append(row | {"state_hash": previous})
+        rebuilt.append(row | meta | {"state_hash": previous})
         if canonical(rebuilt[-1]) != canonical(rows[len(rebuilt) - 1]):
             raise Diverged(f"diverged: {len(rebuilt)}행")
 

@@ -25,6 +25,10 @@ def metadata(config):
     }
 
 
+def learner_config(config):
+    return deepcopy({key: config[key] for key in ("turns", "measurements", "points", "predictions")})
+
+
 def initial(config):
     return {"remaining_turns": config["turns"], "remaining_measurements": config["measurements"],
             "termination": None}
