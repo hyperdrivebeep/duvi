@@ -1,0 +1,2632 @@
+{
+ "base": "4ff02690b086cec1b817e9786faf801e8577445c",
+ "source": "Synthetic v3 progress; no user data",
+ "progress": {
+  "mit-2": {
+   "status": "watching",
+   "completed": false
+  },
+  "mit-3": {
+   "status": "practicing",
+   "completed": false
+  },
+  "mit-4": {
+   "status": "explained",
+   "completed": true
+  },
+  "mit-5": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "mit-6": {
+   "status": "not_started",
+   "completed": false
+  },
+  "mit-8": {
+   "status": "practicing",
+   "completed": false
+  },
+  "mit-9": {
+   "status": "explained",
+   "completed": false
+  },
+  "mit-10": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "mit-11": {
+   "status": "not_started",
+   "completed": false
+  },
+  "mit-12": {
+   "status": "watching",
+   "completed": false
+  },
+  "mit-14": {
+   "status": "explained",
+   "completed": false
+  },
+  "mit-finger-exercises": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "stanford-orientation": {
+   "status": "not_started",
+   "completed": true
+  },
+  "video-fNk_zzaMoSs": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-k7RM-ot2NWY": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-LyGKycYT2v0": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-WUvTyaaNkzM": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-YG15m2VwSjA": {
+   "status": "watching",
+   "completed": true
+  },
+  "bayes-1": {
+   "status": "practicing",
+   "completed": false
+  },
+  "bayes-2": {
+   "status": "explained",
+   "completed": false
+  },
+  "bayes-4": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-9vKqVkMQHKk": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-S0_qX4VJhMQ": {
+   "status": "practicing",
+   "completed": true
+  },
+  "video-m2MIpDrF7Es": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-Z5myJ8dg_rM": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-rfG8ce4nNh0": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-3d6DsjIBzJ4": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-AXqhWeUEtQU": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-tIpKfDc295M": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "d2l-multivariable": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-uQhTuRlWMxw": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-PFDu9oVAE-g": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-Ip3X9LOh2dk": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "video-osh80YCg_GM": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-vF7eyJ2g3kU": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-cy8r7WSuT1I": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-zeJD6dqJ5lo": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-pYxNSUDSFH4": {
+   "status": "not_started",
+   "completed": true
+  },
+  "video-XepXtl9YKwc": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-qtaqvPAeEJY": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-v68zYyaEmEA": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "d2l-information-theory": {
+   "status": "not_started",
+   "completed": false
+  },
+  "mml-book": {
+   "status": "watching",
+   "completed": true
+  },
+  "video-FgakZw6K1QQ": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-gXbThCXjZFM": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-N_ZRcLheNv0": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-bohL918kXQk": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-9WXVgQFFsDI": {
+   "status": "practicing",
+   "completed": true
+  },
+  "video-WNuIhXo39_k": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-e9U0QAFbfLI": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "ml-loss": {
+   "status": "watching",
+   "completed": false
+  },
+  "ml-gradient": {
+   "status": "practicing",
+   "completed": false
+  },
+  "ml-overfitting": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-1waHlpKiNyY": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-SjQyLhQIXSM": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-D8PJAL-MZv8": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-FDCfw-YqWTE": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-4qJaSmvhxi8": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "video-k8fTYJPd3_I": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-_e-LFe_igno": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-QzulmoOg2JE": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-LLux1SW--oM": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-6ArSys5qHAU": {
+   "status": "not_started",
+   "completed": true
+  },
+  "video-0oc49DyA3hU": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-vemZtEM63GY": {
+   "status": "practicing",
+   "completed": false
+  },
+  "kapoor-leakage": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "lipton-ablation": {
+   "status": "not_started",
+   "completed": false
+  },
+  "d2l-distribution-shift": {
+   "status": "watching",
+   "completed": true
+  },
+  "tuning-playbook": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-Xz0x-8-cgaQ": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-AXDByU3D1hA": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-cSoK_6Rkbfg": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-sfk5h0yC67o": {
+   "status": "practicing",
+   "completed": true
+  },
+  "video-A2Jtqi_oa2Y": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-2sjqTHE0zok": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-RwH2UzC2rIo": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-CfzO4IEMVUk": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-q8x9aetyok0": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-Go4EkHN_PcA": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-dQeRqb0N6gs": {
+   "status": "not_started",
+   "completed": false
+  },
+  "causal-text": {
+   "status": "practicing",
+   "completed": false
+  },
+  "causal-course": {
+   "status": "explained",
+   "completed": false
+  },
+  "bayes-decision": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "mit-17": {
+   "status": "not_started",
+   "completed": false
+  },
+  "mit-18": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-VMj-3S1tku0": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-PaCmpygFfXo": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "stanford-evaluation": {
+   "status": "not_started",
+   "completed": true
+  },
+  "stanford-post-training": {
+   "status": "watching",
+   "completed": false
+  },
+  "mit-recursion": {
+   "status": "practicing",
+   "completed": false
+  },
+  "pytorch-install": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "numpy-basics": {
+   "status": "not_started",
+   "completed": false
+  },
+  "pytorch-broadcasting": {
+   "status": "watching",
+   "completed": true
+  },
+  "einops-basics": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-aircAruvnKk": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-Ilg3gGewQ5U": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-tIeHLnjs5U8": {
+   "status": "watching",
+   "completed": false
+  },
+  "pytorch-autograd": {
+   "status": "practicing",
+   "completed": true
+  },
+  "pytorch-model": {
+   "status": "explained",
+   "completed": false
+  },
+  "pytorch-data": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "pytorch-save": {
+   "status": "watching",
+   "completed": false
+  },
+  "pytorch-reproducibility": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-TCH_1BHY58I": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-P6sfmUTpUmc": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-q8SA3rM6ckI": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-qhXZsFVxGKo": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-tNIpEZLv_eg": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-ZILIbUvp5lk": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "d2l-mlp": {
+   "status": "not_started",
+   "completed": false
+  },
+  "karpathy-recipe": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-NkOv_k7r6no": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-Ijqkc7OLenI": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-APOPm01BVrk": {
+   "status": "not_started",
+   "completed": true
+  },
+  "video-AMdG7IjgSPM": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-GB9ByFAIAH4": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-pkVwUVEHmfI": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-M0fX15_-xrY": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-DbeIqrwb_dE": {
+   "status": "watching",
+   "completed": true
+  },
+  "video-OSqIP-mOWOI": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-PXOzkkB5eH0": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-9L9jEOwRrCg": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-Dicw8GDuEc8": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-87GhCIQudEA": {
+   "status": "practicing",
+   "completed": true
+  },
+  "video-f1JRFu7X-c8": {
+   "status": "explained",
+   "completed": false
+  },
+  "d2l-inductive-bias": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-wjZofJX0v4M": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-eMlx5fFNoYc": {
+   "status": "practicing",
+   "completed": false
+  },
+  "d2l-attention": {
+   "status": "explained",
+   "completed": true
+  },
+  "d2l-transformer": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-kCc8FmEb1nY": {
+   "status": "not_started",
+   "completed": false
+  },
+  "neural-processes": {
+   "status": "practicing",
+   "completed": false
+  },
+  "attentive-np": {
+   "status": "explained",
+   "completed": false
+  },
+  "pfn": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "weng-meta-learning": {
+   "status": "not_started",
+   "completed": false
+  },
+  "weng-vae": {
+   "status": "watching",
+   "completed": false
+  },
+  "scaling-kaplan": {
+   "status": "explained",
+   "completed": false
+  },
+  "scaling-chinchilla": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-MKu09syGgEk": {
+   "status": "not_started",
+   "completed": true
+  },
+  "video-q-4lo5luKgc": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-zjkBMFhNj_g": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-P_xeshTnPZg": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-uF53xsT7mjc": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-9zKuYvjFFS8": {
+   "status": "watching",
+   "completed": true
+  },
+  "video-sOPDGQjFcuM": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-iv-5mZ_9CPY": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-mHonq7Gjjqg": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-lEcQtnflYDc": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-AunotauS5yI": {
+   "status": "practicing",
+   "completed": true
+  },
+  "video-1nydD0QSnXk": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-nql000Lu_iE": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-R9NQY2Hyl14": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-T-kMpA4z-7k": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-McEN54l3EPU": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-zwmi8VksxrQ": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-0KPsTDyf9DY": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-HA-VHNVbvwQ": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-wm1YSf45KVM": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-pgS0-xK6tIs": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "kendall-gal": {
+   "status": "not_started",
+   "completed": false
+  },
+  "deep-ensembles": {
+   "status": "watching",
+   "completed": false
+  },
+  "calibration": {
+   "status": "explained",
+   "completed": false
+  },
+  "conformal": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "distill-gp": {
+   "status": "not_started",
+   "completed": true
+  },
+  "gpml-2": {
+   "status": "watching",
+   "completed": false
+  },
+  "mackay-28": {
+   "status": "practicing",
+   "completed": false
+  },
+  "modern-bed": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "video-2pWv7GOvuf0": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-lfHX2hHRMVQ": {
+   "status": "watching",
+   "completed": true
+  },
+  "video-Nd1-UUMVfz4": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-PnHCvfgC_ZA": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-ItMutbeOHtc": {
+   "status": "not_started",
+   "completed": false
+  },
+  "video-sGuiWX07sKw": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-zzXyPGEtseI": {
+   "status": "practicing",
+   "completed": true
+  },
+  "silver-course": {
+   "status": "explained",
+   "completed": false
+  },
+  "sutton-barto": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "bitter-lesson": {
+   "status": "watching",
+   "completed": false
+  },
+  "video-5ucfHd8FWKw": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-89SjJv30kGU": {
+   "status": "explained",
+   "completed": true
+  },
+  "video-RBaBEjzMr4E": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "mechanics-oscillation": {
+   "status": "not_started",
+   "completed": false
+  },
+  "pysr": {
+   "status": "practicing",
+   "completed": false
+  },
+  "video-fk2r8y5TfNY": {
+   "status": "explained",
+   "completed": false
+  },
+  "video-w6Pw4MOzMuo": {
+   "status": "reviewed",
+   "completed": true
+  },
+  "discovery-limits": {
+   "status": "not_started",
+   "completed": false
+  },
+  "exp-054-plan": {
+   "status": "watching",
+   "completed": false
+  },
+  "exp-055-plan": {
+   "status": "explained",
+   "completed": false
+  },
+  "exp-055-result": {
+   "status": "reviewed",
+   "completed": false
+  },
+  "exp-056-plan": {
+   "status": "not_started",
+   "completed": true
+  },
+  "exp-056-result": {
+   "status": "watching",
+   "completed": false
+  }
+ },
+ "phases": [
+  {
+   "id": "learning-phase-1",
+   "resources": [
+    {
+     "id": "mit-1",
+     "lectureId": "1",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-1-version-2_mp4/",
+     "progressId": "mit-1",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-2",
+     "lectureId": "2",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-2-multi-version-4_1_mp4/",
+     "progressId": "mit-2",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "mit-3",
+     "lectureId": "3",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-3-multi_mp4/",
+     "progressId": "mit-3",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "mit-4",
+     "lectureId": "4",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-4-multi_mp4/",
+     "progressId": "mit-4",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "mit-5",
+     "lectureId": "5",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-5-multi_mp4/",
+     "progressId": "mit-5",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "mit-6",
+     "lectureId": "6",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-6-multi-version-3_mp4/",
+     "progressId": "mit-6",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-7",
+     "lectureId": "7",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-7-multi_mp4/",
+     "progressId": "mit-7",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-8",
+     "lectureId": "8",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-8-version-2_mp4/",
+     "progressId": "mit-8",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "mit-9",
+     "lectureId": "9",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-9-version-2_mp4/",
+     "progressId": "mit-9",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "mit-10",
+     "lectureId": "10",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-10-version-3_1_mp4/",
+     "progressId": "mit-10",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "mit-11",
+     "lectureId": "11",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-11-version-2_mp4/",
+     "progressId": "mit-11",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-12",
+     "lectureId": "12",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-12-multi-version-4_mp4/",
+     "progressId": "mit-12",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "mit-13",
+     "lectureId": "13",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-13-version-2_mp4/",
+     "progressId": "mit-13",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-14",
+     "lectureId": "14",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-14-multi_mp4/",
+     "progressId": "mit-14",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "mit-finger-exercises",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/pages/finger-exercises/",
+     "progressId": "mit-finger-exercises",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "stanford-orientation",
+     "url": "https://www.youtube.com/watch?v=9vM4p9NN0Ts",
+     "progressId": "stanford-orientation",
+     "activity": "not_started",
+     "completed": true
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-2",
+   "resources": [
+    {
+     "id": "video-fNk_zzaMoSs",
+     "lectureId": "yt_fNk_zzaMoSs",
+     "url": "https://www.youtube.com/watch?v=fNk_zzaMoSs",
+     "progressId": "video-fNk_zzaMoSs",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-k7RM-ot2NWY",
+     "lectureId": "yt_k7RM-ot2NWY",
+     "url": "https://www.youtube.com/watch?v=k7RM-ot2NWY",
+     "progressId": "video-k7RM-ot2NWY",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-kYB8IZa5AuE",
+     "lectureId": "yt_kYB8IZa5AuE",
+     "url": "https://www.youtube.com/watch?v=kYB8IZa5AuE",
+     "progressId": "video-kYB8IZa5AuE",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-LyGKycYT2v0",
+     "lectureId": "yt_LyGKycYT2v0",
+     "url": "https://www.youtube.com/watch?v=LyGKycYT2v0",
+     "progressId": "video-LyGKycYT2v0",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-WUvTyaaNkzM",
+     "lectureId": "yt_WUvTyaaNkzM",
+     "url": "https://www.youtube.com/watch?v=WUvTyaaNkzM",
+     "progressId": "video-WUvTyaaNkzM",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-YG15m2VwSjA",
+     "lectureId": "yt_YG15m2VwSjA",
+     "url": "https://www.youtube.com/watch?v=YG15m2VwSjA",
+     "progressId": "video-YG15m2VwSjA",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "bayes-1",
+     "url": "https://allendowney.github.io/ThinkBayes2/chap01.html",
+     "progressId": "bayes-1",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "bayes-2",
+     "url": "https://allendowney.github.io/ThinkBayes2/chap02.html",
+     "progressId": "bayes-2",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "bayes-3",
+     "url": "https://allendowney.github.io/ThinkBayes2/chap03.html",
+     "progressId": "bayes-3",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "bayes-4",
+     "url": "https://allendowney.github.io/ThinkBayes2/chap04.html",
+     "progressId": "bayes-4",
+     "activity": "not_started",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-2b",
+   "resources": [
+    {
+     "id": "video-9vKqVkMQHKk",
+     "lectureId": "yt_9vKqVkMQHKk",
+     "url": "https://www.youtube.com/watch?v=9vKqVkMQHKk",
+     "progressId": "video-9vKqVkMQHKk",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-S0_qX4VJhMQ",
+     "lectureId": "yt_S0_qX4VJhMQ",
+     "url": "https://www.youtube.com/watch?v=S0_qX4VJhMQ",
+     "progressId": "video-S0_qX4VJhMQ",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "video-m2MIpDrF7Es",
+     "lectureId": "yt_m2MIpDrF7Es",
+     "url": "https://www.youtube.com/watch?v=m2MIpDrF7Es",
+     "progressId": "video-m2MIpDrF7Es",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-Z5myJ8dg_rM",
+     "lectureId": "yt_Z5myJ8dg_rM",
+     "url": "https://www.youtube.com/watch?v=Z5myJ8dg_rM",
+     "progressId": "video-Z5myJ8dg_rM",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-kfF40MiS7zA",
+     "lectureId": "yt_kfF40MiS7zA",
+     "url": "https://www.youtube.com/watch?v=kfF40MiS7zA",
+     "progressId": "video-kfF40MiS7zA",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-rfG8ce4nNh0",
+     "lectureId": "yt_rfG8ce4nNh0",
+     "url": "https://www.youtube.com/watch?v=rfG8ce4nNh0",
+     "progressId": "video-rfG8ce4nNh0",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-3d6DsjIBzJ4",
+     "lectureId": "yt_3d6DsjIBzJ4",
+     "url": "https://www.youtube.com/watch?v=3d6DsjIBzJ4",
+     "progressId": "video-3d6DsjIBzJ4",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-AXqhWeUEtQU",
+     "lectureId": "yt_AXqhWeUEtQU",
+     "url": "https://www.youtube.com/watch?v=AXqhWeUEtQU",
+     "progressId": "video-AXqhWeUEtQU",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "video-tIpKfDc295M",
+     "lectureId": "yt_tIpKfDc295M",
+     "url": "https://www.youtube.com/watch?v=tIpKfDc295M",
+     "progressId": "video-tIpKfDc295M",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "d2l-multivariable",
+     "url": "https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/multivariable-calculus.html",
+     "progressId": "d2l-multivariable",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-XkY2DOUCWMU",
+     "lectureId": "yt_XkY2DOUCWMU",
+     "url": "https://www.youtube.com/watch?v=XkY2DOUCWMU",
+     "progressId": "video-XkY2DOUCWMU",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-uQhTuRlWMxw",
+     "lectureId": "yt_uQhTuRlWMxw",
+     "url": "https://www.youtube.com/watch?v=uQhTuRlWMxw",
+     "progressId": "video-uQhTuRlWMxw",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-PFDu9oVAE-g",
+     "lectureId": "yt_PFDu9oVAE-g",
+     "url": "https://www.youtube.com/watch?v=PFDu9oVAE-g",
+     "progressId": "video-PFDu9oVAE-g",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-Ip3X9LOh2dk",
+     "lectureId": "yt_Ip3X9LOh2dk",
+     "url": "https://www.youtube.com/watch?v=Ip3X9LOh2dk",
+     "progressId": "video-Ip3X9LOh2dk",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "video-osh80YCg_GM",
+     "lectureId": "yt_osh80YCg_GM",
+     "url": "https://www.youtube.com/watch?v=osh80YCg_GM",
+     "progressId": "video-osh80YCg_GM",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-vF7eyJ2g3kU",
+     "lectureId": "yt_vF7eyJ2g3kU",
+     "url": "https://www.youtube.com/watch?v=vF7eyJ2g3kU",
+     "progressId": "video-vF7eyJ2g3kU",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-HZGCoVF3YvM",
+     "lectureId": "yt_HZGCoVF3YvM",
+     "url": "https://www.youtube.com/watch?v=HZGCoVF3YvM",
+     "progressId": "video-HZGCoVF3YvM",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-cy8r7WSuT1I",
+     "lectureId": "yt_cy8r7WSuT1I",
+     "url": "https://www.youtube.com/watch?v=cy8r7WSuT1I",
+     "progressId": "video-cy8r7WSuT1I",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-zeJD6dqJ5lo",
+     "lectureId": "yt_zeJD6dqJ5lo",
+     "url": "https://www.youtube.com/watch?v=zeJD6dqJ5lo",
+     "progressId": "video-zeJD6dqJ5lo",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-pYxNSUDSFH4",
+     "lectureId": "yt_pYxNSUDSFH4",
+     "url": "https://www.youtube.com/watch?v=pYxNSUDSFH4",
+     "progressId": "video-pYxNSUDSFH4",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "video-XepXtl9YKwc",
+     "lectureId": "yt_XepXtl9YKwc",
+     "url": "https://www.youtube.com/watch?v=XepXtl9YKwc",
+     "progressId": "video-XepXtl9YKwc",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-qtaqvPAeEJY",
+     "lectureId": "yt_qtaqvPAeEJY",
+     "url": "https://www.youtube.com/watch?v=qtaqvPAeEJY",
+     "progressId": "video-qtaqvPAeEJY",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-YtebGVx-Fxw",
+     "lectureId": "yt_YtebGVx-Fxw",
+     "url": "https://www.youtube.com/watch?v=YtebGVx-Fxw",
+     "progressId": "video-YtebGVx-Fxw",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-v68zYyaEmEA",
+     "lectureId": "yt_v68zYyaEmEA",
+     "url": "https://www.youtube.com/watch?v=v68zYyaEmEA",
+     "progressId": "video-v68zYyaEmEA",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "d2l-information-theory",
+     "url": "https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/information-theory.html",
+     "progressId": "d2l-information-theory",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mml-book",
+     "url": "https://mml-book.github.io/",
+     "progressId": "mml-book",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "video-FgakZw6K1QQ",
+     "lectureId": "yt_FgakZw6K1QQ",
+     "url": "https://www.youtube.com/watch?v=FgakZw6K1QQ",
+     "progressId": "video-FgakZw6K1QQ",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-gXbThCXjZFM",
+     "lectureId": "yt_gXbThCXjZFM",
+     "url": "https://www.youtube.com/watch?v=gXbThCXjZFM",
+     "progressId": "video-gXbThCXjZFM",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-5jwXThH6fg4",
+     "lectureId": "yt_5jwXThH6fg4",
+     "url": "https://www.youtube.com/watch?v=5jwXThH6fg4",
+     "progressId": "video-5jwXThH6fg4",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-N_ZRcLheNv0",
+     "lectureId": "yt_N_ZRcLheNv0",
+     "url": "https://www.youtube.com/watch?v=N_ZRcLheNv0",
+     "progressId": "video-N_ZRcLheNv0",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-bohL918kXQk",
+     "lectureId": "yt_bohL918kXQk",
+     "url": "https://www.youtube.com/watch?v=bohL918kXQk",
+     "progressId": "video-bohL918kXQk",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-9WXVgQFFsDI",
+     "lectureId": "yt_9WXVgQFFsDI",
+     "url": "https://www.youtube.com/watch?v=9WXVgQFFsDI",
+     "progressId": "video-9WXVgQFFsDI",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "video-WNuIhXo39_k",
+     "lectureId": "yt_WNuIhXo39_k",
+     "url": "https://www.youtube.com/watch?v=WNuIhXo39_k",
+     "progressId": "video-WNuIhXo39_k",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-e9U0QAFbfLI",
+     "lectureId": "yt_e9U0QAFbfLI",
+     "url": "https://www.youtube.com/watch?v=e9U0QAFbfLI",
+     "progressId": "video-e9U0QAFbfLI",
+     "activity": "reviewed",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-3",
+   "resources": [
+    {
+     "id": "ml-regression",
+     "url": "https://developers.google.com/machine-learning/crash-course/linear-regression",
+     "progressId": "ml-regression",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "ml-loss",
+     "url": "https://developers.google.com/machine-learning/crash-course/linear-regression/loss",
+     "progressId": "ml-loss",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "ml-gradient",
+     "url": "https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent",
+     "progressId": "ml-gradient",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "ml-overfitting",
+     "url": "https://developers.google.com/machine-learning/crash-course/overfitting",
+     "progressId": "ml-overfitting",
+     "activity": "explained",
+     "completed": true
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-3b",
+   "resources": [
+    {
+     "id": "video-1waHlpKiNyY",
+     "lectureId": "yt_1waHlpKiNyY",
+     "url": "https://www.youtube.com/watch?v=1waHlpKiNyY",
+     "progressId": "video-1waHlpKiNyY",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-SjQyLhQIXSM",
+     "lectureId": "yt_SjQyLhQIXSM",
+     "url": "https://www.youtube.com/watch?v=SjQyLhQIXSM",
+     "progressId": "video-SjQyLhQIXSM",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-6g0t3Phly2M",
+     "lectureId": "yt_6g0t3Phly2M",
+     "url": "https://www.youtube.com/watch?v=6g0t3Phly2M",
+     "progressId": "video-6g0t3Phly2M",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-D8PJAL-MZv8",
+     "lectureId": "yt_D8PJAL-MZv8",
+     "url": "https://www.youtube.com/watch?v=D8PJAL-MZv8",
+     "progressId": "video-D8PJAL-MZv8",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-FDCfw-YqWTE",
+     "lectureId": "yt_FDCfw-YqWTE",
+     "url": "https://www.youtube.com/watch?v=FDCfw-YqWTE",
+     "progressId": "video-FDCfw-YqWTE",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-4qJaSmvhxi8",
+     "lectureId": "yt_4qJaSmvhxi8",
+     "url": "https://www.youtube.com/watch?v=4qJaSmvhxi8",
+     "progressId": "video-4qJaSmvhxi8",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "video-k8fTYJPd3_I",
+     "lectureId": "yt_k8fTYJPd3_I",
+     "url": "https://www.youtube.com/watch?v=k8fTYJPd3_I",
+     "progressId": "video-k8fTYJPd3_I",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-_e-LFe_igno",
+     "lectureId": "yt__e-LFe_igno",
+     "url": "https://www.youtube.com/watch?v=_e-LFe_igno",
+     "progressId": "video-_e-LFe_igno",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-JXQT_vxqwIs",
+     "lectureId": "yt_JXQT_vxqwIs",
+     "url": "https://www.youtube.com/watch?v=JXQT_vxqwIs",
+     "progressId": "video-JXQT_vxqwIs",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-QzulmoOg2JE",
+     "lectureId": "yt_QzulmoOg2JE",
+     "url": "https://www.youtube.com/watch?v=QzulmoOg2JE",
+     "progressId": "video-QzulmoOg2JE",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-LLux1SW--oM",
+     "lectureId": "yt_LLux1SW--oM",
+     "url": "https://www.youtube.com/watch?v=LLux1SW--oM",
+     "progressId": "video-LLux1SW--oM",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-6ArSys5qHAU",
+     "lectureId": "yt_6ArSys5qHAU",
+     "url": "https://www.youtube.com/watch?v=6ArSys5qHAU",
+     "progressId": "video-6ArSys5qHAU",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "video-0oc49DyA3hU",
+     "lectureId": "yt_0oc49DyA3hU",
+     "url": "https://www.youtube.com/watch?v=0oc49DyA3hU",
+     "progressId": "video-0oc49DyA3hU",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-vemZtEM63GY",
+     "lectureId": "yt_vemZtEM63GY",
+     "url": "https://www.youtube.com/watch?v=vemZtEM63GY",
+     "progressId": "video-vemZtEM63GY",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-4jRBRDbJemM",
+     "lectureId": "yt_4jRBRDbJemM",
+     "url": "https://www.youtube.com/watch?v=4jRBRDbJemM",
+     "progressId": "video-4jRBRDbJemM",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "kapoor-leakage",
+     "url": "https://arxiv.org/abs/2207.07048",
+     "progressId": "kapoor-leakage",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "lipton-ablation",
+     "url": "https://arxiv.org/abs/1807.03341",
+     "progressId": "lipton-ablation",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "d2l-distribution-shift",
+     "url": "https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html",
+     "progressId": "d2l-distribution-shift",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "tuning-playbook",
+     "url": "https://github.com/google-research/tuning_playbook",
+     "progressId": "tuning-playbook",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-Xz0x-8-cgaQ",
+     "lectureId": "yt_Xz0x-8-cgaQ",
+     "url": "https://www.youtube.com/watch?v=Xz0x-8-cgaQ",
+     "progressId": "video-Xz0x-8-cgaQ",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-AkmPv2WEsHw",
+     "lectureId": "yt_AkmPv2WEsHw",
+     "url": "https://www.youtube.com/watch?v=AkmPv2WEsHw",
+     "progressId": "video-AkmPv2WEsHw",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-AXDByU3D1hA",
+     "lectureId": "yt_AXDByU3D1hA",
+     "url": "https://www.youtube.com/watch?v=AXDByU3D1hA",
+     "progressId": "video-AXDByU3D1hA",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-cSoK_6Rkbfg",
+     "lectureId": "yt_cSoK_6Rkbfg",
+     "url": "https://www.youtube.com/watch?v=cSoK_6Rkbfg",
+     "progressId": "video-cSoK_6Rkbfg",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-sfk5h0yC67o",
+     "lectureId": "yt_sfk5h0yC67o",
+     "url": "https://www.youtube.com/watch?v=sfk5h0yC67o",
+     "progressId": "video-sfk5h0yC67o",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "video-A2Jtqi_oa2Y",
+     "lectureId": "yt_A2Jtqi_oa2Y",
+     "url": "https://www.youtube.com/watch?v=A2Jtqi_oa2Y",
+     "progressId": "video-A2Jtqi_oa2Y",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-2sjqTHE0zok",
+     "lectureId": "yt_2sjqTHE0zok",
+     "url": "https://www.youtube.com/watch?v=2sjqTHE0zok",
+     "progressId": "video-2sjqTHE0zok",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-EgpLj86ZHFQ",
+     "lectureId": "yt_EgpLj86ZHFQ",
+     "url": "https://www.youtube.com/watch?v=EgpLj86ZHFQ",
+     "progressId": "video-EgpLj86ZHFQ",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-RwH2UzC2rIo",
+     "lectureId": "yt_RwH2UzC2rIo",
+     "url": "https://www.youtube.com/watch?v=RwH2UzC2rIo",
+     "progressId": "video-RwH2UzC2rIo",
+     "activity": "watching",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-4",
+   "resources": [
+    {
+     "id": "video-CfzO4IEMVUk",
+     "lectureId": "yt_CfzO4IEMVUk",
+     "url": "https://www.youtube.com/watch?v=CfzO4IEMVUk",
+     "progressId": "video-CfzO4IEMVUk",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-q8x9aetyok0",
+     "lectureId": "yt_q8x9aetyok0",
+     "url": "https://www.youtube.com/watch?v=q8x9aetyok0",
+     "progressId": "video-q8x9aetyok0",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "video-Go4EkHN_PcA",
+     "lectureId": "yt_Go4EkHN_PcA",
+     "url": "https://www.youtube.com/watch?v=Go4EkHN_PcA",
+     "progressId": "video-Go4EkHN_PcA",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-dQeRqb0N6gs",
+     "lectureId": "yt_dQeRqb0N6gs",
+     "url": "https://www.youtube.com/watch?v=dQeRqb0N6gs",
+     "progressId": "video-dQeRqb0N6gs",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-z91LnTDyhtI",
+     "lectureId": "yt_z91LnTDyhtI",
+     "url": "https://www.youtube.com/watch?v=z91LnTDyhtI",
+     "progressId": "video-z91LnTDyhtI",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "causal-text",
+     "url": "https://www.bradyneal.com/Introduction_to_Causal_Inference-Dec17_2020-Neal.pdf",
+     "progressId": "causal-text",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "causal-course",
+     "url": "https://www.bradyneal.com/causal-inference-course",
+     "progressId": "causal-course",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "bayes-decision",
+     "url": "https://allendowney.github.io/ThinkBayes2/chap09.html",
+     "progressId": "bayes-decision",
+     "activity": "reviewed",
+     "completed": true
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-5",
+   "resources": [
+    {
+     "id": "mit-17",
+     "lectureId": "17",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-17-version-2_mp4/",
+     "progressId": "mit-17",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "mit-18",
+     "lectureId": "18",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/resources/6100l-lecture-18-multi-version-2_mp4/",
+     "progressId": "mit-18",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "pytorch-tensors",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/tensorqs_tutorial.html",
+     "progressId": "pytorch-tensors",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-VMj-3S1tku0",
+     "lectureId": "yt_VMj-3S1tku0",
+     "url": "https://www.youtube.com/watch?v=VMj-3S1tku0",
+     "progressId": "video-VMj-3S1tku0",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-PaCmpygFfXo",
+     "lectureId": "yt_PaCmpygFfXo",
+     "url": "https://www.youtube.com/watch?v=PaCmpygFfXo",
+     "progressId": "video-PaCmpygFfXo",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "stanford-evaluation",
+     "url": "https://www.youtube.com/watch?v=9vM4p9NN0Ts",
+     "progressId": "stanford-evaluation",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "stanford-post-training",
+     "url": "https://www.youtube.com/watch?v=9vM4p9NN0Ts",
+     "progressId": "stanford-post-training",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "mit-recursion",
+     "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/video_galleries/lecture-videos/",
+     "progressId": "mit-recursion",
+     "activity": "practicing",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-5b",
+   "resources": [
+    {
+     "id": "python-venv",
+     "url": "https://docs.python.org/3/tutorial/venv.html",
+     "progressId": "python-venv",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "pytorch-install",
+     "url": "https://pytorch.org/get-started/locally/",
+     "progressId": "pytorch-install",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "numpy-basics",
+     "url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+     "progressId": "numpy-basics",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "pytorch-broadcasting",
+     "url": "https://docs.pytorch.org/docs/stable/notes/broadcasting.html",
+     "progressId": "pytorch-broadcasting",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "einops-basics",
+     "url": "https://einops.rocks/1-einops-basics/",
+     "progressId": "einops-basics",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-aircAruvnKk",
+     "lectureId": "yt_aircAruvnKk",
+     "url": "https://www.youtube.com/watch?v=aircAruvnKk",
+     "progressId": "video-aircAruvnKk",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-IHZwWFHWa-w",
+     "lectureId": "yt_IHZwWFHWa-w",
+     "url": "https://www.youtube.com/watch?v=IHZwWFHWa-w",
+     "progressId": "video-IHZwWFHWa-w",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-Ilg3gGewQ5U",
+     "lectureId": "yt_Ilg3gGewQ5U",
+     "url": "https://www.youtube.com/watch?v=Ilg3gGewQ5U",
+     "progressId": "video-Ilg3gGewQ5U",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-tIeHLnjs5U8",
+     "lectureId": "yt_tIeHLnjs5U8",
+     "url": "https://www.youtube.com/watch?v=tIeHLnjs5U8",
+     "progressId": "video-tIeHLnjs5U8",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "pytorch-autograd",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html",
+     "progressId": "pytorch-autograd",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "pytorch-model",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html",
+     "progressId": "pytorch-model",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "pytorch-data",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/data_tutorial.html",
+     "progressId": "pytorch-data",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "pytorch-optimization",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html",
+     "progressId": "pytorch-optimization",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "pytorch-save",
+     "url": "https://docs.pytorch.org/tutorials/beginner/basics/saveloadrun_tutorial.html",
+     "progressId": "pytorch-save",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "pytorch-reproducibility",
+     "url": "https://docs.pytorch.org/docs/stable/notes/randomness.html",
+     "progressId": "pytorch-reproducibility",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-TCH_1BHY58I",
+     "lectureId": "yt_TCH_1BHY58I",
+     "url": "https://www.youtube.com/watch?v=TCH_1BHY58I",
+     "progressId": "video-TCH_1BHY58I",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "video-P6sfmUTpUmc",
+     "lectureId": "yt_P6sfmUTpUmc",
+     "url": "https://www.youtube.com/watch?v=P6sfmUTpUmc",
+     "progressId": "video-P6sfmUTpUmc",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-q8SA3rM6ckI",
+     "lectureId": "yt_q8SA3rM6ckI",
+     "url": "https://www.youtube.com/watch?v=q8SA3rM6ckI",
+     "progressId": "video-q8SA3rM6ckI",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-s2coXdufOzE",
+     "lectureId": "yt_s2coXdufOzE",
+     "url": "https://www.youtube.com/watch?v=s2coXdufOzE",
+     "progressId": "video-s2coXdufOzE",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-qhXZsFVxGKo",
+     "lectureId": "yt_qhXZsFVxGKo",
+     "url": "https://www.youtube.com/watch?v=qhXZsFVxGKo",
+     "progressId": "video-qhXZsFVxGKo",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-tNIpEZLv_eg",
+     "lectureId": "yt_tNIpEZLv_eg",
+     "url": "https://www.youtube.com/watch?v=tNIpEZLv_eg",
+     "progressId": "video-tNIpEZLv_eg",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-ZILIbUvp5lk",
+     "lectureId": "yt_ZILIbUvp5lk",
+     "url": "https://www.youtube.com/watch?v=ZILIbUvp5lk",
+     "progressId": "video-ZILIbUvp5lk",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "d2l-mlp",
+     "url": "https://d2l.ai/chapter_multilayer-perceptrons/mlp.html",
+     "progressId": "d2l-mlp",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "karpathy-recipe",
+     "url": "https://karpathy.github.io/2019/04/25/recipe/",
+     "progressId": "karpathy-recipe",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-wG_nF1awSSY",
+     "lectureId": "yt_wG_nF1awSSY",
+     "url": "https://www.youtube.com/watch?v=wG_nF1awSSY",
+     "progressId": "video-wG_nF1awSSY",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-NkOv_k7r6no",
+     "lectureId": "yt_NkOv_k7r6no",
+     "url": "https://www.youtube.com/watch?v=NkOv_k7r6no",
+     "progressId": "video-NkOv_k7r6no",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-Ijqkc7OLenI",
+     "lectureId": "yt_Ijqkc7OLenI",
+     "url": "https://www.youtube.com/watch?v=Ijqkc7OLenI",
+     "progressId": "video-Ijqkc7OLenI",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-APOPm01BVrk",
+     "lectureId": "yt_APOPm01BVrk",
+     "url": "https://www.youtube.com/watch?v=APOPm01BVrk",
+     "progressId": "video-APOPm01BVrk",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "video-AMdG7IjgSPM",
+     "lectureId": "yt_AMdG7IjgSPM",
+     "url": "https://www.youtube.com/watch?v=AMdG7IjgSPM",
+     "progressId": "video-AMdG7IjgSPM",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-GB9ByFAIAH4",
+     "lectureId": "yt_GB9ByFAIAH4",
+     "url": "https://www.youtube.com/watch?v=GB9ByFAIAH4",
+     "progressId": "video-GB9ByFAIAH4",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-oG1t3qlzq14",
+     "lectureId": "yt_oG1t3qlzq14",
+     "url": "https://www.youtube.com/watch?v=oG1t3qlzq14",
+     "progressId": "video-oG1t3qlzq14",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-pkVwUVEHmfI",
+     "lectureId": "yt_pkVwUVEHmfI",
+     "url": "https://www.youtube.com/watch?v=pkVwUVEHmfI",
+     "progressId": "video-pkVwUVEHmfI",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-M0fX15_-xrY",
+     "lectureId": "yt_M0fX15_-xrY",
+     "url": "https://www.youtube.com/watch?v=M0fX15_-xrY",
+     "progressId": "video-M0fX15_-xrY",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-DbeIqrwb_dE",
+     "lectureId": "yt_DbeIqrwb_dE",
+     "url": "https://www.youtube.com/watch?v=DbeIqrwb_dE",
+     "progressId": "video-DbeIqrwb_dE",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "video-OSqIP-mOWOI",
+     "lectureId": "yt_OSqIP-mOWOI",
+     "url": "https://www.youtube.com/watch?v=OSqIP-mOWOI",
+     "progressId": "video-OSqIP-mOWOI",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-PXOzkkB5eH0",
+     "lectureId": "yt_PXOzkkB5eH0",
+     "url": "https://www.youtube.com/watch?v=PXOzkkB5eH0",
+     "progressId": "video-PXOzkkB5eH0",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-1SZocGaCAr8",
+     "lectureId": "yt_1SZocGaCAr8",
+     "url": "https://www.youtube.com/watch?v=1SZocGaCAr8",
+     "progressId": "video-1SZocGaCAr8",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-9L9jEOwRrCg",
+     "lectureId": "yt_9L9jEOwRrCg",
+     "url": "https://www.youtube.com/watch?v=9L9jEOwRrCg",
+     "progressId": "video-9L9jEOwRrCg",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-Dicw8GDuEc8",
+     "lectureId": "yt_Dicw8GDuEc8",
+     "url": "https://www.youtube.com/watch?v=Dicw8GDuEc8",
+     "progressId": "video-Dicw8GDuEc8",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-87GhCIQudEA",
+     "lectureId": "yt_87GhCIQudEA",
+     "url": "https://www.youtube.com/watch?v=87GhCIQudEA",
+     "progressId": "video-87GhCIQudEA",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "video-f1JRFu7X-c8",
+     "lectureId": "yt_f1JRFu7X-c8",
+     "url": "https://www.youtube.com/watch?v=f1JRFu7X-c8",
+     "progressId": "video-f1JRFu7X-c8",
+     "activity": "explained",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-5c",
+   "resources": [
+    {
+     "id": "d2l-inductive-bias",
+     "url": "https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html",
+     "progressId": "d2l-inductive-bias",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "deep-sets",
+     "url": "https://arxiv.org/abs/1703.06114",
+     "progressId": "deep-sets",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-wjZofJX0v4M",
+     "lectureId": "yt_wjZofJX0v4M",
+     "url": "https://www.youtube.com/watch?v=wjZofJX0v4M",
+     "progressId": "video-wjZofJX0v4M",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-eMlx5fFNoYc",
+     "lectureId": "yt_eMlx5fFNoYc",
+     "url": "https://www.youtube.com/watch?v=eMlx5fFNoYc",
+     "progressId": "video-eMlx5fFNoYc",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "d2l-attention",
+     "url": "https://d2l.ai/chapter_attention-mechanisms-and-transformers/queries-keys-values.html",
+     "progressId": "d2l-attention",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "d2l-transformer",
+     "url": "https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html",
+     "progressId": "d2l-transformer",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-kCc8FmEb1nY",
+     "lectureId": "yt_kCc8FmEb1nY",
+     "url": "https://www.youtube.com/watch?v=kCc8FmEb1nY",
+     "progressId": "video-kCc8FmEb1nY",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "pre-post-ln",
+     "url": "https://arxiv.org/abs/2002.04745",
+     "progressId": "pre-post-ln",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "neural-processes",
+     "url": "https://arxiv.org/abs/1807.01622",
+     "progressId": "neural-processes",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "attentive-np",
+     "url": "https://arxiv.org/abs/1901.05761",
+     "progressId": "attentive-np",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "pfn",
+     "url": "https://arxiv.org/abs/2112.10510",
+     "progressId": "pfn",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "weng-meta-learning",
+     "url": "https://lilianweng.github.io/posts/2018-11-30-meta-learning/",
+     "progressId": "weng-meta-learning",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "weng-vae",
+     "url": "https://lilianweng.github.io/posts/2018-08-12-vae/",
+     "progressId": "weng-vae",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-t3YJ5hKiMQ0",
+     "lectureId": "yt_t3YJ5hKiMQ0",
+     "url": "https://www.youtube.com/watch?v=t3YJ5hKiMQ0",
+     "progressId": "video-t3YJ5hKiMQ0",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "scaling-kaplan",
+     "url": "https://arxiv.org/abs/2001.08361",
+     "progressId": "scaling-kaplan",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "scaling-chinchilla",
+     "url": "https://arxiv.org/abs/2203.15556",
+     "progressId": "scaling-chinchilla",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-MKu09syGgEk",
+     "lectureId": "yt_MKu09syGgEk",
+     "url": "https://www.youtube.com/watch?v=MKu09syGgEk",
+     "progressId": "video-MKu09syGgEk",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "video-q-4lo5luKgc",
+     "lectureId": "yt_q-4lo5luKgc",
+     "url": "https://www.youtube.com/watch?v=q-4lo5luKgc",
+     "progressId": "video-q-4lo5luKgc",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-zjkBMFhNj_g",
+     "lectureId": "yt_zjkBMFhNj_g",
+     "url": "https://www.youtube.com/watch?v=zjkBMFhNj_g",
+     "progressId": "video-zjkBMFhNj_g",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-5eqRuVp65eY",
+     "lectureId": "yt_5eqRuVp65eY",
+     "url": "https://www.youtube.com/watch?v=5eqRuVp65eY",
+     "progressId": "video-5eqRuVp65eY",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-P_xeshTnPZg",
+     "lectureId": "yt_P_xeshTnPZg",
+     "url": "https://www.youtube.com/watch?v=P_xeshTnPZg",
+     "progressId": "video-P_xeshTnPZg",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-uF53xsT7mjc",
+     "lectureId": "yt_uF53xsT7mjc",
+     "url": "https://www.youtube.com/watch?v=uF53xsT7mjc",
+     "progressId": "video-uF53xsT7mjc",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-9zKuYvjFFS8",
+     "lectureId": "yt_9zKuYvjFFS8",
+     "url": "https://www.youtube.com/watch?v=9zKuYvjFFS8",
+     "progressId": "video-9zKuYvjFFS8",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "video-sOPDGQjFcuM",
+     "lectureId": "yt_sOPDGQjFcuM",
+     "url": "https://www.youtube.com/watch?v=sOPDGQjFcuM",
+     "progressId": "video-sOPDGQjFcuM",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-iv-5mZ_9CPY",
+     "lectureId": "yt_iv-5mZ_9CPY",
+     "url": "https://www.youtube.com/watch?v=iv-5mZ_9CPY",
+     "progressId": "video-iv-5mZ_9CPY",
+     "activity": "explained",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-5d",
+   "resources": [
+    {
+     "id": "video-veYq6EWZyVc",
+     "lectureId": "yt_veYq6EWZyVc",
+     "url": "https://www.youtube.com/watch?v=veYq6EWZyVc",
+     "progressId": "video-veYq6EWZyVc",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-mHonq7Gjjqg",
+     "lectureId": "yt_mHonq7Gjjqg",
+     "url": "https://www.youtube.com/watch?v=mHonq7Gjjqg",
+     "progressId": "video-mHonq7Gjjqg",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-lEcQtnflYDc",
+     "lectureId": "yt_lEcQtnflYDc",
+     "url": "https://www.youtube.com/watch?v=lEcQtnflYDc",
+     "progressId": "video-lEcQtnflYDc",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-AunotauS5yI",
+     "lectureId": "yt_AunotauS5yI",
+     "url": "https://www.youtube.com/watch?v=AunotauS5yI",
+     "progressId": "video-AunotauS5yI",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "video-1nydD0QSnXk",
+     "lectureId": "yt_1nydD0QSnXk",
+     "url": "https://www.youtube.com/watch?v=1nydD0QSnXk",
+     "progressId": "video-1nydD0QSnXk",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-nql000Lu_iE",
+     "lectureId": "yt_nql000Lu_iE",
+     "url": "https://www.youtube.com/watch?v=nql000Lu_iE",
+     "progressId": "video-nql000Lu_iE",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-xgfexqYxrDU",
+     "lectureId": "yt_xgfexqYxrDU",
+     "url": "https://www.youtube.com/watch?v=xgfexqYxrDU",
+     "progressId": "video-xgfexqYxrDU",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-R9NQY2Hyl14",
+     "lectureId": "yt_R9NQY2Hyl14",
+     "url": "https://www.youtube.com/watch?v=R9NQY2Hyl14",
+     "progressId": "video-R9NQY2Hyl14",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-T-kMpA4z-7k",
+     "lectureId": "yt_T-kMpA4z-7k",
+     "url": "https://www.youtube.com/watch?v=T-kMpA4z-7k",
+     "progressId": "video-T-kMpA4z-7k",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-McEN54l3EPU",
+     "lectureId": "yt_McEN54l3EPU",
+     "url": "https://www.youtube.com/watch?v=McEN54l3EPU",
+     "progressId": "video-McEN54l3EPU",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "video-zwmi8VksxrQ",
+     "lectureId": "yt_zwmi8VksxrQ",
+     "url": "https://www.youtube.com/watch?v=zwmi8VksxrQ",
+     "progressId": "video-zwmi8VksxrQ",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "video-0KPsTDyf9DY",
+     "lectureId": "yt_0KPsTDyf9DY",
+     "url": "https://www.youtube.com/watch?v=0KPsTDyf9DY",
+     "progressId": "video-0KPsTDyf9DY",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-_5is1F9tKTk",
+     "lectureId": "yt__5is1F9tKTk",
+     "url": "https://www.youtube.com/watch?v=_5is1F9tKTk",
+     "progressId": "video-_5is1F9tKTk",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-HA-VHNVbvwQ",
+     "lectureId": "yt_HA-VHNVbvwQ",
+     "url": "https://www.youtube.com/watch?v=HA-VHNVbvwQ",
+     "progressId": "video-HA-VHNVbvwQ",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-wm1YSf45KVM",
+     "lectureId": "yt_wm1YSf45KVM",
+     "url": "https://www.youtube.com/watch?v=wm1YSf45KVM",
+     "progressId": "video-wm1YSf45KVM",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-pgS0-xK6tIs",
+     "lectureId": "yt_pgS0-xK6tIs",
+     "url": "https://www.youtube.com/watch?v=pgS0-xK6tIs",
+     "progressId": "video-pgS0-xK6tIs",
+     "activity": "reviewed",
+     "completed": true
+    },
+    {
+     "id": "kendall-gal",
+     "url": "https://arxiv.org/abs/1703.04977",
+     "progressId": "kendall-gal",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "deep-ensembles",
+     "url": "https://arxiv.org/abs/1612.01474",
+     "progressId": "deep-ensembles",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "beta-nll",
+     "url": "https://arxiv.org/abs/2203.09168",
+     "progressId": "beta-nll",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "calibration",
+     "url": "https://arxiv.org/abs/1706.04599",
+     "progressId": "calibration",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "conformal",
+     "url": "https://arxiv.org/abs/2107.07511",
+     "progressId": "conformal",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "distill-gp",
+     "url": "https://distill.pub/2019/visual-exploration-gaussian-processes/",
+     "progressId": "distill-gp",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "gpml-2",
+     "url": "https://gaussianprocess.org/gpml/chapters/RW2.pdf",
+     "progressId": "gpml-2",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "mackay-28",
+     "url": "https://www.inference.org.uk/mackay/itprnn/ps/343.355.pdf",
+     "progressId": "mackay-28",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "hoeting-bma",
+     "url": "https://www.stat.colostate.edu/~jah/papers/statsci.pdf",
+     "progressId": "hoeting-bma",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "modern-bed",
+     "url": "https://arxiv.org/abs/2302.14545",
+     "progressId": "modern-bed",
+     "activity": "reviewed",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-6",
+   "resources": [
+    {
+     "id": "video-2pWv7GOvuf0",
+     "lectureId": "yt_2pWv7GOvuf0",
+     "url": "https://www.youtube.com/watch?v=2pWv7GOvuf0",
+     "progressId": "video-2pWv7GOvuf0",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-lfHX2hHRMVQ",
+     "lectureId": "yt_lfHX2hHRMVQ",
+     "url": "https://www.youtube.com/watch?v=lfHX2hHRMVQ",
+     "progressId": "video-lfHX2hHRMVQ",
+     "activity": "watching",
+     "completed": true
+    },
+    {
+     "id": "video-Nd1-UUMVfz4",
+     "lectureId": "yt_Nd1-UUMVfz4",
+     "url": "https://www.youtube.com/watch?v=Nd1-UUMVfz4",
+     "progressId": "video-Nd1-UUMVfz4",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-PnHCvfgC_ZA",
+     "lectureId": "yt_PnHCvfgC_ZA",
+     "url": "https://www.youtube.com/watch?v=PnHCvfgC_ZA",
+     "progressId": "video-PnHCvfgC_ZA",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-0g4j2k_Ggc4",
+     "lectureId": "yt_0g4j2k_Ggc4",
+     "url": "https://www.youtube.com/watch?v=0g4j2k_Ggc4",
+     "progressId": "video-0g4j2k_Ggc4",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-ItMutbeOHtc",
+     "lectureId": "yt_ItMutbeOHtc",
+     "url": "https://www.youtube.com/watch?v=ItMutbeOHtc",
+     "progressId": "video-ItMutbeOHtc",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "video-sGuiWX07sKw",
+     "lectureId": "yt_sGuiWX07sKw",
+     "url": "https://www.youtube.com/watch?v=sGuiWX07sKw",
+     "progressId": "video-sGuiWX07sKw",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "video-zzXyPGEtseI",
+     "lectureId": "yt_zzXyPGEtseI",
+     "url": "https://www.youtube.com/watch?v=zzXyPGEtseI",
+     "progressId": "video-zzXyPGEtseI",
+     "activity": "practicing",
+     "completed": true
+    },
+    {
+     "id": "silver-course",
+     "url": "https://www.davidsilver.uk/teaching/",
+     "progressId": "silver-course",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "sutton-barto",
+     "url": "https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf",
+     "progressId": "sutton-barto",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "era-of-experience",
+     "url": "https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf",
+     "progressId": "era-of-experience",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "bitter-lesson",
+     "url": "https://www.cs.utexas.edu/~eunsol/courses/data/bitter_lesson.pdf",
+     "progressId": "bitter-lesson",
+     "activity": "watching",
+     "completed": false
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-7",
+   "resources": [
+    {
+     "id": "video-5ucfHd8FWKw",
+     "lectureId": "yt_5ucfHd8FWKw",
+     "url": "https://www.youtube.com/watch?v=5ucfHd8FWKw",
+     "progressId": "video-5ucfHd8FWKw",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-89SjJv30kGU",
+     "lectureId": "yt_89SjJv30kGU",
+     "url": "https://www.youtube.com/watch?v=89SjJv30kGU",
+     "progressId": "video-89SjJv30kGU",
+     "activity": "explained",
+     "completed": true
+    },
+    {
+     "id": "video-RBaBEjzMr4E",
+     "lectureId": "yt_RBaBEjzMr4E",
+     "url": "https://www.youtube.com/watch?v=RBaBEjzMr4E",
+     "progressId": "video-RBaBEjzMr4E",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "mechanics-oscillation",
+     "url": "https://ocw.mit.edu/courses/8-01sc-classical-mechanics-fall-2016/mit8_01scs22_chapter23.pdf",
+     "progressId": "mechanics-oscillation",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "ai-feynman",
+     "url": "https://arxiv.org/abs/1905.11481",
+     "progressId": "ai-feynman",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "pysr",
+     "url": "https://arxiv.org/abs/2305.01582",
+     "progressId": "pysr",
+     "activity": "practicing",
+     "completed": false
+    },
+    {
+     "id": "video-fk2r8y5TfNY",
+     "lectureId": "yt_fk2r8y5TfNY",
+     "url": "https://www.youtube.com/watch?v=fk2r8y5TfNY",
+     "progressId": "video-fk2r8y5TfNY",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "video-w6Pw4MOzMuo",
+     "lectureId": "yt_w6Pw4MOzMuo",
+     "url": "https://www.youtube.com/watch?v=w6Pw4MOzMuo",
+     "progressId": "video-w6Pw4MOzMuo",
+     "activity": "reviewed",
+     "completed": true
+    }
+   ]
+  },
+  {
+   "id": "learning-phase-8",
+   "resources": [
+    {
+     "id": "discovery-limits",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md",
+     "progressId": "discovery-limits",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "exp-054-plan",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/PLAN.md",
+     "progressId": "exp-054-plan",
+     "activity": "watching",
+     "completed": false
+    },
+    {
+     "id": "exp-054-result",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-054/RESULT.md",
+     "progressId": "exp-054-result",
+     "activity": "not_started",
+     "completed": false
+    },
+    {
+     "id": "exp-055-plan",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/PLAN.md",
+     "progressId": "exp-055-plan",
+     "activity": "explained",
+     "completed": false
+    },
+    {
+     "id": "exp-055-result",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-055/RESULT.md",
+     "progressId": "exp-055-result",
+     "activity": "reviewed",
+     "completed": false
+    },
+    {
+     "id": "exp-056-plan",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/PLAN.md",
+     "progressId": "exp-056-plan",
+     "activity": "not_started",
+     "completed": true
+    },
+    {
+     "id": "exp-056-result",
+     "url": "https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/30_EXPERIMENTS/EXP-056/RESULT.md",
+     "progressId": "exp-056-result",
+     "activity": "watching",
+     "completed": false
+    }
+   ]
+  }
+ ],
+ "firstTwoWeeks": {
+  "sessions": [
+   {
+    "session": 1,
+    "title": "실행 환경 준비 + MIT 1강 앞부분",
+    "output": "IDLE에 print(2 + 3)을 저장·실행하고 입력을 바꾸기 전 결과를 예상한다. Stanford 도입8분은 선택이다."
+   },
+   {
+    "session": 2,
+    "title": "MIT 1강 나머지 + Finger Exercise",
+    "output": "입력 변경 전 예상과 실제 출력, 차이가 생긴 이유를 남긴다."
+   },
+   {
+    "session": 3,
+    "title": "MIT 2강과 조건문",
+    "output": "4·5·6을 각각 입력해 5 이상일 때만 출력하는 코드를 쓴다."
+   },
+   {
+    "session": 4,
+    "title": "MIT 2강 복습 + 새 입력",
+    "output": "어떤 측정이 기록에서 빠졌는지 선택 규칙으로 설명한다."
+   },
+   {
+    "session": 5,
+    "title": "화면을 닫고 조건문 다시 작성",
+    "output": "경계값5와 반례4를 확인하고 AI 도움 여부를 적는다."
+   },
+   {
+    "session": 6,
+    "title": "MIT 3강 반복문",
+    "output": "1~10의 합55와 개수10을 반복문으로 계산한다."
+   },
+   {
+    "session": 7,
+    "title": "MIT 3강 연습 + 전체/선택 평균",
+    "output": "모의 측정값 [1..10]에서 전체5.5와 5 이상 선택7.5를 비교한다."
+   },
+   {
+    "session": 8,
+    "title": "선택 규칙 바꾸기",
+    "output": "임계값5·7·11을 비교하고 선택값이 없을 때 평균을 만들지 않는다."
+   },
+   {
+    "session": 9,
+    "title": "새 목록 + 고정 오프셋",
+    "output": "[2,4,6,8]에서 반복한다. 포함 여부를 먼저 고정한 +2 오프셋과 재선택을 구분한다."
+   },
+   {
+    "session": 10,
+    "title": "도움 없이 설명 + 원 목록 숨기기",
+    "output": "누락값과 개수를 모르면 전체 평균을 확정할 수 없는 이유를 설명하고 필요한 정보를 적는다."
+   }
+  ]
+ },
+ "next": "mit-2",
+ "summary": {
+  "total": 227,
+  "done": 38,
+  "percent": 17
+ }
+}

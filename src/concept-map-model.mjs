@@ -149,7 +149,7 @@ export function graphLayout(data) {
       left += lanes(column) * (nodeWidth + rowGap) - rowGap + columnGap;
     }
     const height = bandHeader + rows * (nodeHeight + rowGap) - rowGap;
-    const withMaterial = group.concepts.filter(concept => materialLabel(data, concept) === '자료 있음').length;
+    const withMaterial = group.concepts.filter(concept => materialLabel(data, concept) !== '자료 없음').length;
     bands.push({field: group.name, gap: !!group.gap, x: 0, y: top, width: left - columnGap, height, total: group.concepts.length, withMaterial});
     top += height + bandGap;
   }

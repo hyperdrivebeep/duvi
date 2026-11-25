@@ -2,6 +2,7 @@ import {el,button,busy} from './learning-dom.mjs';
 import {RECORD_FIELDS,orderedResources,apiErrorMessage,lectureResource,curriculumPlace,resourceCompleted,resourceProgressId,progressStatus,nextResource,completionSummary,questionAutoPause} from './learning-model.mjs';
 import {LearningEditor} from './learning-editor.mjs';
 import {renderRoadmap,resourceAction} from './learning-map-view.mjs';
+import {focusV4Card} from './curriculum-v4-view.mjs';
 import {renderRecords} from './learning-records-view.mjs';
 import {LearningBackupUI} from './learning-backup-ui.mjs';
 import {LearningSyncUI} from './learning-sync-ui.mjs';
@@ -69,9 +70,9 @@ export class LearningUI{
   sync(){this.renderPanel();this.strip.set(this.streamItems(),this.player.duration());this.chat.renderLog();this.updateRoadmap?.(this.state);this.onStateChange(this.roadmap,this.state.progress);const summary=completionSummary(this.roadmap,this.state.progress),next=nextResource(this.roadmap,this.state.progress);this.resume.replaceChildren(el('p','muted',`학습 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`));if(next){const action=resourceAction(next,`다음 · ${next.title}`,r=>this.openResource(r),'learning-resume-action');action.classList.add('learning-resume-action');this.resume.append(action);}else this.resume.append(button('✓ 계획 완료 · 복습하기',()=>this.open('review')));if(this.resourceError){const error=el('p','notice',this.resourceError);error.setAttribute('role','status');this.resume.append(error,button('로드맵에서 강의 준비',()=>this.open('roadmap')));}}
   async openPhase(id){await this.open('roadmap');const section=[...this.content.querySelectorAll('[data-phase-id]')].find(node=>node.dataset.phaseId===id);if(section){section.open=true;section.querySelector('summary').focus();section.scrollIntoView({block:'start'});}}
   async init(){try{await this.refresh();}catch(error){this.completionNotice.textContent=error.message;}}
-  async open(view='roadmap'){
+  async open(view='roadmap',cardId){
     this.opener=document.activeElement;this.openerLabel=this.opener?.textContent;this.openerRootId=this.opener?.parentElement?.closest('[id]')?.id;this.modal(this.dialog);this.view=view;this.content.replaceChildren(el('p','muted','학습 기록을 불러오는 중…'));this.notice.textContent='';
-    try{await this.refresh();this.select(view);}catch(error){this.notice.textContent=error.message;this.content.replaceChildren(button('다시 불러오기',()=>this.open(view)));}
+    try{await this.refresh();this.select(view);if(view==='roadmap'&&cardId)focusV4Card(this.content,cardId);}catch(error){this.notice.textContent=error.message;this.content.replaceChildren(button('다시 불러오기',()=>this.open(view,cardId)));}
   }
   select(view){if(!this.loaded)return;this.view=view;this.notice.textContent='';this.updateRoadmap=null;for(const tab of this.nav.children)tab.setAttribute('aria-pressed',String(tab.dataset.learningView===view));this.content.replaceChildren();
     if(view==='roadmap')this.updateRoadmap=renderRoadmap(this.content,{roadmap:this.roadmap,state:this.state,onOpen:resource=>this.openResource(resource),onProgress:(id,status)=>this.changeProgress(id,status),onPrepare:event=>this.prepare(event),onComplete:resource=>this.complete(resource)});

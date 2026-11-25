@@ -69,6 +69,10 @@ export function buildConceptMapData({conceptMap, guideData, roadmap = ROADMAP}) 
     if (!resources.has(resource.id)) resources.set(resource.id, resource);
     for (const name of resource.concepts || []) byConcept.set(name, [...(byConcept.get(name) || []), resource.id]);
   }
+  for (const cards of Object.values(roadmap.curriculumV4?.phases || {})) for (const card of cards) {
+    resources.set(card.id, {...card, roadmapCard: true});
+    for (const name of card.concepts || []) byConcept.set(name, [...(byConcept.get(name) || []), card.id]);
+  }
   const used = new Set();
   const rows = concepts.map(concept => {
     const entry = guideData.concepts[concept.name];
@@ -81,10 +85,14 @@ export function buildConceptMapData({conceptMap, guideData, roadmap = ROADMAP}) 
     return {...concept, status: STATUS[entry.status] ?? entry.status, resources: linked};
   });
   const gapFields = GAP_GROUPS.map((group, index) => ({id: `g${index + 1}`, name: group.name, gap: true, source: GAP_SOURCE}));
-  const gaps = GAP_GROUPS.flatMap((group, groupIndex) => group.concepts.map(([name, definition, why, prerequisites, prerequisiteSource], index) => ({
-    id: `g${groupIndex + 1}-${String(index + 1).padStart(2, '0')}`, field: group.name, name, definition, why, prerequisites, prerequisiteSource,
-    level: '', status: '없음', resources: [], gap: true, source: GAP_SOURCE,
-  })));
+  const gaps = GAP_GROUPS.flatMap((group, groupIndex) => group.concepts.map(([name, definition, why, prerequisites, prerequisiteSource], index) => {
+    const linked = byConcept.get(name) || [];
+    linked.forEach(id => used.add(id));
+    return {
+      id: `g${groupIndex + 1}-${String(index + 1).padStart(2, '0')}`, field: group.name, name, definition, why, prerequisites, prerequisiteSource,
+      level: '', status: linked.length ? '일부' : '없음', resources: linked, gap: true, source: GAP_SOURCE,
+    };
+  }));
   return {
     source: {
       concepts: 'docs/CONCEPT_MAP.md (R-019) sections 2-9',
@@ -96,7 +104,7 @@ export function buildConceptMapData({conceptMap, guideData, roadmap = ROADMAP}) 
     concepts: [...rows, ...gaps],
     // Roadmap order, so a lecture shared by two resources keeps the first resource's progress id (learning-model.mjs).
     resources: [...resources.values()].filter(resource => used.has(resource.id))
-      .map(({id, title, kind, url, lectureId}) => ({id, title, kind, url, ...(lectureId && {lectureId: String(lectureId)})})),
+      .map(({id, title, kind, url, lectureId, roadmapCard}) => ({id, title, kind, url, ...(lectureId && {lectureId: String(lectureId)}), ...(roadmapCard && {roadmapCard})})),
   };
 }
 

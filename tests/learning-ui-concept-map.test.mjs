@@ -42,17 +42,19 @@ test('prerequisites resolve to concepts or are marked external, never guessed ac
   assert.deepEqual(prerequisiteChain(data, chainRule).map(concept => concept.name), ['미분계수·도함수', '일차함수·기울기', '함수와 그래프', '변수·수직선']);
 });
 
-test('gap groups have no material, cite the report, and link only to real concepts', () => {
+test('previous gap groups preserve citations and link to v4 cards and real prerequisites', () => {
   const gaps = conceptGroups(data).filter(group => group.gap);
   assert.deepEqual(gaps.map(group => [group.name, group.concepts.length]), [['실험 판정 통계', 7], ['인과 구조 학습', 3]]);
   assert.deepEqual(gaps[0].concepts.map(concept => concept.name), ['다중 비교 보정(Holm·BH)', '동등성 검정(TOST)', '검정력·MDE', 'Wilcoxon·부호 순열', '쌍 부트스트랩', '확증 vs 탐색', '사전등록']);
   assert.deepEqual(gaps[1].concepts.map(concept => concept.name).sort(), ['GIES', '개입과 관찰의 구분', '구조적 인과 모형(SCM)'].sort());
   for (const concept of gaps.flatMap(group => group.concepts)) {
-    assert.equal(concept.gap, true); assert.deepEqual(concept.resources, []); assert.equal(materialLabel(data, concept), '자료 없음');
+    assert.equal(concept.gap, true); assert.ok(concept.resources.some(id => id.startsWith('v4-i-')));
+    assert.notEqual(materialLabel(data, concept), '자료 없음');
     assert.match(concept.source, /REPORT\.md/); assert.match(concept.prerequisiteSource, /REPORT\.md:\d+/);
     assert.ok(prerequisites(data, concept).every(item => item.id), concept.name);
   }
-  assert.deepEqual(conceptCounts(data, named('GIES'), {progress: {}, records: [], attempts: []}), {marked: null, questions: null, checks: {total: 0, correct: 0}, work: null});
+  const gies = named('GIES');
+  assert.deepEqual(conceptCounts(data, gies, {progress: {'v4-i-gies': {completed: true}}, records: [], attempts: []}).marked, {done: 1, total: gies.resources.length});
 });
 
 test('counts come from the learning state; missing evidence is null, not zero', () => {
@@ -88,7 +90,9 @@ test('graph edges come only from resolved prerequisites, columns are longest pat
   assert.equal(graph.edges.length, resolved.size);
   assert.equal(graph.nodes.length, data.concepts.length);
   for (const edge of graph.edges) assert.equal(edge.dashed, materialLabel(data, data.concepts.find(concept => concept.id === edge.to)) === '자료 없음');
-  assert.ok(graph.edges.some(edge => edge.dashed) && graph.edges.some(edge => !edge.dashed));
+  const withoutGies = {...data, concepts: data.concepts.map(concept => concept.name === 'GIES' ? {...concept, resources: []} : concept)};
+  assert.ok(graphLayout(withoutGies).edges.some(edge => edge.dashed));
+  assert.ok(graph.edges.some(edge => !edge.dashed));
   for (const concept of data.concepts) {
     const froms = graph.edges.filter(edge => edge.to === concept.id).map(edge => node.get(edge.from).column);
     assert.equal(node.get(concept.id).column, froms.length ? Math.max(...froms) + 1 : 0, concept.name);
@@ -149,7 +153,7 @@ test('table view: groups disclose, lecture buttons open lectures, null evidence 
   assert.deepEqual(headers, ['개념', '먼저 알아야 할 것', '다루는 강의', '자료', '내가 표시', '질문', '확인 문제', '커밋·테스트']);
   const disclosures = root.all(hasClass('cmap-disclosure'));
   assert.equal(disclosures.length, data.fields.length);
-  assert.ok(disclosures.some(node => node.textContent === '실험 판정 통계 · 7개 · 커리큘럼에 없음'));
+  assert.ok(disclosures.some(node => node.textContent === '실험 판정 통계 · 7개 · 이전 공백'));
   const row = root.find(node => node.tagName === 'TR' && node.getAttribute('data-id') === concept.id);
   const cells = row.children.map(cell => cell.textContent);
   assert.equal(cells[1], '미분계수·도함수, 합성함수');
@@ -160,7 +164,7 @@ test('table view: groups disclose, lecture buttons open lectures, null evidence 
   row.find(node => node.tagName === 'BUTTON' && hasClass('cmap-link')(node)).fire('click');
   assert.deepEqual(opened, [lecture.id]);
   const gies = root.find(node => node.tagName === 'TR' && node.getAttribute('data-id') === named('GIES').id).children.map(cell => cell.textContent);
-  assert.deepEqual(gies.slice(2), ['-', '자료 없음', '-', NO_EVIDENCE, NO_EVIDENCE, NO_EVIDENCE]);
+  assert.deepEqual(gies.slice(2), ['읽기 자료만', materialLabel(data, named('GIES')), `0 / ${named('GIES').resources.length}`, NO_EVIDENCE, NO_EVIDENCE, NO_EVIDENCE]);
 
   const [group] = disclosures;
   group.fire('click');
@@ -192,10 +196,10 @@ test('graph view: nodes and edges from data, selection emphasises edges, control
   const nodes = root.all(hasClass('cmap-node')), nodeFor = id => nodes.find(node => node.getAttribute('data-id') === id);
   assert.equal(nodes.length, data.concepts.length);
   const gap = nodeFor(named('GIES').id);
-  assert.ok(gap.textContent.includes('○ 자료 없음') && gap.textContent.includes(NO_EVIDENCE));
+  assert.ok(gap.textContent.includes(materialLabel(data, named('GIES'))) && gap.textContent.includes(NO_EVIDENCE));
   const paths = root.all(node => node.tagName === 'PATH');
   assert.equal(paths.length, graphLayout(data).edges.length);
-  assert.ok(paths.some(hasClass('cmap-dashed')));
+  assert.equal(paths.filter(hasClass('cmap-dashed')).length, graphLayout(data).edges.filter(edge => edge.dashed).length);
   assert.ok(root.find(node => node.textContent === '점선: 자료가 없는 개념으로 이어짐'));
   for (const label of ['화면 맞춤', '지금 강의 개념으로', '확대', '축소']) assert.ok(root.find(node => node.tagName === 'BUTTON' && node.getAttribute('aria-label') === label), label);
   const fitNote = root.find(hasClass('cmap-fit-note'));
@@ -227,9 +231,9 @@ test('graph node names read as separate phrases, without the material glyph, kee
     return root.find(node => hasClass('cmap-node')(node) && node.getAttribute('data-id') === named(name).id).getAttribute('aria-label');
   };
   const empty = {progress: {}, records: [], attempts: []}, line = named('변수·수직선'), marked = conceptCounts(data, line, empty).marked;
-  assert.equal(nodeName(empty, 'GIES'), 'GIES, 자료 없음, 확인 문제 0');
+  assert.equal(nodeName(empty, 'GIES'), `GIES, ${materialLabel(data, named('GIES'))}, 내가 표시 0/${named('GIES').resources.length}, 확인 문제 0`);
   assert.equal(nodeName(empty, '변수·수직선'), `변수·수직선, 자료 있음${marked ? `, 내가 표시 ${marked.done}/${marked.total}` : ''}, 질문 0, 확인 문제 0`);
-  assert.equal(nodeName({}, 'GIES'), `GIES, 자료 없음, ${NO_EVIDENCE}`);
+  assert.equal(nodeName({}, 'GIES'), `GIES, ${materialLabel(data, named('GIES'))}, ${NO_EVIDENCE}`);
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph'});
   const words = text => text.replace(/[●◐○]/g, '').replace(/ · |, /g, '').replace(/\s+/g, '');
