@@ -2,7 +2,7 @@
 
 > 이 문서는 `npm run docs:study-guide`로 만든다. 직접 고치지 말고 [개념 지도](CONCEPT_MAP.md), 로드맵 소스 [`src/learning-roadmap.mjs`](../src/learning-roadmap.mjs),
 > 개념-자료 대응표 [`scripts/study-guide-data.json`](../scripts/study-guide-data.json)을 고친 뒤 다시 만든다. 일정의 정본은 로드맵이다.
-> 로드맵 버전 3 · Glorious 정본 커밋 `a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4`. 개인 학습 기록은 담지 않는다.
+> 로드맵 버전 4 · Glorious 정본 커밋 `a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4`. 개인 학습 기록은 담지 않는다.
 
 ## 이 가이드를 쓰는 법
 
