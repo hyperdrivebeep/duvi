@@ -19,7 +19,19 @@ export class MediaPlayer extends EventTarget{
     const version=++this.version;this.pause();this.ready=false;this.seekUntil=0;this.heldFrom=null;this.pauseAfterSeek=false;this.pendingNativeSeek=null;this.pendingYoutubeSeek=null;this.started=false;this.lastError='';
     if(this.youtube){this.youtube.destroy();this.youtube=null;}
     this.type=lecture.player==='youtube'?'youtube':'native';this.native.hidden=this.type==='youtube';this.container.hidden=this.type!=='youtube';
-    if(this.type==='native'){this.native.poster=lecture.youtubeId?`https://i.ytimg.com/vi/${lecture.youtubeId}/hqdefault.jpg`:'';this.native.src=lecture.videoUrl;return;}
+    if(this.type==='native'){
+      const base=lecture.youtubeId?`https://i.ytimg.com/vi/${lecture.youtubeId}/`:'';
+      this.native.poster=base?`${base}hqdefault.jpg`:'';
+      if(base){
+        const image=new Image();
+        image.onload=()=>{
+          // YouTube can return a small placeholder instead of a missing-image error.
+          if(version===this.version&&image.naturalWidth>=640&&image.naturalWidth*9===image.naturalHeight*16)this.native.poster=image.src;
+        };
+        image.src=`${base}maxresdefault.jpg`;
+      }
+      this.native.src=lecture.videoUrl;return;
+    }
     this.native.removeAttribute('src');this.native.load();await youtubeAPI();if(version!==this.version)return;
     const placeholder=document.createElement('div');this.container.replaceChildren(placeholder);
     await new Promise((resolve,reject)=>{

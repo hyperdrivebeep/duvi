@@ -1,6 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MediaPlayer} from '../src/media.mjs';
+test('native poster upgrades only to a real widescreen thumbnail for the current lecture',async()=>{
+  const saved={Image:globalThis.Image,setInterval:globalThis.setInterval},images=[];
+  try{
+    globalThis.Image=class{get src(){return this.url;}set src(value){this.url=value;images.push(this);}};
+    globalThis.setInterval=()=>0;
+    const native=Object.assign(new EventTarget(),{pause(){}});
+    const player=new MediaPlayer(native,{});
+    await player.load({youtubeId:'first',videoUrl:'/first.mp4'});
+    assert.match(native.poster,/first\/hqdefault/);
+    assert.match(images[0]?.url??'',/first\/maxresdefault/);
+    Object.assign(images[0],{naturalWidth:120,naturalHeight:90});images[0].onload();
+    assert.match(native.poster,/first\/hqdefault/);
+    await player.load({youtubeId:'missing',videoUrl:'/missing.mp4'});
+    images[1].onerror?.();
+    assert.match(native.poster,/missing\/hqdefault/);
+    await player.load({youtubeId:'second',videoUrl:'/second.mp4'});
+    await player.load({youtubeId:'third',videoUrl:'/third.mp4'});
+    Object.assign(images[2],{naturalWidth:1280,naturalHeight:720});images[2].onload();
+    assert.match(native.poster,/third\/hqdefault/);
+    Object.assign(images[3],{naturalWidth:1280,naturalHeight:720});images[3].onload();
+    assert.match(native.poster,/third\/maxresdefault/);
+  }finally{Object.assign(globalThis,saved);}
+});
 test('cold YouTube resume keeps the poster until playback, then seeks to the requested cue',async()=>{
   const oldWindow=globalThis.window,oldDocument=globalThis.document,oldYT=globalThis.YT,oldTimer=globalThis.setInterval;
   let fake;
