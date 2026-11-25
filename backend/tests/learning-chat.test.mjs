@@ -7,7 +7,7 @@ import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LectureLibrary} from '../library.mjs';
 import {LearningChat,transcriptWindow,trimHistory,lecturePlace,CHAT_INSTRUCTIONS} from '../learning-chat.mjs';
-import {createMockChatProvider,createUpstreamStubProvider} from '../chat-mock.mjs';
+import {chatProviderFromEnv,createMockChatProvider,createUpstreamStubProvider} from '../chat-mock.mjs';
 import {consumeResponse} from '../chatgpt-translate.mjs';
 import {createServer} from '../http-server.mjs';
 import {atomicJSON} from '../vault.mjs';
@@ -208,6 +208,26 @@ test('the QA upstream stub is loopback only and never sends the learner token', 
     assert.equal(calls[0].url,'http://127.0.0.1:6160/responses');
     assert.equal(calls[0].init.headers['X-Duvi-Target'],'https://api.openai.com/v1/responses');
   }finally{globalThis.fetch=real;}
+});
+
+test('the QA upstream stub takes the IP literals 127.0.0.1 and [::1], not localhost (a name the resolver could point elsewhere)', async () => {
+  for(const name of ['http://localhost:6160/','http://LOCALHOST:6160/','http://localhost.:6160/','http://127.0.0.1.nip.io:6160/'])assert.throws(()=>createUpstreamStubProvider(name),/IP literal/,name);
+  const calls=[];const real=globalThis.fetch;globalThis.fetch=async url=>{calls.push(String(url));return new Response('');};
+  try{
+    await createUpstreamStubProvider('http://[::1]:6160/').fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{},body:'{}'});
+    assert.deepEqual(calls,['http://[::1]:6160/responses']);
+  }finally{globalThis.fetch=real;}
+});
+
+test('DUVI_CHAT_MOCK=1 wins over DUVI_UPSTREAM_URL; with neither the server keeps the real connection', () => {
+  const id=env=>chatProviderFromEnv(env).provider?.auth.state.activeId;
+  assert.equal(id({DUVI_CHAT_MOCK:'1',DUVI_UPSTREAM_URL:'http://127.0.0.1:6160/'}),'duvi-mock');
+  assert.equal(id({DUVI_CHAT_MOCK:'1',DUVI_UPSTREAM_URL:'https://api.openai.com/'}),'duvi-mock','the stub URL is not even read');
+  assert.equal(id({DUVI_UPSTREAM_URL:'http://127.0.0.1:6160/'}),'duvi-upstream-stub');
+  assert.equal(id({DUVI_CHAT_MOCK:'0',DUVI_UPSTREAM_URL:'http://[::1]:6160/'}),'duvi-upstream-stub','only "1" turns the mock on');
+  assert.match(chatProviderFromEnv({DUVI_UPSTREAM_URL:'http://[::1]:6160/'}).warning,/QA 전용/);
+  for(const env of [{},{DUVI_CHAT_MOCK:'0'},{DUVI_CHAT_MOCK:'true'},{DUVI_UPSTREAM_URL:''}])assert.deepEqual(chatProviderFromEnv(env),{provider:undefined,warning:null});
+  assert.throws(()=>chatProviderFromEnv({DUVI_UPSTREAM_URL:'http://localhost:6160/'}),/IP literal/,'a refused URL stops the server instead of falling back');
 });
 
 test('the QA upstream stub never follows a redirect, so a 307/308 cannot resend the request body elsewhere', async () => {

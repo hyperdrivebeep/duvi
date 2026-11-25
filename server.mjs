@@ -5,6 +5,7 @@ import {createVault} from './backend/vault.mjs';
 import {ChatGPTAuth} from './backend/chatgpt-auth.mjs';
 import {LectureLibrary} from './backend/library.mjs';
 import {TranslationService} from './backend/chatgpt-translate.mjs';
+import {chatProviderFromEnv} from './backend/chat-mock.mjs';
 const project=fileURLToPath(new URL('.',import.meta.url)),root=path.join(project,'backend'),port=Number(process.env.DUVI_PORT||6103);
 if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('DUVI_PORT must be a port number between 1024 and 65535.');
 // A separate encrypted vault and copied library ensure the active player is untouched.
@@ -12,12 +13,10 @@ const stateDirectory=path.join(process.env.LOCALAPPDATA||project,'StudyLibraryPr
 const auth=new ChatGPTAuth({vault:createVault(stateDirectory)});await auth.init();
 const library=new LectureLibrary({root});
 const translations=new TranslationService({auth,library,root,cacheDirectory:path.join(root,'translations')});
-// QA only: an explicit DUVI_CHAT_MOCK=1 swaps the chat's ChatGPT connection for a local mock stream.
-// QA only: DUVI_UPSTREAM_URL sends the same requests to a local stub (loopback) to inspect what is sent.
-const chatProvider=process.env.DUVI_CHAT_MOCK==='1'?(await import('./backend/chat-mock.mjs')).createMockChatProvider()
-  :process.env.DUVI_UPSTREAM_URL?(await import('./backend/chat-mock.mjs')).createUpstreamStubProvider(process.env.DUVI_UPSTREAM_URL):undefined;
-if(process.env.DUVI_CHAT_MOCK==='1')console.warn('DUVI_CHAT_MOCK=1: 질문하기 채팅이 테스트용 모의 답변을 씁니다. 실제 ChatGPT가 아닙니다.');
-else if(chatProvider)console.warn(`DUVI_UPSTREAM_URL: 질문과 확인 문제 요청을 ${process.env.DUVI_UPSTREAM_URL} 스텁으로 보냅니다(QA 전용). 실제 ChatGPT가 아닙니다.`);
+// QA only: an explicit DUVI_CHAT_MOCK=1 swaps the chat's ChatGPT connection for a local mock stream; DUVI_UPSTREAM_URL
+// sends the same requests to a local stub (loopback IP literal) to inspect what is sent. DUVI_CHAT_MOCK wins.
+const {provider:chatProvider,warning}=chatProviderFromEnv(process.env);
+if(warning)console.warn(warning);
 // Opt-in: check-question code runs only with DUVI_QUIZ_CODE_EXECUTION=1 (docs/LEARNING_DESIGN.md, 실행 경계).
 const codeExecution=process.env.DUVI_QUIZ_CODE_EXECUTION==='1';
 const server=createServer({auth,translations,library,root,staticRoot:path.join(project,'dist/client'),port,chatProvider,codeExecution});

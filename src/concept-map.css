@@ -72,16 +72,26 @@
 .cmap-node[aria-pressed="true"] { border: 2px solid var(--cmap-accent); background: var(--cmap-selected); padding: 7px 11px; }
 .cmap-node.cmap-dim { opacity: .35; }
 .cmap-node-name { font-size: 15px; font-weight: 700; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The full name of a node cut off by the ellipsis, on hover or keyboard focus. It lies over its own node only, so it hides
-   no other node, and the pointer can rest on it (it is part of the button); Escape hides it (WCAG 1.4.13). */
+/* The full name of a node cut off by the ellipsis, with the node's state lines under it, on hover or keyboard focus. It
+   lies over its own node, centred and at least as tall; a three-line name grows it into the 14px row gap but not onto
+   another node. The pointer can rest on it (it is part of the button); Escape hides it (WCAG 1.4.13). */
 .cmap-node-tip { display: none; }
-.cmap-node.cmap-cut:is(:hover, :focus-visible) .cmap-node-tip { position: absolute; inset: -1px; display: flex; align-items: center; padding: 6px 12px;
-  border-radius: 8px; background: var(--cmap-ink); color: #fff; font-size: 14px; font-weight: 700; line-height: 1.35; white-space: normal; overflow-wrap: anywhere; }
+.cmap-node.cmap-tip-on:is(:hover, :focus-visible) .cmap-node-tip { position: absolute; left: -1px; right: -1px; top: 50%; transform: translateY(-50%);
+  min-height: calc(100% + 2px); display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 4px 12px;
+  border-radius: 8px; background: var(--cmap-ink); color: #fff; }
+.cmap-node-tip-name { font-size: 14px; font-weight: 700; line-height: 1.3; white-space: normal; overflow-wrap: anywhere; }
+.cmap-node-tip .cmap-node-line { color: #d5dcea; }
 .cmap-node-line { font-size: 14px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmap-controls { position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--cmap-line); border-radius: 10px; padding: 4px; box-shadow: 0 2px 8px rgb(17 26 45 / 8%); cursor: default; }
-.cmap-control { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; }
+.cmap-control { position: relative; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; }
 .cmap-control > span[aria-hidden] { width: 18px; text-align: center; font-size: 18px; }
 .cmap-control:hover:not(:disabled) { background: var(--cmap-soft); }
+/* A glyph-only control's name, left of it on hover or keyboard focus. The transparent right border bridges to the button so
+   the pointer can move onto the tooltip; Escape hides it (WCAG 1.4.13). */
+.cmap-control-tip { display: none; }
+.cmap-control.cmap-tip-on:is(:hover, :focus-visible) > .cmap-control-tip[aria-hidden] { display: block; position: absolute; right: 100%; top: 50%;
+  transform: translateY(-50%); width: auto; padding: 4px 10px; border-right: 8px solid transparent; background: var(--cmap-ink) padding-box;
+  border-radius: 6px; color: #fff; font-size: 14px; line-height: 1.4; white-space: nowrap; text-align: left; }
 .cmap-control:disabled { color: var(--cmap-muted); cursor: not-allowed; }
 .cmap-legend { position: absolute; left: 16px; bottom: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; max-width: calc(100% - 260px); padding: 6px 10px; background: rgb(255 255 255 / 92%); border-radius: 8px; font-size: 14px; cursor: default; }
 .cmap-legend > span { display: inline-flex; align-items: center; gap: 6px; }

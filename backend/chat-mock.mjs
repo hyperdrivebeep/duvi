@@ -60,12 +60,22 @@ export function createMockChatProvider({delayMs=45,chunk=4}={}){
 /**
  * Test-only: DUVI_UPSTREAM_URL=http://127.0.0.1:<port>/ sends the chat's and quiz's real Responses requests (the bodies
  * the server builds) to a local stub instead of api.openai.com, with a stand-in token. Off by default; loopback only;
- * never uses the learner's account. QA uses it to compare what the UI says is sent with what is sent.
+ * chat and quiz never use the learner's account (translation and the tutor keep the real connection).
+ * QA uses it to compare what the UI says is sent with what is sent.
+ * Only the IP literals 127.0.0.1 and [::1] count as loopback: `localhost` goes through the hosts file and the resolver,
+ * so it can name a non-loopback address, and the learner's request bodies would then leave the machine.
  */
 export function createUpstreamStubProvider(base){
   const url=new URL(base);
-  if(url.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname))throw new Error('DUVI_UPSTREAM_URL must be a loopback http URL.');
+  if(url.protocol!=='http:'||!['127.0.0.1','[::1]'].includes(url.hostname))throw new Error('DUVI_UPSTREAM_URL must be a loopback http URL with an IP literal (127.0.0.1 or [::1]).');
   const auth={state:{activeId:'duvi-upstream-stub'},models:async()=>[{id:'duvi-upstream-stub',name:'QA 스텁 · 실제 ChatGPT 아님'}],token:async()=>'stub-token'};
   // redirect:'error': a 307/308 from the stub port must not resend the learner's request body outside the loopback.
   return {auth,fetcher:(target,init)=>fetch(new URL('responses',url),{...init,headers:{...init.headers,'X-Duvi-Target':String(target)},redirect:'error'})};
+}
+
+/** The server's QA switches: DUVI_CHAT_MOCK=1 wins over DUVI_UPSTREAM_URL; with neither, the real connection (provider undefined). */
+export function chatProviderFromEnv(env){
+  if(env.DUVI_CHAT_MOCK==='1')return {provider:createMockChatProvider(),warning:'DUVI_CHAT_MOCK=1: 질문하기 채팅이 테스트용 모의 답변을 씁니다. 실제 ChatGPT가 아닙니다.'};
+  if(env.DUVI_UPSTREAM_URL)return {provider:createUpstreamStubProvider(env.DUVI_UPSTREAM_URL),warning:`DUVI_UPSTREAM_URL: 질문과 확인 문제 요청을 ${env.DUVI_UPSTREAM_URL} 스텁으로 보냅니다(QA 전용). 실제 ChatGPT가 아닙니다.`};
+  return {provider:undefined,warning:null};
 }
