@@ -56,3 +56,15 @@ export function createMockChatProvider({delayMs=45,chunk=4}={}){
   }
   return {auth,fetcher};
 }
+
+/**
+ * Test-only: DUVI_UPSTREAM_URL=http://127.0.0.1:<port>/ sends the chat's and quiz's real Responses requests (the bodies
+ * the server builds) to a local stub instead of api.openai.com, with a stand-in token. Off by default; loopback only;
+ * never uses the learner's account. QA uses it to compare what the UI says is sent with what is sent.
+ */
+export function createUpstreamStubProvider(base){
+  const url=new URL(base);
+  if(url.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname))throw new Error('DUVI_UPSTREAM_URL must be a loopback http URL.');
+  const auth={state:{activeId:'duvi-upstream-stub'},models:async()=>[{id:'duvi-upstream-stub',name:'QA 스텁 · 실제 ChatGPT 아님'}],token:async()=>'stub-token'};
+  return {auth,fetcher:(target,init)=>fetch(new URL('responses',url),{...init,headers:{...init.headers,'X-Duvi-Target':String(target)}})};
+}

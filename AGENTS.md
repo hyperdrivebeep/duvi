@@ -69,6 +69,8 @@ ChatGPT connection, with conversations kept per lecture in local learning state.
 The answer is labelled as an AI suggestion (AI 제안). Since 2026-11-24 a question is
 recorded automatically when it is sent (see below). `DUVI_CHAT_MOCK=1` is a QA-only
 stand-in and must never be enabled by default or reported as real answer quality.
+`DUVI_UPSTREAM_URL=http://127.0.0.1:<port>/` (QA only, loopback only, off by default) sends the chat's and
+quiz's real request bodies to a local stub with a stand-in token, to check that what the UI says is sent is sent.
 
 On 2026-11-21 the user approved the B+ learning-screen direction ("좋다 duvi는 구현하거라";
 docs/design/2026-11-19-notebook-ui, section B+). Keep the wide video and two caption lines,

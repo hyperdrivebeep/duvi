@@ -6,7 +6,7 @@ import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LectureLibrary} from '../library.mjs';
 import {LearningChat,transcriptWindow,trimHistory,lecturePlace,CHAT_INSTRUCTIONS} from '../learning-chat.mjs';
-import {createMockChatProvider} from '../chat-mock.mjs';
+import {createMockChatProvider,createUpstreamStubProvider} from '../chat-mock.mjs';
 import {consumeResponse} from '../chatgpt-translate.mjs';
 import {createServer} from '../http-server.mjs';
 import {atomicJSON} from '../vault.mjs';
@@ -194,4 +194,17 @@ test('the chat route streams server-sent events with the explicit mock provider 
   assert.equal(names[0],'start');assert.equal(names.at(-1),'done');assert.ok(names.includes('delta'));
   const saved=JSON.parse(await readFile(path.join(root,'learning/state.json'),'utf8'));
   assert.match(saved.chats[0].messages[1].text,/모의 답변 · 실제 ChatGPT 아님[\s\S]*\[00:03\]/);
+});
+
+test('the QA upstream stub is loopback only and never sends the learner token', async () => {
+  assert.throws(()=>createUpstreamStubProvider('https://api.openai.com/'),/loopback/);
+  assert.throws(()=>createUpstreamStubProvider('http://192.168.0.2:6160/'),/loopback/);
+  const calls=[];const real=globalThis.fetch;globalThis.fetch=async(url,init)=>{calls.push({url:String(url),init});return new Response('');};
+  try{
+    const {auth,fetcher}=createUpstreamStubProvider('http://127.0.0.1:6160/');
+    assert.equal(await auth.token(),'stub-token');
+    await fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:'Bearer stub-token'},body:'{}'});
+    assert.equal(calls[0].url,'http://127.0.0.1:6160/responses');
+    assert.equal(calls[0].init.headers['X-Duvi-Target'],'https://api.openai.com/v1/responses');
+  }finally{globalThis.fetch=real;}
 });
