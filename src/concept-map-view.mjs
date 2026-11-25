@@ -34,10 +34,10 @@ const formatMarked = marked => marked ? `${marked.done} / ${marked.total}` : '-'
 const formatQuestions = questions => !questions ? NO_EVIDENCE : questions.total ? `${questions.total} (열린 ${questions.open})` : '없음';
 const formatChecks = checks => !checks ? NO_EVIDENCE : checks.total ? `${checks.correct} / ${checks.total} 맞음` : '없음';
 const formatWork = work => !work ? NO_EVIDENCE : `커밋 ${work.commits ?? 0} · 테스트 ✓ ${work.testsPassed ?? 0} · ✕ ${work.testsFailed ?? 0}`;
-/** Node line from the records (questions, checks), or '아직 증거 없음' when neither was supplied. */
-function evidenceLine({questions, checks}) {
+/** Node phrases from the records (questions, checks), or '아직 증거 없음' when neither was supplied. */
+function evidenceParts({questions, checks}) {
   const parts = [questions && `질문 ${questions.total}`, checks && `확인 문제 ${checks.total}`].filter(Boolean);
-  return parts.length ? parts.join(' · ') : NO_EVIDENCE;
+  return parts.length ? parts : [NO_EVIDENCE];
 }
 const prerequisiteText = (data, concept) => prerequisites(data, concept).map(item => item.name ?? item.label).join(', ') || '-';
 
@@ -139,11 +139,14 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     `${band.field} · ${band.gap ? '커리큘럼에 없음 · 자료 없음' : `자료 있음 ${band.withMaterial}/${band.total}`}`));
   const nodeEls = new Map(layout.nodes.map(node => {
     const concept = byId.get(node.id), material = materialLabel(data, concept), counts = conceptCounts(data, concept, state, evidence);
+    const materialParts = [material, counts.marked && `내가 표시 ${counts.marked.done}/${counts.marked.total}`].filter(Boolean), records = evidenceParts(counts);
+    // The visible lines give the name no break between them and the glyph is decoration, so the node is named by its phrases.
     const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'aria-pressed': 'false', title: concept.name,
+      'aria-label': [concept.name, ...materialParts, ...records].join(', '),
       style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id)},
     h('span', {className: 'cmap-node-name', text: concept.name}),
-    h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${material}${counts.marked ? ` · 내가 표시 ${counts.marked.done}/${counts.marked.total}` : ''}`}),
-    h('span', {className: 'cmap-node-line cmap-muted', text: evidenceLine(counts)}));
+    h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${materialParts.join(' · ')}`}),
+    h('span', {className: 'cmap-node-line cmap-muted', text: records.join(' · ')}));
     return [node.id, button];
   }));
   const layer = h('div', {className: 'cmap-layer', style: `width:${layout.width}px;height:${layout.height}px`}, edgesLayer, ...bandLabels, ...nodeEls.values());
