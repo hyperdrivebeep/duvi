@@ -30,9 +30,9 @@ async function streamChat(req,res,chat,body){
   catch(error){if(!res.headersSent)throw error;send('error',{message:error instanceof AppError?error.message:'답변을 저장하지 못했습니다. 다시 질문해 주세요.',code:error.code||'internal'});}
   res.end();
 }
-export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider}){
+export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider,codeExecution=false}){
   const base=`http://127.0.0.1:${port}`,sessions=new Map();
-  const learning=new LearningService({root,auth,translations,library,chatProvider});
+  const learning=new LearningService({root,auth,translations,library,chatProvider,codeExecution});
   const cookieName=`mit_session_${port}`;
   function session(req,res,create=false){
     let sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);
@@ -83,11 +83,18 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
         if(req.method==='POST'&&pathname==='/api/learning/chat'){await learning.withAssets(()=>undefined);await streamChat(req,res,learning.chat,body);return;}
         if(req.method==='POST'&&pathname==='/api/learning/chat/stop'){json(res,200,learning.chat.stop(body));return;}
         if(req.method==='GET'&&pathname==='/api/learning/chat/models'){json(res,200,{models:await learning.chat.models()});return;}
+        // 확인 문제 generation can take minutes, so like the chat it waits for restores but does not hold the asset gate.
+        if(req.method==='POST'&&pathname==='/api/learning/quiz/generate'){await learning.withAssets(()=>undefined);const closed=new AbortController();res.on('close',()=>{if(!res.writableEnded)closed.abort();});json(res,200,await learning.quiz.generate(body,{signal:closed.signal}));return;}
+        if(req.method==='POST'&&pathname==='/api/learning/quiz/cancel'){json(res,200,learning.quiz.cancel(body));return;}
         await learning.withAssets(async()=>{
         if(req.method==='GET'){
           if(pathname==='/api/learning'){json(res,200,await learning.store.get());return;}
           if(pathname==='/api/learning/export'){json(res,200,await learning.backup.export());return;}
           if(pathname==='/api/learning/sync'){json(res,200,await learning.sync.get());return;}
+          if(pathname==='/api/learning/quizzes'){json(res,200,await learning.quiz.list());return;}
+          if(pathname.startsWith('/api/learning/quizzes/')){json(res,200,await learning.quiz.status(decodeURIComponent(pathname.slice(22))));return;}
+          if(pathname==='/api/learning/sources'){json(res,200,await learning.sources.get());return;}
+          if(pathname==='/api/learning/evidence'){json(res,200,await learning.evidence.get());return;}
           if(pathname==='/api/learning/roadmap'){const {ROADMAP}=await import('../src/learning-roadmap.mjs');json(res,200,ROADMAP);return;}
           if(pathname==='/api/library'){json(res,200,await library.list());return;}
           if(pathname==='/api/folders'){json(res,200,await library.folders.list());return;}
@@ -98,6 +105,10 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/learning/records'){json(res,200,await learning.store.saveRecord(body));return;}
           if(pathname==='/api/learning/progress'){json(res,200,await learning.store.setProgress(body));return;}
           if(pathname==='/api/learning/review'){json(res,200,await learning.store.review(body));return;}
+          if(pathname==='/api/learning/quiz/preview'){json(res,200,await learning.quiz.preview(body));return;}
+          if(pathname==='/api/learning/quiz/attempt'){json(res,200,await learning.quiz.attempt(body));return;}
+          if(pathname==='/api/learning/quiz/item'){json(res,200,await learning.quiz.item(body));return;}
+          if(pathname==='/api/learning/sources'){json(res,200,await learning.sources.set(body));return;}
           if(pathname==='/api/learning/chat/record'){json(res,200,await learning.chat.saveRecord(body));return;}
           if(pathname==='/api/learning/import/preview'){json(res,200,await learning.backup.preview(body));return;}
           if(pathname==='/api/learning/import'){json(res,200,await learning.backup.commit(body));return;}

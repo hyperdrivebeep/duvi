@@ -17,12 +17,12 @@ const message=(id,role,minute,extra={})=>({id,role,text:`${role} ${id}`,at:at(mi
 const thread=(id,messages,extra={})=>({id,lectureId:'1',title:'첫 질문',createdAt:at(0),updatedAt:messages.at(-1)?.at||at(0),messages,...extra});
 async function root(t){const dir=await mkdtemp(path.join(os.tmpdir(),'duvi-chat-store-'));t.after(()=>rm(dir,{recursive:true,force:true}));return dir;}
 
-test('a version 1 learning file migrates to version 2 with an empty chat list and is written back as version 2',async t=>{
+test('a version 1 learning file migrates to the current version with empty chat and attempt lists and is written back',async t=>{
   const store=new LearningStore({root:await root(t)});await mkdir(path.dirname(store.file),{recursive:true});
   await writeFile(store.file,JSON.stringify({schemaVersion:1,revision:4,records:[],progress:{},settings:{}}));
-  assert.deepEqual(await store.get(),{schemaVersion:2,revision:4,records:[],progress:{},settings:{},chats:[]});
+  assert.deepEqual(await store.get(),{schemaVersion:3,revision:4,records:[],progress:{},settings:{},chats:[],attempts:[]});
   await store.appendChat({threadId:null,lectureId:'1',messages:[message('m1','user',1)]});
-  const saved=JSON.parse(await readFile(store.file,'utf8'));assert.equal(saved.schemaVersion,2);assert.equal(saved.revision,5);assert.equal(saved.chats[0].messages[0].text,'user m1');
+  const saved=JSON.parse(await readFile(store.file,'utf8'));assert.equal(saved.schemaVersion,3);assert.equal(saved.revision,5);assert.equal(saved.chats[0].messages[0].text,'user m1');
 });
 test('chat validation rejects unknown roles, keys, oversized text, bad lecture ids and duplicate messages',()=>{
   const valid=thread('t1',[message('m1','user',1),message('m2','assistant',2,{status:'stopped',recordId:'r1'})]);

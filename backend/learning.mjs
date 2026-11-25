@@ -44,21 +44,50 @@ export class LearningStore{
       await this.writer(this.file,next);return {state:next,result};
     });
   }
-  /** Appends chat messages to a lecture thread, creating the thread when it does not exist yet. */
-  async appendChat({threadId,lectureId,messages}){
-    const {state,result:id}=await this.write(current=>{
-      const at=new Date(this.now()).toISOString();let thread=threadId?current.chats.find(row=>row.id===threadId):null;
-      if(thread&&thread.lectureId!==String(lectureId))v.invalid('다른 강의의 대화입니다.');
-      if(!thread){
-        if(current.chats.length>=v.CHAT_LIMITS.threads)throw new AppError('저장한 대화가 너무 많습니다. 백업한 뒤 오래된 대화를 정리하세요.','chat_full',409);
-        thread={id:threadId||randomUUID(),lectureId:String(lectureId),title:'',createdAt:at,updatedAt:at,messages:[]};current.chats.push(thread);
-      }
-      if(thread.messages.length+messages.length>v.CHAT_LIMITS.messages)throw new AppError('이 대화가 가득 찼습니다. 새 대화를 시작하세요.','chat_full',409);
+  /** The lecture thread to add messages to, created when it does not exist yet. */
+  thread(current,{threadId,lectureId,adding},at){
+    let thread=threadId?current.chats.find(row=>row.id===threadId):null;
+    if(thread&&thread.lectureId!==String(lectureId))v.invalid('다른 강의의 대화입니다.');
+    if(!thread){
+      if(current.chats.length>=v.CHAT_LIMITS.threads)throw new AppError('저장한 대화가 너무 많습니다. 백업한 뒤 오래된 대화를 정리하세요.','chat_full',409);
+      thread={id:threadId||randomUUID(),lectureId:String(lectureId),title:'',createdAt:at,updatedAt:at,messages:[]};current.chats.push(thread);
+    }
+    if(thread.messages.length+adding>v.CHAT_LIMITS.messages)throw new AppError('이 대화가 가득 찼습니다. 새 대화를 시작하세요.','chat_full',409);
+    return thread;
+  }
+  /**
+   * Appends chat messages to a lecture thread. answerFor fills the AI answer of the question's automatic record
+   * (kept apart from the learner's own fields, without a new record revision so an explanation being written does not conflict).
+   */
+  async appendChat({threadId,lectureId,messages,answerFor=null}){
+    const {state,result}=await this.write(current=>{
+      const at=new Date(this.now()).toISOString(),thread=this.thread(current,{threadId,lectureId,adding:messages.length},at);
       thread.messages.push(...messages);thread.updatedAt=at;
       thread.title||=(messages.find(row=>row.role==='user')?.text||'').replace(/\s+/g,' ').trim().slice(0,60);
-      return thread.id;
+      const record=answerFor&&current.records.find(row=>row.id===answerFor.recordId);
+      if(record){record.aiAnswer=answerFor.aiAnswer;record.updatedAt=at;}
+      return {id:thread.id,recordId:record?.id};
     });
-    return {thread:state.chats.find(row=>row.id===id),revision:state.revision};
+    return {thread:state.chats.find(row=>row.id===result.id),revision:state.revision,record:result.recordId?state.records.find(row=>row.id===result.recordId):null};
+  }
+  /**
+   * A sent question and its learning record, written together. A question id that is already stored (the learner
+   * retrying, or a request whose start event was lost) adds neither the question nor a record again.
+   */
+  async askQuestion({threadId,lectureId,message,record}){
+    const {state,result}=await this.write(current=>{
+      const at=new Date(this.now()).toISOString();
+      const asked=current.chats.find(row=>(threadId?row.id===threadId:row.lectureId===String(lectureId))&&row.messages.some(item=>item.id===message.id));
+      const thread=asked||this.thread(current,{threadId,lectureId,adding:2},at);
+      let question=thread.messages.find(row=>row.id===message.id);
+      if(question&&question.role!=='user')v.invalid('질문을 찾을 수 없습니다.');
+      if(!question){question=message;thread.messages.push(question);thread.title||=question.text.replace(/\s+/g,' ').trim().slice(0,60);}
+      thread.updatedAt=at;
+      let saved=question.recordId&&current.records.find(row=>row.id===question.recordId);
+      if(!saved){saved=this.newRecord(v.recordInput(record),at);current.records.push(saved);question.recordId=saved.id;}
+      return {id:thread.id,recordId:saved.id};
+    });
+    return {thread:state.chats.find(row=>row.id===result.id),revision:state.revision,record:state.records.find(row=>row.id===result.recordId)};
   }
   /** Turns a question and the tutor answer into one learning record and links the answer to it. */
   saveChatRecord({threadId,messageId,record}){

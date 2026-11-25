@@ -10,6 +10,7 @@ backend/data/
 backend/library/
 backend/translations/
 backend/learning/
+backend/quizzes/
 backend/vendor/yt-dlp.exe
 qa/
 design-qa.md

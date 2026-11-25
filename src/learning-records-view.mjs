@@ -14,7 +14,7 @@ export function renderRecords(root,{state,review=false,filter='all',onFilter=()=
     root.append(bar);
     if(filter==='open')root.append(el('p','muted','열린 질문: 질문은 남겼지만 아직 내 설명도 복습도 없는 기록입니다. 하나를 골라 내 말로 설명해 보세요.'));
   }
-  if(!records.length)root.append(el('p','learning-empty',review?(upcomingReviews(state.records).length?'지금 복습할 기록이 없습니다. 아래 "예정된 복습"에서 다음 날짜를 확인하세요.':'지금 복습할 기록이 없습니다. 질문을 저장할 때 다음 복습을 정할 수 있습니다.'):filter==='open'?'열린 질문이 없습니다. 남긴 질문마다 내 설명을 적었거나 복습했습니다.':'아직 기록이 없습니다. 강의 옆 질문하기에서 답을 받고 "기록으로 저장"을 누르거나, 기록 탭에서 막힌 점 한 줄을 남겨보세요.'));
+  if(!records.length)root.append(el('p','learning-empty',review?(upcomingReviews(state.records).length?'지금 복습할 기록이 없습니다. 아래 "예정된 복습"에서 다음 날짜를 확인하세요.':'지금 복습할 기록이 없습니다. 질문을 저장할 때 다음 복습을 정할 수 있습니다.'):filter==='open'?'열린 질문이 없습니다. 남긴 질문마다 내 설명을 적었거나 복습했습니다.':'아직 기록이 없습니다. 강의 옆 질문 탭에서 질문을 보내면 그 시각의 기록이 자동으로 생깁니다. 돌아보기의 "현재 시점 기록 남기기"로 AI 없이 남길 수도 있습니다.'));
   for(const record of records){
     const card=el('article','learning-record');card.append(el('h4','',record.question||record.title||'내 설명'));
     if(record.question&&record.title)card.append(el('p','muted',`제목: ${record.title}`));
@@ -26,8 +26,8 @@ export function renderRecords(root,{state,review=false,filter='all',onFilter=()=
       form.addEventListener('submit',event=>{event.preventDefault();if(!reflection.input.value.trim()){notice.textContent='회상하거나 보류한 이유를 적어주세요.';return;}void busy(submit,async()=>{try{await onReview({id:record.id,reflection:reflection.input.value,help:help.input.value,intervalDays:Number(interval.input.value)});notice.textContent='복습을 저장했습니다.';}catch(error){notice.textContent=error.message+' 입력은 유지됩니다.';if(error.status===409)notice.append(button('최신 기록 확인 · 입력 유지',async()=>{try{await onReload();notice.textContent='최신 상태를 확인했습니다. 입력을 검토하고 다시 저장하세요.';}catch(error){notice.textContent=error.message;}}));}});});card.append(form);
       const reveal=el('details');reveal.append(el('summary','','내 이전 설명 확인'),el('p','learning-preserve',record.explanation||'질문만 저장한 기록입니다.'),el('p','learning-preserve',record.result||''));card.append(reveal);
     }else if(record.explanation)card.append(el('p','learning-label','내 설명'),el('p','learning-preserve',record.explanation));
-    if(!review&&record.aiAnswer){const answer=el('details','learning-ai-saved');answer.append(el('summary','','AI 튜터 답변 보기 · 제안'),el('p','learning-preserve',record.aiAnswer));card.append(answer);}
-    else card.append(el('p','learning-open-tag',isOpenQuestion(record)?'열린 질문 · 아직 내 설명 전':'질문만 저장 · 복습 기록 있음'));
+    if(!review&&record.aiAnswer){const answer=el('details','learning-ai-saved');answer.append(el('summary','','AI 제안 보기'),el('p','learning-preserve',record.aiAnswer));card.append(answer);}
+    else card.append(el('p','learning-open-tag',isOpenQuestion(record)?'○ 열린 질문 · 아직 내 설명 전':'● 질문만 저장 · 복습 기록 있음'));
     const actions=el('div','learning-actions');actions.append(button(record.explanation?'기록 열기 · 수정 이력':'기록 열기 · 내 설명 쓰기',()=>onEdit(record)),button('원문 시점 확인',()=>onJump(record)),button('Markdown 내려받기',()=>download('duvi-learning-note.md',recordMarkdown(record),'text/markdown;charset=utf-8')));card.append(actions);root.append(card);
   }
   if(review){

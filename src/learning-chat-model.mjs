@@ -35,24 +35,38 @@ export function composerAction(event){
  */
 export function typingAnchor(anchor,value,now){if(!value.trim())return null;return anchor??now;}
 export function questionSeconds(anchor,now){return typeof anchor==='number'?anchor:now;}
+/** The summary line of the composer's ⋯ 보낼 설정 disclosure: what the next question carries, e.g. "대본 ±1분 · 노트 포함". */
+export function sendSettingsSummary({transcript,notes,autoPause=false,startNew=false,span=CONTEXT_SECONDS}){
+  const parts=[transcript?`대본 ±${span%60?`${span}초`:`${span/60}분`}`:'대본 안 보냄',notes?'노트 포함':'노트 없음'];
+  if(autoPause)parts.push('보내면 멈춤');
+  if(startNew)parts.push('새 대화');
+  return parts.join(' · ');
+}
 export function contextRange(seconds,span=CONTEXT_SECONDS){return `${formatTime(Math.max(0,seconds-span))}–${formatTime(seconds+span)}`;}
 /** Which extra material goes with a question; both are on unless the learner turned one off. */
 export function chatContextChoice(storage){let saved={};try{saved=JSON.parse(storage.getItem(CHAT_CONTEXT_KEY)||'{}')||{};}catch{}return {transcript:saved.transcript!==false,notes:saved.notes!==false};}
-/** The same bounded set supplies the check-box count and the tutor's request. */
-export function lectureNotes(records,lectureId,budget=4000){
-  const rows=[];let used=0;
-  for(const record of (records||[]).filter(row=>String(row.lectureId??row.anchor?.lectureId)===String(lectureId)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))){
+/**
+ * The same bounded set supplies the check-box count and the tutor's request. A question recorded from the chat is
+ * already part of the conversation, so it becomes a note only once the learner has written an explanation for it.
+ */
+export function lectureNotes(records,lectureId,chats=[],budget=4000){
+  const rows=[],asked=new Set((chats||[]).flatMap(thread=>thread.messages.map(row=>row.recordId)).filter(Boolean));let used=0;
+  for(const record of (records||[]).filter(row=>String(row.lectureId??row.anchor?.lectureId)===String(lectureId)&&(row.explanation?.trim()||!asked.has(row.id))).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))){
     const row={at:formatTime(record.anchor?.seconds||0),question:record.question||'',explanation:record.explanation||''},size=row.question.length+row.explanation.length;
     if(!size)continue;if(used+size>budget)break;used+=size;rows.push(row);
   }
   return rows;
 }
-export function lectureNoteCount(records,lectureId){return lectureNotes(records,lectureId).length;}
+export function lectureNoteCount(records,lectureId,chats=[]){return lectureNotes(records,lectureId,chats).length;}
 export function lectureThreads(chats,lectureId){return (chats||[]).filter(row=>row.lectureId===String(lectureId)).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));}
-/** Applies one server-written thread when it is the only change since this state; otherwise the caller reloads. */
-export function withThread(state,thread,revision){
+/**
+ * Applies one server write (a chat turn and the question's record, when it carries one) when it is the only change
+ * since this state; otherwise the caller reloads.
+ */
+export function withThread(state,thread,revision,record=null){
   if(revision!==state.revision+1)return null;
-  return {...state,revision,chats:[...(state.chats||[]).filter(row=>row.id!==thread.id),thread]};
+  const records=record?[...(state.records||[]).filter(row=>row.id!==record.id),record]:state.records;
+  return {...state,revision,records,chats:[...(state.chats||[]).filter(row=>row.id!==thread.id),thread]};
 }
 export function threadLabel(thread){
   const date=new Date(thread.updatedAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});

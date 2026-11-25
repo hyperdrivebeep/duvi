@@ -5,11 +5,18 @@ export const MAX_BYTES=16*1024*1024;
 export const TEXT_FIELDS=['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'];
 export const HELP=['none','hint','partial','full'];
 export const STATUSES=['not_started','watching','practicing','explained','reviewed'];
-/** Version 2 added per-lecture chat threads; version 1 files migrate to an empty chat list. */
-export const SCHEMA_VERSION=2;
+/** Version 2 added per-lecture chat threads; version 3 added check-question attempts. Older files migrate to empty lists. */
+export const SCHEMA_VERSION=3;
 export const CHAT_LIMITS=Object.freeze({threads:2000,messages:500,question:4000,answer:16000});
 export const CHAT_STATUSES=['complete','stopped','interrupted'];
-export function emptyState(){return {schemaVersion:SCHEMA_VERSION,revision:0,records:[],progress:{},settings:{},chats:[]};}
+export const ATTEMPT_LIMITS=Object.freeze({attempts:5000,prediction:4000,explanation:12000,prompt:4000,answer:4000,quote:2000,options:8,concepts:12,code:4000});
+// Answer evidence: the real output of the question's fixed code (run once at generation), a verified verbatim quote,
+// the learner's own confirmation, or an unverified AI suggestion. Learner-written answers are never executed.
+export const EVIDENCE=['executed','source_quoted','learner_confirmed','ai_unverified','retired'];
+export const QUIZ_TYPES=['predict','recall','discriminate','withhold'];
+export const CONFIDENCE=['low','medium','high'];
+export const RESULTS=['right','wrong'];
+export function emptyState(){return {schemaVersion:SCHEMA_VERSION,revision:0,records:[],progress:{},settings:{},chats:[],attempts:[]};}
 export function invalid(message='학습 데이터 형식을 확인하세요.'){throw new AppError(message,'invalid_learning',400);}
 export function object(value){if(!value||Array.isArray(value)||typeof value!=='object'||![Object.prototype,null].includes(Object.getPrototypeOf(value)))invalid();return value;}
 export function keys(value,allowed){object(value);if(Object.keys(value).some(key=>!allowed.includes(key)))invalid('허용되지 않은 학습 데이터 필드가 있습니다.');return value;}
@@ -68,8 +75,26 @@ export function chatThread(value){
   keys(value,['id','lectureId','title','createdAt','updatedAt','messages']);
   return {id:id(value.id),lectureId:lectureId(value.lectureId),title:text(value.title??'',120),createdAt:date(value.createdAt),updatedAt:date(value.updatedAt),messages:unique(array(value.messages,CHAT_LIMITS.messages).map(chatMessage),row=>row.id)};
 }
+export function quizSource(value){
+  keys(value,['kind','ref','repo']);const result={kind:choice(value.kind,['transcript','repo','wiki']),ref:text(value.ref,400)};
+  if(value.repo!==undefined)result.repo=text(value.repo,120);return result;
+}
+/** A check question as generated; attempts keep this snapshot so a regenerated set never rewrites what the learner answered. */
+export function quizItem(value){
+  keys(value,['type','prompt','code','options','answer','source','quote','concepts']);
+  const result={type:choice(value.type,QUIZ_TYPES),prompt:text(value.prompt,ATTEMPT_LIMITS.prompt),answer:text(value.answer,ATTEMPT_LIMITS.answer),source:quizSource(value.source),quote:text(value.quote??'',ATTEMPT_LIMITS.quote),concepts:array(value.concepts??[],ATTEMPT_LIMITS.concepts).map(row=>text(row,120))};
+  if(value.options!==undefined)result.options=array(value.options,ATTEMPT_LIMITS.options).map(row=>text(row,500));
+  if(value.code!==undefined)result.code=text(value.code,ATTEMPT_LIMITS.code);
+  return result;
+}
+export function attempt(value){
+  keys(value,['id','lectureId','segmentId','itemId','item','evidence','prediction','confidence','result','grading','explanation','createdAt','updatedAt','revision','reviewDueAt']);
+  return {id:id(value.id),lectureId:lectureId(value.lectureId),segmentId:id(value.segmentId),itemId:id(value.itemId),item:quizItem(value.item),evidence:choice(value.evidence,EVIDENCE),
+    prediction:text(value.prediction,ATTEMPT_LIMITS.prediction),confidence:choice(value.confidence,CONFIDENCE),result:choice(value.result,RESULTS),grading:choice(value.grading,['option','self']),
+    explanation:text(value.explanation??'',ATTEMPT_LIMITS.explanation),createdAt:date(value.createdAt),updatedAt:date(value.updatedAt),revision:integer(value.revision,1),reviewDueAt:date(value.reviewDueAt??null,true)};
+}
 export function state(value){
-  keys(value,['schemaVersion','revision','records','progress','settings','chats']);if(![1,SCHEMA_VERSION].includes(value.schemaVersion))invalid('지원하지 않는 학습 데이터 버전입니다. Duvi를 최신 버전으로 업데이트하세요.');
+  keys(value,['schemaVersion','revision','records','progress','settings','chats','attempts']);if(![1,2,SCHEMA_VERSION].includes(value.schemaVersion))invalid('지원하지 않는 학습 데이터 버전입니다. Duvi를 최신 버전으로 업데이트하세요.');
   const progress={};object(value.progress);if(Object.keys(value.progress).length>2000)invalid();
   for(const [key,row]of Object.entries(value.progress)){
     id(key);keys(row,['status','updatedAt','revision','completed']);progress[key]={status:choice(row.status,STATUSES),updatedAt:date(row.updatedAt),revision:integer(row.revision,1)};
@@ -78,5 +103,6 @@ export function state(value){
   // Version 1 has no writable global preferences; browser playback settings stay local.
   keys(value.settings,[]);
   const chats=unique(array(value.chats??[],CHAT_LIMITS.threads).map(chatThread),row=>row.id);
-  return bounded({schemaVersion:SCHEMA_VERSION,revision:integer(value.revision),records:unique(array(value.records).map(storedRecord),row=>row.id),progress,settings:{},chats});
+  const attempts=unique(array(value.attempts??[],ATTEMPT_LIMITS.attempts).map(attempt),row=>row.id);
+  return bounded({schemaVersion:SCHEMA_VERSION,revision:integer(value.revision),records:unique(array(value.records).map(storedRecord),row=>row.id),progress,settings:{},chats,attempts});
 }

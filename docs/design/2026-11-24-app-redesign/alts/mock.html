@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Duvi 앱 전체 재설계 시안</title>
+<!-- 사용: mock.html#<시안 a|b|c>-<화면 lecture|map|quiz|review>. 강의·자막·질문·문제·숫자는 모두 시안용 예시다. -->
+<style>
+:root{--bg:#f5f5f2;--surface:#ffffff;--fill:#ecece7;--ink:#1b1d21;--body:#3b4048;--muted:#676d78;--line:#deded7;--accent:#2456c8;--stage:#0b0d11;--stagetext:#eef1f6}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.6 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+h1{font-size:22px;line-height:1.3}
+h2{font-size:16px;line-height:1.4}
+.app{position:fixed;inset:0;display:flex;min-width:0}
+.col{display:flex;flex-direction:column;min-width:0;min-height:0}
+.grow{flex:1;min-width:0;min-height:0}
+.scroll{overflow:auto}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.num{font-variant-numeric:tabular-nums}
+.sp{flex:1}
+.row{display:flex;align-items:center;gap:12px;min-width:0}
+.cut{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+/* A: 왼쪽 이동 레일 */
+.rail{width:76px;flex:none;background:var(--surface);display:flex;flex-direction:column;align-items:stretch;padding:10px 6px;gap:2px}
+.rail button{height:58px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;color:var(--muted);gap:1px}
+.rail button .g{font-size:17px;line-height:1.2}
+.rail button[aria-current=page]{background:var(--fill);color:var(--ink);font-weight:700}
+.brand{height:44px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+
+/* B, C: 위쪽 이동 줄 */
+.top{height:52px;flex:none;background:var(--surface);display:flex;align-items:center;gap:6px;padding:0 20px}
+.top .brand{margin-right:18px}
+.top .nav{height:52px;padding:0 14px;font-size:15px;color:var(--muted);position:relative}
+.top .nav[aria-current=page]{color:var(--ink);font-weight:700}
+.top .nav[aria-current=page]:after{content:"";position:absolute;left:14px;right:14px;bottom:10px;height:2px;background:var(--ink)}
+
+/* 강의 무대 */
+.head{height:48px;flex:none;display:flex;align-items:center;gap:14px;padding:0 20px}
+.head .t{font-weight:700;white-space:nowrap}
+.btn{flex:none;white-space:nowrap;height:36px;padding:0 14px;border-radius:8px;background:var(--fill);font-size:14px}
+.btn.primary{background:var(--accent);color:#fff;font-weight:600}
+.stage{background:var(--stage);color:var(--stagetext)}
+.video{position:relative;display:flex;align-items:center;justify-content:center;background:#000}
+.video img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.ctl{position:absolute;left:0;right:0;bottom:0;height:48px;padding:0 10px;display:flex;align-items:center;gap:2px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff}
+.ib{flex:none;white-space:nowrap;min-width:40px;height:40px;padding:0 10px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.time{font-size:14px;margin:0 10px}
+.strip{height:36px;flex:none;display:flex;align-items:center;gap:14px;padding:0 20px}
+.track{position:relative;flex:1;height:3px;background:#2c3442}
+.played{position:absolute;left:0;top:0;bottom:0;width:6%;background:var(--accent)}
+.mk{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;border:2px solid #c3cddd;background:var(--stage)}
+.mk.done{background:#c3cddd}
+.mk.chk{border-radius:0;transform:rotate(45deg)}
+.clock{font-size:14px;color:#9aa4b5}
+.caps{flex:none;padding:8px 24px 16px;text-align:center}
+.caps .en{font-size:19px;color:#d6dbe4}
+.caps .ko{font-size:22px;color:#fff;margin-top:4px}
+
+/* 옆 패널, 흐름 */
+.panel{background:var(--surface)}
+.tabs{height:48px;flex:none;display:flex;align-items:center;gap:20px;padding:0 20px}
+.tab{flex:none;white-space:nowrap;height:48px;font-size:15px;color:var(--muted);position:relative}
+.tab[aria-selected=true]{color:var(--ink);font-weight:700}
+.tab[aria-selected=true]:after{content:"";position:absolute;left:0;right:0;bottom:10px;height:2px;background:var(--ink)}
+.stream{padding:4px 20px 16px}
+.item{padding:14px 0 16px}
+.item + .item{border-top:1px solid var(--line)}
+.meta{display:flex;gap:10px;align-items:baseline;font-size:14px;color:var(--muted)}
+.q{font-weight:700;margin-top:2px}
+.lab{display:block;font-size:14px;color:var(--muted);margin-top:10px}
+.txt{font-size:14px;color:var(--body)}
+.now{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--accent);padding:8px 0}
+.now:after{content:"";flex:1;height:1px;background:var(--accent)}
+.comp{flex:none;padding:10px 20px 16px;border-top:1px solid var(--line)}
+.field{background:var(--fill);border-radius:10px;display:flex;align-items:center;gap:8px;padding:6px 6px 6px 14px}
+.field .ph{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:14px}
+.field .small{flex:none;white-space:nowrap}
+.note{margin-top:8px;font-size:14px;color:var(--muted)}
+
+/* 표, 목록 */
+.page{padding:22px 28px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;font-size:14px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.grp td{font-weight:700;background:var(--bg)}
+tr.sel td{background:var(--fill)}
+td.in1{padding-left:30px}
+td.in2{padding-left:50px}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted)}
+.sec{padding:18px 0}
+.sec + .sec{border-top:1px solid var(--line)}
+.big{font-size:28px;font-weight:700;line-height:1.2}
+.opt{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px}
+.opt.on{background:var(--fill);font-weight:600}
+.radio{width:18px;height:18px;flex:none;border-radius:50%;border:2px solid var(--muted)}
+.opt.on .radio{border-color:var(--ink);background:radial-gradient(var(--ink) 45%,transparent 50%)}
+pre{font:15px/1.6 Consolas,monospace;background:var(--fill);border-radius:8px;padding:12px 14px;white-space:pre-wrap}
+.bar{height:60px;flex:none;display:flex;align-items:center;gap:12px;padding:0 28px;border-top:1px solid var(--line);background:var(--surface)}
+.cols{display:grid;gap:0 36px}
+.dock{flex:none;background:var(--surface);display:grid;grid-template-columns:1fr 1fr;min-height:0}
+.dock > div{padding:12px 24px 14px;min-width:0}
+</style></head><body><div id="root"></div>
+<script>
+const [alt,screen]=(location.hash||'#a-lecture').slice(1).split('-');
+const L={title:'MIT 6.100L · 1강 Introduction to CS and Programming',place:'1단계 Python 기초 · 1/26강'};
+const ctl=`<div class="ctl"><button class="ib" aria-label="이전 문장">⏮</button><button class="ib" aria-label="재생">▶</button><button class="ib" aria-label="다음 문장">⏭</button><span class="time num">00:22 / 41:28</span><button class="ib" aria-label="이 문장 다시 듣기">↻ 반복</button><span class="sp"></span><button class="ib">자막</button><button class="ib" aria-label="설정">⚙</button><button class="ib" aria-label="전체화면">⤢</button></div>`;
+const video=`<div class="video grow"><img src="frame.jpg" alt="강의 영상">${ctl}</div>`;
+const strip=`<div class="strip"><div class="track" role="slider" aria-label="강의 시간" aria-valuetext="00:22 / 41:28"><div class="played"></div><span class="mk done" style="left:2%" title="00:09 내 설명 있음"></span><span class="mk" style="left:6%" title="00:22 열린 질문"></span><span class="mk chk" style="left:24%" title="10:00 확인 문제 3개"></span><span class="mk" style="left:31%" title="12:40 열린 질문"></span><span class="mk chk" style="left:48%" title="20:00 확인 문제"></span></div><span class="clock num">○ 열린 질문 2 · ● 내 설명 1 · ◆ 확인 문제</span></div>`;
+const caps=`<div class="caps"><div class="en">Today we're going to talk about what computation is.</div><div class="ko">오늘은 계산이 무엇인지 이야기하겠습니다.</div></div>`;
+const q1=`<div class="item"><div class="meta"><a class="num" href="#">00:09</a><span>● 내 설명 있음</span></div><div class="q">computation과 calculation은 어떻게 달라?</div><span class="lab">AI 제안</span><div class="txt">calculation은 정해진 식의 값을 구하는 일이고, computation은 절차(알고리즘)를 따라 문제를 푸는 더 넓은 말입니다.</div><span class="lab">내 설명</span><div class="txt">계산기는 식 하나를 풀고, 컴퓨터는 내가 준 순서대로 여러 단계를 푼다.</div><div class="small"><a href="#">고치기</a></div></div>`;
+const q2=`<div class="item"><div class="meta"><a class="num" href="#">00:22</a><span>○ 열린 질문 · 자동 기록됨</span></div><div class="q">여기서 말하는 '지식'은 선언적 지식과 절차적 지식 중 어느 쪽이야?</div><span class="lab">AI 제안</span><div class="txt">이 강의는 둘을 나눠 설명합니다. 지금 문장은 절차적 지식(어떻게 하는지)을 소개하는 도입입니다. <a class="num" href="#">03:10</a>에서 정의가 나옵니다.</div><div class="small"><a href="#">내 설명 쓰기</a></div></div>`;
+const composer=`<div class="comp"><div class="field"><span class="ph">이 장면 질문하기</span><span class="small muted num">00:22에 기록</span><button class="btn primary">보내기</button></div><div class="note">보내면 이 시각의 질문 기록으로 남습니다. AI 답은 제안이며 내 ChatGPT 연결로 받습니다.</div></div>`;
+const concepts=[['프로그래밍과 PyTorch','Python 기본기: 변수·자료형','-','1강 03:10, 2강','자료 있음','질문 1'],['수학 A','변수·수직선','-','1강 12:40','자료 있음','없음']];
+const quizQ=`<div class="meta"><span>확인 문제 1/3 · 예측</span><span>출처: 대본 <a class="num" href="#">08:41</a></span></div><h2 style="margin:6px 0 10px">아래 코드를 실행하면 무엇이 출력될까요? 먼저 예측하세요.</h2><pre>print(7 / 2)\nprint(7 // 2)</pre><div style="margin-top:10px"><div class="opt"><span class="radio"></span>3.5 와 3.5</div><div class="opt on"><span class="radio"></span>3.5 와 3</div><div class="opt"><span class="radio"></span>3 과 3</div><div class="opt"><span class="radio"></span>알 수 없음 (더 필요한 정보가 있다)</div></div><div class="small muted" style="margin-top:10px">정답 근거: 실제 실행 결과 · 확신: <b>보통</b></div>`;
+const quizList=`<table><tr><th>문제</th><th>출처</th><th>정답 근거</th><th>내 결과</th></tr><tr class="sel"><td>1. 7 / 2 와 7 // 2 의 출력</td><td>대본 08:41</td><td>실제 실행 결과</td><td>푸는 중</td></tr><tr><td>2. 로그분산을 범위 제한하는 이유</td><td>내 저장소 attentive_experimenter.py:141</td><td>AI 제안 · 정답 미검증</td><td>안 풂</td></tr><tr><td>3. 강의가 말한 '절차적 지식'을 내 말로</td><td>대본 03:10</td><td>원문 인용 확인</td><td>안 풂</td></tr></table>`;
+const mapRows=`<tr class="grp"><td colspan="5">▾ 신경망 핵심 · 21개</td></tr>
+<tr><td class="in1">▾ 역전파</td><td>연쇄법칙, 계산 그래프</td><td>micrograd 1강</td><td>자료 있음</td><td>없음</td></tr>
+<tr class="sel"><td class="in2">연쇄법칙(합성함수의 미분)</td><td>도함수</td><td>3Blue1Brown 4강</td><td>자료 있음</td><td>질문 1 · 문제 0</td></tr>
+<tr><td class="in2">도함수</td><td>일차함수·기울기</td><td>3Blue1Brown 2강</td><td>자료 있음</td><td>없음</td></tr>
+<tr><td class="in1">▸ 가중치와 편향</td><td>행렬-벡터 곱</td><td>micrograd 1강</td><td>자료 있음</td><td>없음</td></tr>
+<tr class="grp"><td colspan="5">▾ 프로그래밍과 PyTorch · 16개</td></tr>
+<tr><td class="in1">Python 기본기: 변수·자료형</td><td>-</td><td>MIT 6.100L 1~3강</td><td>자료 있음</td><td>질문 2 · 문제 1</td></tr>
+<tr><td class="in1">시드와 재현성</td><td>Python 기본기</td><td>읽기 자료만</td><td>일부</td><td>없음</td></tr>
+<tr class="grp"><td colspan="5">▾ 실험 판정 통계 · 커리큘럼에 없음</td></tr>
+<tr><td class="in1">다중 비교 보정(Holm)</td><td>가설검정·p값</td><td>-</td><td>자료 없음</td><td>없음</td></tr>
+<tr><td class="in1">동등성 검정(TOST)</td><td>가설검정·p값</td><td>-</td><td>자료 없음</td><td>없음</td></tr>
+<tr class="grp"><td colspan="5">▾ 인과 구조 학습 · 커리큘럼에 없음</td></tr>
+<tr><td class="in1">GIES</td><td>조건부확률·독립</td><td>-</td><td>자료 없음</td><td>없음</td></tr>`;
+const mapTable=`<table><tr><th>개념 (위에서 아래로: 큰 주제 → 선수 개념)</th><th>먼저 알아야 할 것</th><th>다루는 강의</th><th>자료</th><th>내 기록</th></tr>${mapRows}</table>`;
+const inspector=`<h2>연쇄법칙(합성함수의 미분)</h2><p class="txt" style="margin:6px 0 14px">단계마다 기울기를 곱한다. 역전파가 바로 이것이다.</p><dl class="kv"><dt>먼저 알아야 할 것</dt><dd>도함수 → 일차함수·기울기</dd><dt>이 개념이 필요한 곳</dt><dd>역전파, 기울기 소실·폭발</dd><dt>다루는 강의</dt><dd><a href="#">3Blue1Brown 4강 02:15</a><br><a href="#">micrograd 1강 31:40</a></dd><dt>내 기록</dt><dd>질문 1개(열린 질문) · 확인 문제 없음</dd></dl>`;
+const evid=`<div class="cols" style="grid-template-columns:1fr 1fr"><div class="sec"><div class="small muted">내가 완료로 표시한 것</div><div class="big num">3 / 227</div><div class="small muted">자기 표시입니다. 이해나 숙달을 뜻하지 않습니다.</div></div><div class="sec" style="border-top:0"><div class="small muted">기록이 보여 주는 것</div><table style="margin-top:4px"><tr><td>질문 기록</td><td class="num">5개 (열린 질문 2, 내 설명 3)</td><td><a href="#">기록 보기</a></td></tr><tr><td>확인 문제</td><td class="num">4문항 (실행 근거 2, 원문 근거 1, 미검증 1)</td><td><a href="#">답 보기</a></td></tr><tr><td>커밋·테스트</td><td class="num">커밋 6개, 테스트 통과 2회</td><td><a href="#">목록 보기</a></td></tr><tr><td>복습</td><td class="num">오늘 2개</td><td><a href="#">복습하기</a></td></tr></table></div></div>`;
+const evidLog=`<h2 style="margin-bottom:6px">근거 기록 (최근 순)</h2><table><tr><th>날짜</th><th>종류</th><th>내용</th><th>출처</th></tr><tr><td class="num">11-24</td><td>질문</td><td>'지식'은 선언적·절차적 중 어느 쪽?</td><td><a href="#">1강 00:22</a></td></tr><tr><td class="num">11-24</td><td>확인 문제</td><td>7 // 2 예측: 맞음 (실제 실행 결과)</td><td><a href="#">1강 08:41</a></td></tr><tr><td class="num">11-23</td><td>테스트 ✓ 통과</td><td>test_adam_step_matches_torch_adam</td><td>glorious-purpose 0ce68ab (읽기 전용)</td></tr><tr><td class="num">11-23</td><td>테스트 ✕ 실패</td><td>test_same_seed_gives_identical_starting_parameters</td><td>glorious-purpose 7a1c2e0 (읽기 전용)</td></tr><tr><td class="num">11-22</td><td>내 설명</td><td>계산기는 식 하나, 컴퓨터는 순서대로 여러 단계</td><td><a href="#">1강 00:09</a></td></tr></table><p class="note">커밋과 테스트 결과는 이 PC의 저장소 기록을 읽기만 합니다. Duvi는 코드를 실행하거나 올리지 않습니다.</p>`;
+const next=`<div class="row"><div class="grow"><div class="small muted">다음 할 일</div><div class="cut"><b>1강 이어 보기 · 00:22부터</b> <span class="muted">· 열린 질문 2개</span></div></div><button class="btn primary">이어 보기</button></div>`;
+
+/* ---------- A: 레일 + 무대 + 옆 패널 ---------- */
+function A(){
+  const rail=(cur)=>`<nav class="rail" aria-label="주요 이동"><div class="brand">Duvi</div>${[['lecture','▶','강의'],['map','◇','개념 지도'],['quiz','◆','확인 문제'],['review','≡','돌아보기']].map(([k,g,t])=>`<button ${k===cur?'aria-current="page"':''}><span class="g">${g}</span>${t}</button>`).join('')}<span class="sp"></span><button><span class="g">⚙</span>설정</button></nav>`;
+  if(screen==='lecture') return rail('lecture')+`<main class="col grow"><div class="head"><button class="btn">☰ 내 강의</button><span class="t cut">${L.title}</span><span class="small muted cut">${L.place}</span><span class="sp"></span><button class="btn">○ 강의 완료로 표시</button></div><div class="col grow stage">${video}${strip}${caps}</div></main><aside class="panel col" style="width:372px;flex:none"><div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true">질문 2</button><button class="tab" role="tab">개념 2</button><button class="tab" role="tab">확인 문제 3</button><button class="tab" role="tab">대본</button></div><div class="stream grow scroll">${q1}<div class="now">지금 00:22</div>${q2}</div>${composer}</aside>`;
+  if(screen==='map') return rail('map')+`<main class="col grow"><div class="page col grow"><div class="row" style="margin-bottom:12px"><h1>개념 지도</h1><span class="muted small">개념 160개 · 자료 없는 개념은 '자료 없음'으로 보입니다</span><span class="sp"></span><div class="field" style="width:240px"><span class="ph">개념 찾기</span></div></div><div class="grow scroll">${mapTable}</div></div></main><aside class="panel col" style="width:372px;flex:none"><div class="page">${inspector}<div style="margin-top:16px"><button class="btn primary">3Blue1Brown 4강 열기</button></div></div></aside>`;
+  if(screen==='quiz') return rail('quiz')+`<main class="col grow"><div class="page col grow scroll"><div class="row" style="margin-bottom:10px"><h1>확인 문제</h1><span class="muted small cut">${L.title} · 00:00~10:00 구간</span></div><div style="max-width:720px">${quizQ}</div><div style="margin-top:22px">${quizList}</div></div><div class="bar"><span class="muted small">문제는 대본과 내 저장소·위키에서 만들었습니다. 미검증 정답은 그렇게 표시합니다.</span><span class="sp"></span><button class="btn">건너뛰기</button><button class="btn primary">확인</button></div></main>`;
+  return rail('review')+`<main class="col grow"><div class="page col grow scroll"><h1>돌아보기</h1>${evid}<div class="sec">${evidLog}</div></div><div class="bar">${next}</div></main>`;
+}
+
+/* ---------- B: 강의 한 장 + 시간순 학습 흐름 ---------- */
+function B(){
+  const top=(cur)=>`<header class="top"><div class="brand">Duvi</div>${[['lecture','강의'],['map','지도'],['review','돌아보기']].map(([k,t])=>`<button class="nav" ${k===cur?'aria-current="page"':''}>${t}</button>`).join('')}<span class="sp"></span><button class="btn">내 강의 ▾</button><button class="btn" aria-label="설정">⚙</button></header>`;
+  const check=(open)=>`<div class="item"><div class="meta"><a class="num" href="#">10:00</a><span>◆ 구간 끝 확인 문제 3개 · 안 풂</span></div>${open?`<div style="margin-top:8px">${quizQ}</div><div class="row" style="margin-top:12px"><button class="btn primary">확인</button><button class="btn">건너뛰기</button></div>`:`<div class="q">00:00~10:00 구간을 내 코드에 대입해 확인하기</div><div class="small"><a href="#">문제 풀기</a></div>`}</div>`;
+  const con=`<div class="item"><div class="meta"><a class="num" href="#">03:10</a><span>◇ 이 구간의 개념</span></div><div class="txt">Python 기본기: 변수·자료형 <span class="muted">· 먼저 알아야 할 것 없음</span> · <a href="#">지도에서 보기</a></div></div>`;
+  if(screen==='lecture'||screen==='quiz'){const qz=screen==='quiz';return `<div class="col grow">${top('lecture')}<div class="row grow" style="gap:0;align-items:stretch"><main class="col grow stage"><div class="head"><span class="t cut">${L.title}</span><span class="small cut" style="color:#9aa4b5">${L.place}</span><span class="sp"></span><button class="ib">○ 강의 완료로 표시</button></div>${video}${strip}${caps}</main><aside class="panel col" style="width:${qz?460:400}px;flex:none"><div class="head"><span class="t">이 강의 · 시간순</span><span class="sp"></span><button class="btn">대본 함께 보기</button></div><div class="stream grow scroll">${qz?'':q1}${qz?'':`<div class="now">지금 00:22</div>`}${q2}${con}${check(qz)}</div>${qz?'':composer}</aside></div></div>`;}
+  if(screen==='map') return `<div class="col grow">${top('map')}<div class="page col grow scroll"><div class="row" style="margin-bottom:14px"><h1>지도</h1><span class="muted small">큰 주제에서 선수 개념으로 내려갑니다 · 개념마다 다루는 강의</span></div><div class="cols" style="grid-template-columns:repeat(3,1fr)">${[['1 프로그래밍과 PyTorch','16개 · 질문 2',[['Python 기본기: 변수·자료형','MIT 6.100L 1~3강','자료 있음'],['NumPy 배열·브로드캐스팅','d2l 2.1','자료 있음'],['시드와 재현성','읽기 자료만','일부']]],['2 신경망 핵심','21개 · 질문 1',[['도함수','3Blue1Brown 2강','자료 있음'],['연쇄법칙','3Blue1Brown 4강','자료 있음'],['역전파','micrograd 1강','자료 있음']]],['3 실험 판정 통계','커리큘럼에 없음',[['다중 비교 보정(Holm)','-','자료 없음'],['동등성 검정(TOST)','-','자료 없음'],['검정력·MDE','-','자료 없음']]],['4 수학 A: 함수에서 기울기까지','25개 · 질문 0',[['일차함수·기울기','3Blue1Brown 1강','자료 있음'],['편미분','d2l 2.4','자료 있음'],['헤시안·곡률','읽기 자료만','일부']]],['5 확률·통계·정보이론','34개 · 질문 0',[['조건부확률·독립','d2l 2.6','자료 있음'],['음의 로그우도(NLL)','d2l 3.1','자료 있음'],['가설검정·p값','읽기 자료만','일부']]],['6 인과 구조 학습','커리큘럼에 없음',[['GIES','-','자료 없음'],['구조적 인과 모형(SCM)','-','자료 없음'],['개입과 관찰의 구분','-','자료 없음']]]].map(([h,s,rows])=>`<section style="margin-bottom:26px"><h2>${h}</h2><div class="small muted" style="margin-bottom:6px">${s}</div><table>${rows.map(r=>`<tr><td>${r[0]}<div class="small muted">${r[1]}</div></td><td class="small" style="white-space:nowrap">${r[2]}</td></tr>`).join('')}</table></section>`).join('')}</div></div></div>`;
+  return `<div class="col grow">${top('review')}<div class="page col grow scroll"><h1>돌아보기</h1>${evid}<div class="sec">${evidLog}</div></div><div class="bar">${next}</div></div>`;
+}
+
+/* ---------- C: 지도가 첫 화면 + 강의 집중 보기(아래 도크) ---------- */
+function C(){
+  const top=(cur,back)=>`<header class="top"><div class="brand">Duvi</div>${back?`<button class="btn">← 지도로</button><span class="t cut" style="margin-left:8px;font-weight:700">${L.title}</span>`:[['map','지도와 진척'],['lib','내 강의'],['rev','복습 2']].map(([k,t])=>`<button class="nav" ${k===cur?'aria-current="page"':''}>${t}</button>`).join('')}<span class="sp"></span>${back?`<button class="btn">○ 강의 완료로 표시</button>`:''}<button class="btn" aria-label="설정">⚙</button></header>`;
+  const dockQ=`<div><div class="row"><b>질문</b><span class="small muted">이 강의 2개 · <a href="#">모두 보기</a></span></div><div class="meta" style="margin-top:6px"><a class="num" href="#">00:22</a><span>○ 열린 질문 · 자동 기록됨</span></div><div class="q cut">여기서 말하는 '지식'은 선언적 지식과 절차적 지식 중 어느 쪽이야?</div><div class="txt cut"><span class="muted">AI 제안</span> 지금 문장은 절차적 지식을 소개하는 도입입니다.</div><div class="field" style="margin-top:10px"><span class="ph">이 장면 질문하기</span><span class="small muted num">00:22에 기록</span><button class="btn primary">보내기</button></div></div>`;
+  const dockS=`<div><div class="row"><b>이 강의</b><span class="small muted">개념 2 · 확인 문제 3</span></div><table style="margin-top:4px"><tr><td>◇ Python 기본기: 변수·자료형</td><td class="small num"><a href="#">03:10</a></td></tr><tr><td>◆ 10:00 구간 끝 확인 문제 3개</td><td class="small">안 풂 · <a href="#">풀기</a></td></tr></table></div>`;
+  if(screen==='lecture') return `<div class="col grow">${top('',true)}<main class="col grow stage">${video}${strip}${caps}</main><div class="dock">${dockQ}${dockS}</div></div>`;
+  if(screen==='quiz') return `<div class="col grow">${top('',true)}<div class="row grow" style="gap:0;align-items:stretch"><main class="col stage" style="width:44%;flex:none">${video}${strip}${caps}</main><div class="col grow panel"><div class="page col grow scroll">${quizQ}<div style="margin-top:20px">${quizList}</div></div><div class="bar"><span class="sp"></span><button class="btn">건너뛰기</button><button class="btn primary">확인</button></div></div></div></div>`;
+  const outline=`<table><tr><th>개념 (큰 주제 → 선수 개념)</th><th>다루는 강의</th><th>자료</th><th>내가 표시</th><th>질문</th><th>확인 문제</th><th>커밋·테스트</th></tr>
+<tr class="grp"><td colspan="7">▾ 프로그래밍과 PyTorch · 16개</td></tr>
+<tr class="sel"><td class="in1">Python 기본기: 변수·자료형</td><td><a href="#">MIT 6.100L 1강</a> 외 2</td><td>자료 있음</td><td>0 / 3강</td><td>2 (열린 2)</td><td>1 / 3 근거 대조</td><td>아직 증거 없음</td></tr>
+<tr><td class="in1">시드와 재현성</td><td>읽기 자료만</td><td>일부</td><td>0 / 1</td><td>없음</td><td>없음</td><td>테스트 ✓ 1 · ✕ 1</td></tr>
+<tr class="grp"><td colspan="7">▾ 신경망 핵심 · 21개</td></tr>
+<tr><td class="in1">▾ 역전파</td><td><a href="#">micrograd 1강</a></td><td>자료 있음</td><td>0 / 1강</td><td>없음</td><td>없음</td><td>아직 증거 없음</td></tr>
+<tr><td class="in2">연쇄법칙(합성함수의 미분)</td><td><a href="#">3Blue1Brown 4강</a></td><td>자료 있음</td><td>1 / 1강</td><td>1 (열린 1)</td><td>없음</td><td>아직 증거 없음</td></tr>
+<tr><td class="in2">도함수</td><td><a href="#">3Blue1Brown 2강</a></td><td>자료 있음</td><td>1 / 1강</td><td>없음</td><td>없음</td><td>아직 증거 없음</td></tr>
+<tr class="grp"><td colspan="7">▾ 실험 판정 통계 · 커리큘럼에 없음</td></tr>
+<tr><td class="in1">다중 비교 보정(Holm)</td><td>-</td><td>자료 없음</td><td>-</td><td>없음</td><td>없음</td><td>아직 증거 없음</td></tr>
+<tr><td class="in1">동등성 검정(TOST)</td><td>-</td><td>자료 없음</td><td>-</td><td>없음</td><td>없음</td><td>아직 증거 없음</td></tr>
+<tr class="grp"><td colspan="7">▾ 인과 구조 학습 · 커리큘럼에 없음</td></tr>
+<tr><td class="in1">GIES</td><td>-</td><td>자료 없음</td><td>-</td><td>없음</td><td>없음</td><td>아직 증거 없음</td></tr></table>`;
+  if(screen==='map'||screen==='review') return `<div class="col grow">${top('map')}<div class="page col grow"><div class="row" style="margin-bottom:10px"><h1>지도와 진척</h1><span class="muted small">'내가 표시'는 자기 표시이고, 오른쪽 세 칸은 기록에서 나온 증거입니다</span><span class="sp"></span><div class="field" style="width:240px"><span class="ph">개념 찾기</span></div></div><div class="grow scroll">${outline}</div></div><div class="bar">${next}</div></div>`;
+}
+document.getElementById('root').innerHTML=`<div class="app">${({a:A,b:B,c:C})[alt]()}</div>`;
+/* 넘침·잘림 점검: 가로 넘침, 화면 밖 요소, 글자가 잘린 요소 수를 title에 적는다 */
+addEventListener('load',()=>{const W=innerWidth,H=innerHeight;let off=0,clip=0;for(const e of document.querySelectorAll('.app *')){const r=e.getBoundingClientRect();if(!r.width||!r.height)continue;if(e.closest('.scroll')&&!e.classList.contains('scroll'))continue;if(r.right>W+1||r.bottom>H+1||r.left<-1)off++;if(!e.classList.contains('cut')&&e.children.length===0&&e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).overflow!=='visible')clip++;}
+const sc=[...document.querySelectorAll('.scroll')].filter(e=>e.scrollHeight>e.clientHeight+1).length;
+document.title=`CHECK scrollWidth=${document.documentElement.scrollWidth} innerWidth=${W} offscreen=${off} clipped=${clip} scrollingRegions=${sc}`;});
+</script></body></html>

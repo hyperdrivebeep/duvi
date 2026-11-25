@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Duvi 확인 문제 · 미리보기 (예시 데이터)</title>
+<link rel="stylesheet" href="/src/quiz-view.css">
+<style>html,body{margin:0;height:100%;font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}#root{height:100%}</style>
+</head><body><div id="root"></div><pre id="metrics" hidden></pre>
+<script type="module">
+// Dev preview: mounts the real quiz view with fixture data (examples only, no server, no ChatGPT).
+import {renderQuizScreen} from '/src/quiz-view.mjs';
+import {fakeApi} from '/tests/quiz-fixtures.mjs';
+const view=renderQuizScreen(document.getElementById('root'),fakeApi(),{lectureId:'1'});
+await view.ready;
+for(const value of ['3.5\n3','medium'])[...document.querySelectorAll('input[type=radio]')].find(input=>input.value===value)?.click();
+const page=document.querySelector('.quiz-page');
+document.getElementById('metrics').textContent=JSON.stringify({innerWidth,scrollWidth:document.documentElement.scrollWidth,pageOverflow:page.scrollWidth-page.clientWidth,minFont:Math.min(...[...document.querySelectorAll('#root *')].filter(node=>node.textContent.trim()).map(node=>parseFloat(getComputedStyle(node).fontSize)))});
+</script></body></html>
