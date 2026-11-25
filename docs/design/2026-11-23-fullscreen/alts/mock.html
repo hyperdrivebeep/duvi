@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Duvi 전체화면 시안</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#090b10;color:#e8ecf3;font:14px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.app{position:fixed;inset:0;display:flex}
+.stage{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.video{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000;position:relative}
+.video img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.ctl{position:absolute;left:0;right:0;bottom:0;padding:10px 16px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));display:flex;align-items:center;gap:6px}
+.ctl .ib{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:15px;color:#e8ecf3}
+.ctl .ib:hover{background:rgba(255,255,255,.12)}
+.ctl .time{font-size:13px;color:#cfd6e2;margin:0 8px;font-variant-numeric:tabular-nums}
+.ctl .sp{flex:1}
+.ctl .pill{height:30px;padding:0 12px;border-radius:15px;background:rgba(255,255,255,.14);font-size:13px}
+.ctl .pill.primary{background:#2f6fe4;color:#fff}
+.strip{height:40px;display:flex;align-items:center;gap:12px;padding:0 20px;background:#141922}
+.track{position:relative;flex:1;height:4px;background:#2b3444;border-radius:2px}
+.track .played{position:absolute;left:0;top:0;bottom:0;width:32%;background:#75a6f0;border-radius:2px}
+.mk{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid #75a6f0;background:#141922}
+.mk.done{background:#75a6f0}
+.strip .clock{font-size:12px;color:#9aa6b8;font-variant-numeric:tabular-nums}
+.caps{padding:10px 20px 14px;background:#090b10;text-align:center}
+.caps .en{font-size:20px;color:#d7dce6}
+.caps .ko{font-size:22px;color:#fff;margin-top:8px}
+.panel{width:380px;flex:none;background:#141922;border-left:1px solid #232e40;display:flex;flex-direction:column;min-height:0}
+.ph{height:52px;display:flex;align-items:center;gap:4px;padding:0 8px 0 14px;border-bottom:1px solid #232e40}
+.seg{display:flex;background:#0f141c;border-radius:9px;padding:3px}
+.seg button{height:30px;padding:0 14px;border-radius:7px;font-size:13px;color:#9aa6b8}
+.seg button[aria-selected=true]{background:#203652;color:#fff}
+.ph .sp{flex:1}
+.ph .ib{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:#9aa6b8}
+.filters{display:flex;gap:6px;padding:10px 14px 4px;font-size:12px}
+.chip{height:26px;padding:0 10px;border-radius:13px;border:1px solid #2b3444;color:#9aa6b8;display:inline-flex;align-items:center}
+.chip.on{border-color:#75a6f0;color:#dbe7fb;background:#18263c}
+.stream{flex:1;min-height:0;overflow:auto;padding:8px 14px 12px;display:flex;flex-direction:column;gap:10px}
+.now{display:flex;align-items:center;gap:8px;font-size:12px;color:#75a6f0}
+.now:after{content:"";flex:1;height:1px;background:#2b4a75}
+.q{border:1px solid #232e40;border-radius:12px;padding:10px 12px;background:#10151d}
+.qh{display:flex;align-items:center;gap:8px;font-size:12px;color:#9aa6b8;margin-bottom:4px}
+.t{height:22px;padding:0 8px;border-radius:11px;border:1px solid #2b4a75;color:#9cc0f5;font-size:12px;display:inline-flex;align-items:center;font-variant-numeric:tabular-nums}
+.badge{white-space:nowrap;font-size:11px;padding:1px 7px;border-radius:9px;background:#2a2112;color:#f0c46b}
+.badge.ok{background:#13281c;color:#7ad39b}
+.qt{font-size:14px;color:#fff}
+.ans{margin-top:8px;font-size:13px;color:#c9d1de;border-left:2px solid #2b4a75;padding-left:10px}
+.ans b{color:#9aa6b8;font-weight:400;font-size:12px;display:block;margin-bottom:2px}
+.mine{margin-top:8px;font-size:13px;color:#dfe9d8;border-left:2px solid #3f7a52;padding-left:10px}
+.mine b{color:#7ad39b;font-weight:400;font-size:12px;display:block;margin-bottom:2px}
+.link{margin-top:6px;font-size:12px;color:#75a6f0}
+.comp{border-top:1px solid #232e40;padding:10px 14px 12px}
+.box{border:1px solid #2b3444;border-radius:12px;background:#0f141c;padding:8px 10px}
+.box .row{display:flex;align-items:center;gap:8px}
+.box .ph2{flex:1;color:#6f7b8e;font-size:14px;padding:6px 0}
+.send{height:32px;padding:0 14px;border-radius:9px;background:#2f6fe4;color:#fff;font-size:13px}
+.hint{margin-top:6px;font-size:11px;color:#6f7b8e}
+.cue{padding:8px 10px;border-radius:8px;font-size:13px;color:#c9d1de}
+.cue .k{color:#9aa6b8;font-size:12px}
+.cue.cur{background:#18263c;color:#fff}
+.cue .tm{font-size:11px;color:#6f7b8e;font-variant-numeric:tabular-nums}
+.inlineq .qh{margin:0}
+.inlineq{margin:4px 0 4px 18px;border-left:2px solid #f0c46b;padding:6px 10px;font-size:13px;background:#1a1810;border-radius:0 8px 8px 0}
+.inlineq.done{border-color:#7ad39b;background:#111a14}
+.card{position:absolute;right:20px;bottom:64px;width:380px;max-height:calc(100% - 84px);background:rgba(20,25,34,.97);border:1px solid #2b3444;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;min-height:0}
+.fab{position:absolute;right:20px;bottom:18px;height:38px;padding:0 16px;border-radius:19px;background:#2f6fe4;color:#fff;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.tag{position:fixed;left:12px;top:10px;z-index:9;font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(240,196,107,.9);color:#000}
+</style></head><body><div id="root"></div>
+<script>
+const v=(location.hash||'#a').slice(1);
+const Q=[
+ {t:'00:35',q:'방금 부분을 쉬운 비유로 설명해 줘',a:'새 학기 첫날 선생님이 "이 과목을 오래 가르쳐 왔다"고 인사하는 장면이에요. 00:28에서 MIT EECS에서 10년 가까이 강의했다고 소개합니다.',mine:null},
+ {t:'02:10',q:'float(4+2)는 왜 6.0이 나와?',a:'float()은 정수 6을 소수점이 있는 수 6.0으로 바꿉니다. 02:04 화면의 14번 줄이에요.',mine:'int를 float로 바꾸면 값은 같고 모양만 소수가 된다.'},
+];
+const ctl=(extra='')=>`<div class="ctl"><button class="ib">⏮</button><button class="ib">▶</button><button class="ib">⏭</button><span class="time">03:12 / 1:03:29</span><button class="ib">↻</button><span class="sp"></span>${extra}<button class="ib">CC</button><button class="ib">⚙</button><button class="ib">⤡</button></div>`;
+const strip=()=>`<div class="strip"><span class="clock">00:00–10:00 ▾</span><div class="track"><div class="played"></div><span class="mk" style="left:5.8%"></span><span class="mk done" style="left:21.6%"></span></div><span class="clock">03:12</span></div>`;
+const caps=`<div class="caps"><div class="en">So in this class, we'll learn what computation is and how to write programs.</div><div class="ko">이 수업에서는 계산이 무엇이고 프로그램을 어떻게 쓰는지 배웁니다.</div></div>`;
+const qcard=x=>`<div class="q"><div class="qh"><span class="t">${x.t}</span>${x.mine?'<span class="badge ok">● 내 설명 있음</span>':'<span class="badge">○ 열린 질문 · 자동 기록됨</span>'}</div><div class="qt">${x.q}</div><div class="ans"><b>AI 튜터 · 제안</b>${x.a}</div>${x.mine?`<div class="mine"><b>내 설명</b>${x.mine}</div>`:'<div class="link">내 설명 쓰기</div>'}</div>`;
+const comp=(ph)=>`<div class="comp"><div class="box"><div class="row"><span class="t">03:12</span><span class="ph2">${ph}</span><button class="ib" title="보낼 자료·모델">⋯</button><button class="send">보내기</button></div></div><div class="hint">보낸 질문은 자동으로 내 기록에 남습니다 · Enter 보내기</div></div>`;
+let html='';
+if(v==='a'){
+ html=`<span class="tag">시안 A · 옆 패널 한 줄 정리</span><div class="app"><div class="stage"><div class="video"><img src="frame.jpg">${ctl('<button class="pill primary">질문하기</button>')}</div>${strip()}${caps}</div>
+ <aside class="panel"><div class="ph"><div class="seg" role="tablist"><button aria-selected="true">질문</button><button aria-selected="false">대본</button></div><span class="sp"></span><button class="ib">✕</button></div>
+ <div class="filters"><span class="chip on">전체 2</span><span class="chip">열린 질문 1</span></div>
+ <div class="stream">${qcard(Q[0])}${qcard(Q[1])}<div class="now">지금 03:12</div></div>${comp('막힌 점을 바로 물어보세요')}</aside></div>`;
+}else if(v==='b'){
+ html=`<span class="tag">시안 B · 영상 위 떠 있는 질문 카드</span><div class="app"><div class="stage"><div class="video"><img src="frame.jpg">${ctl()}
+ <div class="card"><div class="ph"><b style="font-size:14px">03:12 근처 질문</b><span class="sp"></span><button class="ib" title="전체 질문">☰</button><button class="ib">✕</button></div>
+ <div class="stream">${qcard(Q[1])}<div class="now">지금 03:12</div></div>${comp('이 장면에서 궁금한 점')}</div></div>${strip()}${caps}</div></div>`;
+}else{
+ html=`<span class="tag">시안 C · 대본 안에 질문이 달리는 목록</span><div class="app"><div class="stage"><div class="video"><img src="frame.jpg">${ctl('<button class="pill">대본·질문</button>')}</div>${strip()}${caps}</div>
+ <aside class="panel"><div class="ph"><b style="font-size:14px">대본 · 질문</b><span class="sp"></span><span class="chip on">모두</span><span class="chip">질문만</span><button class="ib">✕</button></div>
+ <div class="stream" style="gap:2px">
+ <div class="cue"><span class="tm">00:28</span> I've been teaching at MIT EECS for almost ten years.<div class="k">MIT EECS에서 거의 10년 동안 강의했어요.</div></div>
+ <div class="cue"><span class="tm">00:33</span> And I've taught this intro course quite a few times.<div class="k">이 입문 과목도 꽤 여러 번 가르쳤어요.</div></div>
+ <div class="inlineq"><div class="qh"><span class="t">00:35</span><span class="badge">○ 열린 질문 · 자동 기록됨</span></div>방금 부분을 쉬운 비유로 설명해 줘<div style="color:#c9d1de;margin-top:4px">AI: 새 학기 첫날 선생님 인사 같은 장면이에요… <span style="color:#75a6f0">펼치기</span></div></div>
+ <div class="cue"><span class="tm">02:04</span> float of 4 plus 2 gives 6.0.<div class="k">float(4+2)는 6.0이 됩니다.</div></div>
+ <div class="inlineq done"><div class="qh"><span class="t">02:10</span><span class="badge ok">● 내 설명 있음</span></div>float(4+2)는 왜 6.0이 나와?<div style="color:#dfe9d8;margin-top:4px">내 설명: int를 float로 바꾸면 모양만 소수가 된다.</div></div>
+ <div class="cue cur"><span class="tm">03:12</span> So in this class, we'll learn what computation is.<div class="k">이 수업에서는 계산이 무엇인지 배웁니다.</div></div>
+ <div class="cue"><span class="tm">03:20</span> And how to write programs to do it.<div class="k">그리고 그것을 하는 프로그램을 쓰는 법을요.</div></div>
+ </div>${comp('이 문장에 질문 달기')}</aside></div>`;
+}
+document.getElementById('root').innerHTML=html;
+</script></body></html>
