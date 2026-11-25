@@ -116,8 +116,24 @@ and links, status by glyph and text, text at least 14px.
 On 2026-11-24 the user chose the redesign and answered its defaults: check questions (확인 문제) are
 generated only on an explicit, previewed request through the learner's ChatGPT connection, and each answer
 carries its evidence: real output of the question's fixed code, a verbatim quote, the learner's own
-confirmation, or "AI 제안 · 정답 미검증". Only fixed problem code runs, once at generation, in Pyodide with a
-hard timeout and no JavaScript bridge; learner-written code or answers are never run. The learner's
+confirmation, or "AI 제안 · 정답 미검증". Running problem code is opt-in and off by default (lead decision 2026-11-25:
+independent reviews kept finding escape paths, so the isolation is defence in depth, not a guarantee); it is on only when
+the server starts with `DUVI_QUIZ_CODE_EXECUTION=1`. When off nothing is spawned and coded questions stay "AI 제안 ·
+정답 미검증" with the reason 코드 실행 꺼짐, and the quiz screen says so. When on, only fixed problem code runs, once at generation, in Pyodide inside a
+separate Node process started with `--permission`, read access to the Pyodide package only (no write, child-process,
+worker, addon, WASI or inspector grant), `--disallow-code-generation-from-strings`, `--no-experimental-sqlite` and
+`--no-addons`, killed on timeout or cancel (cancel saves nothing). Treat that code as untrusted (its prompt includes
+third-party captions) and assume it can reach JavaScript in that process: the Python layer (blocked imports, removed
+os/posix calls, emptied Pyodide modules) is bypassable. On Node 24.19 the permission model does not cover file writes by
+node:sqlite (measured), so that module is disabled by flag. After Pyodide loads, a lockdown leaves only an allowlist of
+built-ins (no file, socket, process or debugger access) and of process functions; every other built-in throws and is
+frozen, and no module can be loaded any more. The child's stdin/stdout/stderr are ignored (only IPC is a pipe) and
+replaced by discarding in-memory streams after setup, and any active handle class is locked, so no internal Pipe/TCP
+class can reach host named pipes (measured after df874f9 reached them, including UNC paths). The network and process signals are closed by that lockdown, not by the
+OS. Problem code that names interpreter internals (gc, importlib, meta_path, pyodide, js, ctypes, ...) is not run and
+stays "AI 제안 · 정답 미검증"; that is an evidence-quality check, not a boundary. If the isolated process cannot run, the answer stays "AI 제안 · 정답 미검증" and nothing runs unisolated.
+The guarantees are only what backend/tests/learning-quiz.test.mjs checks (docs/LEARNING_DESIGN.md, 실행 경계);
+learner-written code or answers are never run. The learner's
 repositories (default from `DUVI_EVIDENCE_REPOS` or the local, gitignored `backend/learning/sources.json`,
 e.g. a glorious-purpose clone; never a hard-coded path) are read-only: Duvi reads files, `git log` and test
 result files and never runs, writes or pushes there. 돌아보기 keeps self-marks apart from evidence and shows

@@ -65,9 +65,17 @@ export async function verifyRepoQuote(item,excerpts,sources){
   try{const fresh=await sources.excerpt({repo:sent.repo,path:file,startLine,endLine});return normalize(fresh.text).includes(quote);}
   catch{return false;}
 }
+/**
+ * Names that only code reaching into the interpreter or the Pyodide bridge needs. Problem code that mentions one is not
+ * run and its answer stays unverified. This keeps such code from producing "executed" evidence; it is not a security
+ * boundary (the runner process is), and an ordinary snippet that merely prints one of these words is refused too.
+ */
+export const INTERNAL_NAMES=/\b(?:gc|importlib|_builtin_from_name|meta_path|sys\s*\.\s*modules|__subclasses__|_pyodide\w*|pyodide\w*|js|ctypes)\b/;
 /** Replaces the AI's expected answer with the real output of the item's fixed code; a failed run leaves it unverified. */
-export async function executeItem(item,run=runPython){
-  const result=await run(item.code);
+export async function executeItem(item,run=runPython,signal){
+  const internal=INTERNAL_NAMES.exec(item.code);
+  if(internal)return {item,execution:{status:'refused',reason:`문제 코드가 실행 환경 내부(${internal[0]})를 건드려 실행하지 않았습니다.`}};
+  const result=await run(item.code,{signal});
   if(result.status!=='executed')return {item,execution:{status:result.status,reason:result.reason}};
   const output=executedAnswer(result).slice(0,v.ATTEMPT_LIMITS.answer),same=(a,b)=>normalize(a)===normalize(b);
   const execution={status:'executed',output,aiAnswer:item.answer,mismatch:!same(output,item.answer),truncated:!!result.truncated};
@@ -99,7 +107,7 @@ export function parseQuiz(text){
 }
 function execution(value){
   v.keys(value,['status','output','aiAnswer','mismatch','truncated','optionsDropped','reason']);
-  const result={status:v.choice(value.status,['executed','timeout','unavailable'])};
+  const result={status:v.choice(value.status,['executed','timeout','unavailable','refused','disabled'])};
   for(const key of ['output','aiAnswer','reason'])if(value[key]!==undefined)result[key]=v.text(value[key],v.ATTEMPT_LIMITS.answer);
   for(const key of ['mismatch','truncated','optionsDropped'])if(value[key]!==undefined)result[key]=v.choice(value[key],[true,false]);
   return result;
@@ -137,8 +145,13 @@ function quizError(error){
 
 export class LearningQuiz{
   /** source(lectureId) → {lecture,cues,translations,alignmentRevision}: the displayed transcript, shared with the chat. */
-  constructor({root,store,auth,source,sources,fetcher=fetch,now=()=>Date.now(),writer=atomicJSON,mock=false,run=runPython}){
-    Object.assign(this,{store,auth,source,sources,fetcher,now,writer,mock,run});this.directory=path.join(path.resolve(root),'quizzes');
+  /**
+   * codeExecution: run the fixed problem code in the isolated runner. Off by default (opt-in, DUVI_QUIZ_CODE_EXECUTION=1 in
+   * server.mjs): independent reviews kept finding escape paths, so the isolation is defence in depth, not a guarantee.
+   * When off nothing is spawned and coded questions stay unverified.
+   */
+  constructor({root,store,auth,source,sources,fetcher=fetch,now=()=>Date.now(),writer=atomicJSON,mock=false,run=runPython,codeExecution=false}){
+    Object.assign(this,{store,auth,source,sources,fetcher,now,writer,mock,run,codeExecution});this.directory=path.join(path.resolve(root),'quizzes');
     this.tokens=new Map();this.active=new Map();this.queues=new Map();
   }
   file(lectureId){return path.join(this.directory,`${v.lectureId(lectureId)}.json`);}
@@ -166,7 +179,7 @@ export class LearningQuiz{
       return {...segment,cueCount:rows.length,set:saved&&{generatedAt:saved.generatedAt,model:saved.model,mock:saved.mock,dropped:saved.dropped,items:saved.items,counts:evidenceCounts(saved.items),
         stale:saved.sourceHash!==windowHash(rows)||saved.alignmentRevision!==(current.alignmentRevision??null)}};
     });
-    return {lectureId,title:current.lecture.title,duration:current.cues.at(-1)?.end||0,connected:this.connected(),mock:this.mock,generating:this.active.has(lectureId),repos:repos.map(row=>row.label),segments};
+    return {lectureId,title:current.lecture.title,duration:current.cues.at(-1)?.end||0,connected:this.connected(),mock:this.mock,codeExecution:this.codeExecution,generating:this.active.has(lectureId),repos:repos.map(row=>row.label),segments};
   }
   async list(){
     let names=[];try{names=await readdir(this.directory);}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -204,7 +217,8 @@ export class LearningQuiz{
     const {lectureId,segment}=entry;
     if(this.active.has(lectureId))throw new AppError('이 강의의 확인 문제를 만드는 중입니다.','busy',409);
     if(!this.connected())throw quizError(new AppError('','not_connected',401));
-    const controller=new AbortController(),stop=()=>controller.abort();this.active.set(lectureId,controller);signal?.addEventListener('abort',stop,{once:true});
+    const controller=new AbortController(),stop=()=>controller.abort();
+    const cancelled=()=>new AppError('확인 문제 만들기를 취소했습니다. 입력은 그대로 있습니다.','cancelled',409);this.active.set(lectureId,controller);signal?.addEventListener('abort',stop,{once:true});
     try{
       let token;
       try{const accountId=this.auth.state.activeId,models=await this.auth.models(accountId);if(!models.some(row=>row.id===model))throw new AppError('이 계정에서 사용할 수 있는 모델을 선택하세요.','invalid_model',400);token=await this.auth.token(accountId);}
@@ -216,18 +230,24 @@ export class LearningQuiz{
         catch(error){if(controller.signal.aborted)throw error;throw new AppError('','network',503);}
         text=await consumeResponse(response);
       }catch(error){
-        if(controller.signal.aborted)throw new AppError('확인 문제 만들기를 취소했습니다. 입력은 그대로 있습니다.','cancelled',409);
+        if(controller.signal.aborted)throw cancelled();
         throw quizError(error);
       }
       const {items,dropped}=parseQuiz(text),current=await this.current(lectureId),rows=transcriptWindow(current.cues,current.translations,segment);
       if(windowHash(rows)!==entry.hash||(current.alignmentRevision??null)!==entry.alignmentRevision)throw new AppError('그사이 자막이 바뀌었습니다. 보낼 자료를 다시 확인하세요.','source_changed',409);
       const verified=[];
       for(const generated of items){
+        // Cancel stops the loop and kills a running snippet; nothing of a cancelled generation is saved.
+        if(controller.signal.aborted)throw cancelled();
         // Only the generated question's own code runs, once, here; attempts never reach the runner.
-        const {item,execution}=generated.code?await executeItem(generated,this.run):{item:generated};
-        const evidence=execution?.status==='executed'?'executed':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
+        const {item,execution}=!generated.code?{item:generated}:this.codeExecution?await executeItem(generated,this.run,controller.signal)
+          :{item:generated,execution:{status:'disabled',reason:'코드 실행 꺼짐'}};
+        if(controller.signal.aborted)throw cancelled();
+        // Refused code makes the whole question suspect, so a quote it carries does not verify it either.
+        const evidence=execution?.status==='executed'?'executed':['refused','disabled'].includes(execution?.status)?'ai_unverified':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
         verified.push({id:randomUUID(),...item,evidence,...(execution&&{execution})});
       }
+      if(controller.signal.aborted)throw cancelled();
       const saved={id:segment.id,start:segment.start,end:segment.end,sourceHash:entry.hash,alignmentRevision:entry.alignmentRevision,generatedAt:new Date(this.now()).toISOString(),model,promptVersion:QUIZ_PROMPT_VERSION,mock:this.mock,dropped,items:verified};
       await this.update(lectureId,set=>{set.segments=[...set.segments.filter(row=>row.id!==segment.id),saved].sort((a,b)=>a.start-b.start);});
       this.tokens.delete(body.token);

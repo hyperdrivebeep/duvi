@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,mkdir,writeFile,readdir} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import {spawn,spawnSync} from 'node:child_process';
+import net from 'node:net';
+import dgram from 'node:dgram';
 import os from 'node:os';
 import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LearningSources} from '../learning-sources.mjs';
 import {LearningQuiz,transcriptWindow,windowHash,verifyTranscriptQuote,verifyRepoQuote,parseQuiz,reviewDays,segmentsFor,executeItem} from '../learning-quiz.mjs';
-import {runPython} from '../python-runner.mjs';
+import {runPython,runnerArgs} from '../python-runner.mjs';
 import {createMockChatProvider} from '../chat-mock.mjs';
 import {createServer} from '../http-server.mjs';
 import {LectureLibrary} from '../library.mjs';
@@ -21,7 +25,7 @@ const cues=[
 const translations={0:{ko:'오늘은 계산이 무엇인지 이야기하겠습니다.'},1:{ko:'컴퓨터는 두 가지를 합니다.'}};
 const segment={id:'s0',start:0,end:600};
 async function dir(t,prefix){const value=await mkdtemp(path.join(os.tmpdir(),prefix));t.after(()=>rm(value,{recursive:true,force:true,maxRetries:5,retryDelay:100}));return value;}
-async function fixture(t,{connected=true,fetcher,run}={}){
+async function fixture(t,{connected=true,fetcher,run,codeExecution=true}={}){
   const root=await dir(t,'duvi-quiz-'),repo=await dir(t,'duvi-quiz-repo-');
   await mkdir(path.join(repo,'src'),{recursive:true});await mkdir(path.join(repo,'PROJECT_WIKI'),{recursive:true});
   await writeFile(path.join(repo,'src','model.py'),'import math\n\ndef clamp_log_variance(value):\n    return max(-10.0, min(10.0, value))\n');
@@ -29,7 +33,7 @@ async function fixture(t,{connected=true,fetcher,run}={}){
   const store=new LearningStore({root}),sources=new LearningSources({root});await sources.set({repos:[{path:repo}]});
   const source={lecture:{number:1,title:'Lecture 1'},cues:structuredClone(cues),translations:structuredClone(translations),alignmentRevision:'align-1'};
   const provider=createMockChatProvider({delayMs:0});
-  const quiz=new LearningQuiz({root,store,sources,auth:connected?provider.auth:{state:{activeId:null}},fetcher:fetcher||provider.fetcher,source:async()=>source,mock:true,...(run&&{run})});
+  const quiz=new LearningQuiz({root,store,sources,auth:connected?provider.auth:{state:{activeId:null}},fetcher:fetcher||provider.fetcher,source:async()=>source,mock:true,codeExecution,...(run&&{run})});
   return {root,repo,store,sources,quiz,source,label:path.basename(repo)};
 }
 
@@ -98,6 +102,19 @@ test('failure keeps the preview token for a retry; no connection is reported as 
   assert.equal(preview.connected,false);await assert.rejects(offline.quiz.generate({token:preview.token,model:'x'}),{code:'not_connected'});
 });
 
+test('code execution is off by default: nothing runs and coded questions stay unverified with the reason',async t=>{
+  const runs=[],root=await dir(t,'duvi-quiz-off-'),provider=createMockChatProvider({delayMs:0});
+  const store=new LearningStore({root}),sources=new LearningSources({root});
+  const source={lecture:{number:1,title:'Lecture 1'},cues:structuredClone(cues),translations:structuredClone(translations),alignmentRevision:'align-1'};
+  const quiz=new LearningQuiz({root,store,sources,auth:provider.auth,fetcher:provider.fetcher,source:async()=>source,mock:true,run:async code=>{runs.push(code);return {status:'executed',output:'3.5\n3\n',error:null,truncated:false};}});
+  const status=await quiz.generate({token:(await quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'}),coded=status.segments[0].set.items[3];
+  assert.equal(status.codeExecution,false);assert.deepEqual(runs,[],'nothing is spawned');
+  assert.deepEqual([coded.evidence,coded.execution,coded.answer],['ai_unverified',{status:'disabled',reason:'코드 실행 꺼짐'},'3.5\n3.5']);
+  const on=await fixture(t,{run:async code=>{runs.push(code);return {status:'executed',output:'3.5\n3\n',error:null,truncated:false};}});
+  const onStatus=await on.quiz.generate({token:(await on.quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'});
+  assert.equal(onStatus.codeExecution,true);assert.deepEqual(runs,['print(7 / 2)\nprint(7 // 2)']);assert.equal(onStatus.segments[0].set.items[3].evidence,'executed');
+});
+
 test('cancel aborts an in-flight generation and the input stays usable',async t=>{
   let release;const started=new Promise(resolve=>{release=resolve;});
   const fetcher=(url,init)=>new Promise((resolve,reject)=>{release();init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});});
@@ -105,6 +122,22 @@ test('cancel aborts an in-flight generation and the input stays usable',async t=
   const pending=quiz.generate({token:preview.token,model:'duvi-mock-tutor'});await started;
   assert.equal((await quiz.status('1')).generating,true);assert.deepEqual(quiz.cancel({lectureId:'1'}),{cancelled:true});
   await assert.rejects(pending,{code:'cancelled'});assert.equal(quiz.tokens.has(preview.token),true);assert.equal((await quiz.status('1')).generating,false);
+});
+
+test('cancel during code execution stops it and saves nothing, even when the run itself returns afterwards',async t=>{
+  const runs=[
+    (code,{signal})=>new Promise(resolve=>signal.addEventListener('abort',()=>resolve({status:'cancelled',reason:'실행을 취소했습니다.'}),{once:true})),
+    (code,{signal})=>new Promise(resolve=>signal.addEventListener('abort',()=>resolve({status:'executed',output:'3.5\n3\n',error:null,truncated:false}),{once:true})),
+  ];
+  for(const run of runs){
+    let running;const started=new Promise(resolve=>{running=resolve;});
+    const {quiz,root}=await fixture(t,{run:(code,options)=>{running();return run(code,options);}}),preview=await quiz.preview({lectureId:'1',segmentId:'s0'});
+    const pending=quiz.generate({token:preview.token,model:'duvi-mock-tutor'});await started;
+    assert.deepEqual(quiz.cancel({lectureId:'1'}),{cancelled:true});
+    await assert.rejects(pending,{code:'cancelled'});
+    assert.equal((await quiz.status('1')).segments[0].set,undefined,'nothing of the cancelled generation is saved');
+    assert.equal(existsSync(path.join(root,'quizzes','1.json')),false);assert.equal(quiz.tokens.has(preview.token),true);
+  }
 });
 
 test('attempts snapshot the question, grade options automatically and schedule review 1/3/7 days',async t=>{
@@ -137,14 +170,360 @@ test('confirm, retire and restore change only the evidence label; AI answers are
   after=await act(recall,'restore');assert.equal(after.segments[0].set.items[0].evidence,'source_quoted');
 });
 
-test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output is capped and runaway code times out',async()=>{
+test('fixed code runs once in Pyodide: bridges to JavaScript are blocked, output is capped and runaway code is killed',async()=>{
   assert.deepEqual(await runPython('print(7 / 2)\nprint(7 // 2)'),{status:'executed',output:'3.5\n3\n',error:null,truncated:false});
   for(const code of ['import js','import pyodide','from pyodide.http import pyfetch','import micropip','import sys\nsys.meta_path.clear()\nimport js']){
     const result=await runPython(code);assert.equal(result.status,'executed');assert.match(result.error,/^(ImportError|ModuleNotFoundError)/,code);
   }
   assert.equal((await runPython('print(1/0)')).error,'ZeroDivisionError: division by zero');
+  assert.deepEqual(await runPython('import hashlib, json, re, collections, math, random, itertools, functools, datetime, decimal, fractions, statistics\nprint(json.dumps(sorted({3, 1, 2})), end="")'),
+    {status:'executed',output:'[1, 2, 3]',error:null,truncated:false},'stdlib imports and output without a final newline still work after the Pyodide modules are emptied');
   const long=await runPython('print("x" * 100000)',{maxOutput:100});assert.equal(long.output.length,100);assert.equal(long.truncated,true);
   assert.deepEqual(await runPython('while True: pass',{runMs:300}),{status:'timeout',reason:'0.3초 안에 끝나지 않아 멈췄습니다.'});
+  const controller=new AbortController(),cancelled=runPython('while True: pass',{runMs:60000,signal:controller.signal});
+  setTimeout(()=>controller.abort(),200);
+  assert.deepEqual(await cancelled,{status:'cancelled',reason:'실행을 취소했습니다.'},'cancel kills the run long before its own timeout');
+});
+
+/**
+ * A host temp directory, a local TCP server that counts connections and a local UDP server that keeps every datagram;
+ * all cleaned up after the test. datagrams() sends a sentinel to the UDP server and, once it has arrived, returns
+ * what came before it, so a datagram the runner sent before it exited cannot arrive after the check.
+ */
+async function host(t){
+  const directory=await dir(t,'duvi-runner-host-'),connections=[],received=[];
+  const server=net.createServer(socket=>{connections.push(socket.remoteAddress);socket.destroy();});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const udp=dgram.createSocket('udp4');udp.on('message',message=>received.push(message.toString('latin1')));
+  await new Promise(resolve=>udp.bind(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>udp.close(resolve)));
+  const datagrams=async()=>{
+    const sentinel=`sentinel-${received.length}`,arrived=new Promise(resolve=>udp.on('message',message=>{if(message.toString()===sentinel)resolve();}));
+    udp.send(sentinel,udp.address().port,'127.0.0.1');await arrived;return received.filter(row=>!row.startsWith('sentinel-'));
+  };
+  return {connections,port:server.address().port,udpPort:udp.address().port,datagrams,file:name=>path.join(directory,name)};
+}
+const py=value=>JSON.stringify(value);
+
+test('generated code cannot start a host process, write a host file or open a connection',async t=>{
+  const {connections,port,file}=await host(t);
+  const cases=[
+    ['os.system',`import os\nos.system(${py(`echo RAN> "${file('system.txt')}"`)})`,'system.txt',/^AttributeError/],
+    ['posix.system',`import posix\nposix.system(${py(`echo RAN> "${file('posix.txt')}"`)})`,'posix.txt',/^AttributeError/],
+    ['os.popen',`import os\nos.popen(${py(`echo RAN> "${file('popen.txt')}"`)})`,'popen.txt',/^AttributeError/],
+    ['subprocess',`import subprocess\nsubprocess.run(['cmd','/c','echo x'])`,null,/^ImportError/],
+    ['ctypes','import ctypes',null,/^ImportError/],
+    ['socket',`import socket\nsocket.create_connection(('127.0.0.1',${port}),timeout=1)`,null,/^ImportError/],
+    ['urllib',`import urllib.request\nurllib.request.urlopen('http://127.0.0.1:${port}/',timeout=1)`,null,/Error/],
+  ];
+  for(const [name,code,created,error] of cases){
+    const result=await runPython(code);
+    assert.equal(result.status,'executed',name);assert.match(result.error||'',error,name);
+    if(created)assert.equal(existsSync(file(created)),false,`${name} must not create a host file`);
+  }
+  // Python's open() writes to Pyodide's in-memory file system, never to the host path.
+  const target=file('open.txt');
+  const opened=await runPython(`import os\nos.makedirs(${py(path.dirname(target))}, exist_ok=True)\nwith open(${py(target)}, 'w') as f:\n    f.write('RAN')\nprint(os.path.exists(${py(target)}))`);
+  assert.deepEqual([opened.status,opened.error,opened.output],['executed',null,'True\n']);
+  assert.equal(existsSync(target),false,'open() must not create a host file');
+  assert.deepEqual(connections,[],'no connection reached the local server');
+});
+
+test('below the Python guard the process still fails closed: child_process and the network throw in JavaScript',async t=>{
+  const {connections,port,file}=await host(t);
+  const system=await runPython(`import os\nprint('rc', os.system(${py(`echo RAN> "${file('system.txt')}"`)}))`,{pythonGuard:false});
+  assert.equal(system.status,'executed');assert.match(system.error,/확인 문제 실행에서 쓸 수 없습니다/);assert.doesNotMatch(system.output,/rc 0/);
+  assert.equal(existsSync(file('system.txt')),false);
+  for(const code of [`import socket\nsocket.create_connection(('127.0.0.1',${port}),timeout=1)`,`import urllib.request\nurllib.request.urlopen('http://127.0.0.1:${port}/',timeout=1)`]){
+    const result=await runPython(code,{pythonGuard:false});assert.equal(result.status,'executed');assert.match(result.error,/Error/,code);
+  }
+  assert.deepEqual(connections,[]);
+});
+
+// The re-review's escape: a Pyodide module object → create_proxy → Function('return globalThis') → Node APIs, with
+// process.send/exit replaced so the run is only stopped at its timeout and queued sends get out. The module comes from gc
+// (the re-review's route) or is created again as a builtin, which emptying the modules cannot prevent.
+const CORE={
+  gc:"import gc\ncore = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')",
+  builtin:"import importlib._bootstrap as b\ncore = b._builtin_from_name('_pyodide_core')",
+};
+const reviewerEscape=({route,udpPort,port,target})=>`${CORE[route]}
+g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+get = g.process.getBuiltinModule
+def attempt(action):
+    try:
+        action()
+    except Exception:
+        pass
+def query():
+    resolver = get('dns').Resolver.new()
+    resolver.setServers(g.JSON.parse('["127.0.0.1:${udpPort}"]'))
+    resolver.resolve4('duvi-test.invalid', core.create_proxy(lambda *args: None))
+attempt(lambda: get('dgram').Socket.new('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'))
+attempt(query)
+attempt(lambda: get('net').Socket.new().connect(${port}, '127.0.0.1'))
+attempt(lambda: get('child_process').spawnSync('cmd', ['/c', ${py(`echo RAN> "${target}"`)}]))
+attempt(lambda: get('fs').writeFileSync(${py(target)}, 'RAN'))
+g.process.send = g.process.exit = core.create_proxy(lambda *args: None)`;
+
+test('the re-review escape sends no datagram, DNS query or connection: gc has no Pyodide module, and Function(string) is refused',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t);
+  for(const [route,error] of [['gc',/^StopIteration$/],['builtin',/EvalError: Code generation from strings disallowed/]]){
+    const target=file(`escape-${route}.txt`),result=await runPython(reviewerEscape({route,udpPort,port,target}),{runMs:2000});
+    assert.deepEqual(await datagrams(),[],`${route}: no UDP datagram and no DNS query reached the local server`);
+    assert.deepEqual(connections,[]);assert.equal(existsSync(target),false);
+    assert.equal(result.status,'executed',route);assert.match(result.error,error,route);
+  }
+});
+
+test('with JavaScript reached, every network, process, file, worker, inspector, vm and binding path throws',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t),target=file('reached.txt'),url=`http://127.0.0.1:${port}/`;
+  // Without the Python layer \`import js\` is globalThis; code that cannot import js falls back to the re-review's path.
+  const code=`import json, gc
+try:
+    import js as g
+except ImportError:
+    core = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')
+    g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+get = g.process.getBuiltinModule
+options = g.JSON.parse
+def resolver(module, callback):
+    r = module.Resolver.new()
+    r.setServers(options('["127.0.0.1:${udpPort}"]'))
+    r.resolve4('duvi-test.invalid', *callback)
+def restore():
+    dgram = get('dgram')
+    try:
+        dgram.createSocket = get('net').isIP
+    except Exception:
+        pass
+    dgram.createSocket('udp4').send('restored', ${udpPort}, '127.0.0.1')
+cases = {
+    'dgram.Socket': lambda: get('dgram').Socket.new('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'),
+    'dgram.createSocket': lambda: get('dgram').createSocket('udp4').send('exfil-udp', ${udpPort}, '127.0.0.1'),
+    'dgram restore': restore,
+    'dns.Resolver': lambda: resolver(get('dns'), [lambda *args: None]),
+    'dns.promises.Resolver': lambda: resolver(get('dns').promises, []),
+    'dns.lookup': lambda: get('dns').lookup('localhost', lambda *args: None),
+    'net.Socket': lambda: get('net').Socket.new().connect(${port}, '127.0.0.1'),
+    'net.connect': lambda: get('net').connect(${port}, '127.0.0.1'),
+    'net.Server.listen': lambda: get('net').Server.new().listen(0),
+    'http.request': lambda: get('http').request('${url}').end(),
+    'http.ClientRequest': lambda: get('http').ClientRequest.new('${url}'),
+    'http.Agent': lambda: get('http').Agent.new().createConnection(options('{"port":${port},"host":"127.0.0.1"}')),
+    'tls.connect': lambda: get('tls').connect(${port}, '127.0.0.1'),
+    'http2.connect': lambda: get('http2').connect('${url}'),
+    'fetch': lambda: g.fetch('${url}'),
+    'WebSocket': lambda: g.WebSocket.new('ws://127.0.0.1:${port}/'),
+    'child_process': lambda: get('child_process').spawnSync('cmd', ['/c', ${py(`echo RAN> "${target}"`)}]),
+    'fs.writeFileSync': lambda: get('fs').writeFileSync(${py(target)}, 'RAN'),
+    'worker_threads': lambda: get('worker_threads').Worker.new('1', options('{"eval":true}')),
+    'inspector.open': lambda: get('inspector').open(0),
+    'inspector.Session': lambda: get('inspector').Session.new().connect(),
+    'vm': lambda: get('vm').runInThisContext('1'),
+    'wasi': lambda: get('wasi').WASI.new(options('{"version":"preview1"}')),
+    'Function': lambda: g.Function('return 1'),
+    'process.binding': lambda: g.process.binding('udp_wrap'),
+    'process._linkedBinding': lambda: g.process._linkedBinding('udp_wrap'),
+    'process.kill': lambda: g.process.kill(g.process.ppid, 0),
+}
+results = {}
+for name, action in cases.items():
+    try:
+        action()
+        results[name] = 'allowed'
+    except Exception:
+        results[name] = 'blocked'
+print(json.dumps(results))`;
+  const result=await runPython(code,{pythonGuard:false,runMs:10000});
+  assert.equal(result.status,'executed',result.reason);assert.equal(result.error,null);
+  const results=JSON.parse(result.output);
+  assert.deepEqual(Object.entries(results).filter(([,value])=>value!=='blocked'),[],'nothing is allowed');
+  assert.equal(Object.keys(results).length,27);
+  assert.deepEqual(await datagrams(),[]);assert.deepEqual(connections,[]);assert.equal(existsSync(target),false);
+});
+
+test('with JavaScript reached, no built-in creates a host file, signals another process or opens a connection',async t=>{
+  const {connections,port,udpPort,datagrams,file}=await host(t),directory=path.dirname(file('x')),secret=file('secret.txt');
+  await writeFile(secret,'secret');
+  const pyodideDir=runnerArgs().find(flag=>flag.startsWith('--allow-fs-read=')).slice('--allow-fs-read='.length);
+  const listing=async()=>[...await readdir(directory),...(await readdir(pyodideDir)).map(name=>`pyodide/${name}`)].sort();
+  const before=await listing();
+  // A process of our own to signal: after the runs it must still be alive.
+  const target=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore',windowsHide:true});
+  t.after(()=>target.kill());await new Promise(resolve=>target.once('spawn',resolve));
+  // JSON of strings and numbers is also a Python literal.
+  const settings=JSON.stringify({file:file('h2'),directory,secret,package:path.join(pyodideDir,'package.json'),pid:target.pid,udpPort,port});
+  const prelude=`import json
+try:
+    import js as g
+except ImportError:
+    import gc
+    core = next(o for o in gc.get_objects() if type(o).__name__ == 'module' and getattr(o, '__name__', '') == '_pyodide_core')
+    g = core.create_proxy(lambda: 1).constructor.constructor('return globalThis')()
+S = ${settings}
+P, J, noop = g.process, g.JSON.parse, g.Function.prototype
+def mod(name):
+    module = P.getBuiltinModule(name)
+    if module is None:
+        raise ImportError(name)
+    return module
+w = lambda suffix: S['file'] + '.' + suffix
+url = f"http://127.0.0.1:{S['port']}/"
+def resolver():
+    r = mod('dns').Resolver.new()
+    r.setServers(J(json.dumps([f"127.0.0.1:{S['udpPort']}"])))
+    r.resolve4('duvi-test.invalid', noop)
+results = {}
+def attempt(name, action):
+    try:
+        action()
+        results[name] = 'allowed'
+    except Exception:
+        results[name] = 'blocked'
+`;
+  // Write-capable API per module, signals to another pid, and UDP/DNS/TCP; sqlite and _kill included explicitly.
+  const cases=[
+    ['fs.writeFileSync',"mod('fs').writeFileSync(w('fs'), 'x')"],['fs.appendFileSync',"mod('fs').appendFileSync(w('append'), 'x')"],
+    ['fs.openSync w',"mod('fs').openSync(w('open'), 'w')"],['fs.mkdirSync',"mod('fs').mkdirSync(w('dir'))"],
+    ['fs.cpSync',"mod('fs').cpSync(S['package'], w('cp'))"],['fs.createWriteStream',"mod('fs').createWriteStream(w('stream')).write('x')"],
+    ['fs/promises.writeFile',"mod('fs/promises').writeFile(w('promises'), 'x').catch(noop)"],
+    ['module.createRequire fs',"mod('module').createRequire(S['package'])('fs').writeFileSync(w('require'), 'x')"],
+    ['sqlite.DatabaseSync',"mod('node:sqlite').DatabaseSync.new(w('db')).exec('create table x(a)')"],
+    ['v8.writeHeapSnapshot',"mod('v8').writeHeapSnapshot(w('heap'))"],['process.report.writeReport',"P.report.writeReport(w('report'))"],
+    ['trace_events.enable',"mod('trace_events').createTracing(J('{\"categories\":[\"node\"]}')).enable()"],
+    ['module.enableCompileCache',"mod('module').enableCompileCache(w('cache'))"],
+    ['repl.setupHistory',"mod('repl').start(J('{\"terminal\":false}')).setupHistory(w('history'), noop)"],
+    ['inspector.open',"mod('inspector').open(0)"],['inspector.Session',"mod('inspector').Session.new().connect()"],
+    ['wasi.WASI',"mod('wasi').WASI.new(J(json.dumps({'version': 'preview1', 'preopens': {'/sandbox': S['directory']}})))"],
+    ['worker_threads.Worker',"mod('worker_threads').Worker.new('1', J('{\"eval\":true}'))"],
+    ['child_process.spawnSync',"mod('child_process').spawnSync('cmd', ['/c', 'echo RAN> \"' + w('child') + '\"'])"],
+    ['cluster.fork',"mod('cluster').fork()"],['node:test.run',"mod('node:test').run(J('{\"files\":[]}'))"],
+    ['process.loadEnvFile',"P.loadEnvFile(S['secret'])"],['process.chdir',"P.chdir(S['directory'])"],
+    ['process.execve',"P.execve('C:/Windows/System32/cmd.exe')"],['process.dlopen',"P.dlopen(J('{\"exports\":{}}'), S['package'])"],
+    ['process.binding',"P.binding('fs')"],['process._linkedBinding',"P._linkedBinding('fs')"],
+    ['process._kill',"P._kill(S['pid'], 0)"],['process.kill',"P.kill(S['pid'], 0)"],['process._debugProcess',"P._debugProcess(S['pid'])"],
+    ['os.setPriority',"mod('os').setPriority(S['pid'], 10)"],
+    ['dgram.Socket',"mod('dgram').Socket.new('udp4').send('exfil-udp', S['udpPort'], '127.0.0.1')"],['dns.Resolver','resolver()'],
+    ['dns.lookup',"mod('dns').lookup('localhost', noop)"],['net.connect',"mod('net').connect(S['port'], '127.0.0.1')"],
+    ['stderr socket connect',"P.stderr.constructor.new().connect(S['port'], '127.0.0.1')"],['http.request',"mod('http').request(url).end()"],
+    ['tls.connect',"mod('tls').connect(S['port'], '127.0.0.1')"],['http2.connect',"mod('http2').connect(url)"],
+    ['fetch','g.fetch(url).catch(noop)'],['WebSocket',"g.WebSocket.new(f\"ws://127.0.0.1:{S['port']}/\")"],
+  ];
+  // The runner refuses snippets over 4,000 characters, so the cases run in chunks with the same prelude.
+  const chunks=[[]];
+  for(const row of cases){const next=[...chunks.at(-1),row];if(next.length>1&&(prelude+next.map(([name,call])=>`attempt(${py(name)}, lambda: ${call})\n`).join('')).length>3800)chunks.push([row]);else chunks[chunks.length-1]=next;}
+  const run=async body=>{
+    const result=await runPython(`${prelude}${body}print(json.dumps(results))`,{pythonGuard:false,runMs:15000});
+    assert.ok(result.status==='executed'&&result.error===null,`the run reports its attempts: ${JSON.stringify(result)}`);return JSON.parse(result.output);
+  };
+  const results={};
+  for(const chunk of chunks)Object.assign(results,await run(chunk.map(([name,call])=>`attempt(${py(name)}, lambda: ${call})\n`).join('')));
+  // Every built-in the process can name, plus a fixed list in case node:module itself is closed.
+  const loaded=await run(`try:
+    names = list(mod('module').builtinModules)
+except Exception:
+    names = []
+for name in names + ['fs', 'net', 'node:sqlite', 'child_process', 'inspector', 'vm', 'v8', 'os', 'module']:
+    attempt('load ' + name, lambda: mod(name))
+`);
+  assert.deepEqual(await listing(),before,'no host file in the temp directory or the Pyodide package');
+  assert.deepEqual(await datagrams(),[]);assert.deepEqual(connections,[]);
+  assert.equal(target.exitCode,null,'the signalled process is still running');
+  assert.equal(Object.keys(results).length,cases.length);
+  assert.deepEqual(Object.entries(results).filter(([,value])=>value!=='blocked'),[],'every attempt throws');
+  assert.deepEqual(Object.entries(loaded).filter(([,value])=>value!=='blocked'),[],'no built-in module can be loaded after setup');
+});
+
+test('with JavaScript reached, no internal handle class connects to or creates a host named pipe',{skip:process.platform!=='win32'&&'named pipes are measured on Windows only'},async t=>{
+  const name=`duvi-h3-${process.pid}-${Date.now()}`,local=`\\\\.\\pipe\\${name}`,connections=[];
+  const server=net.createServer(socket=>{connections.push(1);socket.destroy();});
+  await new Promise(resolve=>server.listen(local,resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+  // Every handle class the snippet can reach: the stdio streams' handles and the active handles (the re-review used stderr's Pipe).
+  const settings=JSON.stringify({local,unc:`\\\\127.0.0.1\\pipe\\${name}`,created:`\\\\.\\pipe\\${name}-child`});
+  const code=`import js as g, json
+S = ${settings}
+P = g.process
+found = []
+for name in ('stdin', 'stdout', 'stderr'):
+    try:
+        h = getattr(P, name)._handle
+        if h:
+            found.append((name, h.constructor))
+    except Exception:
+        pass
+try:
+    for o in P._getActiveHandles():
+        if o._handle:
+            found.append(('active', o._handle.constructor))
+except Exception:
+    pass
+results = {}
+def attempt(key, action):
+    try:
+        rc = action()
+        results[key] = 'allowed' if rc in (0, None) else f'rc {rc}'
+    except Exception:
+        results[key] = 'blocked'
+def serve(C):
+    server = C.new(1)
+    rc = server.bind(S['created'])
+    return rc if rc else server.listen(1)
+for name, C in found:
+    for label in ('local', 'unc'):
+        attempt(f'{name}.connect.{label}', lambda: C.new(0).connect(C.new(0), S[label]))
+    attempt(f'{name}.bind+listen', lambda: serve(C))
+print(json.dumps({'classes': [n for n, _ in found], 'results': results}))`;
+  const result=await runPython(code,{pythonGuard:false,runMs:10000});
+  assert.ok(result.status==='executed'&&result.error===null,JSON.stringify(result));
+  const report=JSON.parse(result.output);
+  assert.deepEqual(connections,[],'the parent named pipe server got no connection (local or UNC)');
+  assert.deepEqual(Object.entries(report.results).filter(([,value])=>value==='allowed'),[],`no handle class connects, binds or listens: ${result.output}`);
+});
+
+test('problem code that reaches into the interpreter is not run and its answer stays unverified',async t=>{
+  const runs=[],quoted={source:{kind:'transcript',ref:'00:06'},quote:'it calculates and it remembers.',concepts:[]};
+  const items=[
+    {type:'predict',prompt:'p1',code:'import gc\\nprint(len(gc.get_objects()) > 0)',answer:'True',...quoted},
+    {type:'predict',prompt:'p2',code:'import importlib._bootstrap as b\\nprint(b._builtin_from_name("posix"))',answer:'x',...quoted},
+    {type:'predict',prompt:'p3',code:'print(7 // 2)',answer:'3',...quoted},
+  ];
+  const fetcher=async()=>new Response(`event: response.completed\ndata: ${JSON.stringify({type:'response.completed',response:{status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({items})}]}]}})}\n\n`,{headers:{'Content-Type':'text/event-stream'}});
+  const {quiz}=await fixture(t,{fetcher,run:async code=>{runs.push(code);return {status:'executed',output:'3\n',error:null,truncated:false};}});
+  const set=(await quiz.generate({token:(await quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'})).segments[0].set;
+  assert.deepEqual(runs,['print(7 // 2)'],'only the ordinary snippet reaches the runner');
+  assert.deepEqual(set.items.map(row=>[row.evidence,row.execution.status]),[['ai_unverified','refused'],['ai_unverified','refused'],['executed','executed']]);
+  assert.match(set.items[0].execution.reason,/실행 환경 내부\(gc\)/);assert.match(set.items[1].execution.reason,/importlib/);
+  assert.equal(set.items[0].answer,'True','a refused question keeps the AI answer, shown as unverified');
+});
+
+test('the re-review bypasses of the Python layer still start no process and write no host file',async t=>{
+  const {file}=await host(t),command=name=>py(`echo RAN> "${file(name)}"`);
+  const cases=[
+    ['_builtin_from_name posix',`import importlib._bootstrap as b\nb._builtin_from_name('posix').system(${command('posix.txt')})`,'posix.txt'],
+    ['meta_path removed, subprocess',`import sys\nsys.meta_path.pop(0)\nimport subprocess\nsubprocess.run(['cmd', '/c', ${command('subprocess.txt')}])`,'subprocess.txt'],
+    ['meta_path removed, ctypes system',`import sys\nsys.meta_path.pop(0)\nimport ctypes\nctypes.CDLL(None).system(${command('ctypes.txt')}.encode())`,'ctypes.txt'],
+  ];
+  for(const [name,code,created] of cases){
+    const result=await runPython(code);
+    assert.equal(result.status,'executed',name);assert.ok(result.error,`${name} fails`);
+    assert.equal(existsSync(file(created)),false,`${name} must not create a host file`);
+  }
+});
+
+test('the runner process flags grant no file write, process, worker or read outside the Pyodide package',async t=>{
+  const {file}=await host(t),outside=file('secret.txt');await writeFile(outside,'secret');
+  const probe=`
+    const fs=await import('node:fs'),cp=await import('node:child_process'),{Worker}=await import('node:worker_threads');
+    const codes={};const attempt=(name,run)=>{try{run();codes[name]='allowed';}catch(error){codes[name]=error.code;}};
+    attempt('write',()=>fs.writeFileSync(${py(file('written.txt'))},'x'));
+    attempt('read',()=>fs.readFileSync(${py(outside)}));
+    attempt('spawn',()=>cp.spawnSync('cmd',['/c','echo x']));
+    attempt('worker',()=>new Worker('1',{eval:true}));
+    console.log(JSON.stringify(codes));`;
+  const result=spawnSync(process.execPath,[...runnerArgs(),'--input-type=module','-e',probe],{encoding:'utf8',env:{},timeout:30000});
+  assert.deepEqual(JSON.parse(result.stdout),{write:'ERR_ACCESS_DENIED',read:'ERR_ACCESS_DENIED',spawn:'ERR_ACCESS_DENIED',worker:'ERR_ACCESS_DENIED'});
+  assert.equal(existsSync(file('written.txt')),false);
+  assert.deepEqual(runnerArgs().filter(flag=>flag.startsWith('--allow')).map(flag=>flag.split('=')[0]),['--allow-fs-read'],'the only grant is reading the Pyodide package');
 });
 
 test('a run that does not match any option keeps the real output; a failed run leaves the answer unverified with its reason',async t=>{

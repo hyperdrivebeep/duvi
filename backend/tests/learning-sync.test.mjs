@@ -259,3 +259,58 @@ test('descends recognises a copied-then-edited record and rejects a sibling edit
   assert.equal(descends(older, newer), false);
   assert.equal(descends(newer, sibling), false);
 });
+
+/** A sent question (automatic record, revision 1) whose AI answer is attached later on the same PC. */
+async function asked(pc, text) {
+  const message = {id: 'q-' + text.length, role: 'user', text, at: '2026-11-18T00:00:00.000Z', seconds: 7, model: 'gpt-test'};
+  const {thread, record} = await pc.store.askQuestion({threadId: null, lectureId: anchor.lectureId, message, record: {...question(text), help: 'none'}});
+  return {thread, record, answer: answer => pc.store.appendChat({threadId: thread.id, lectureId: anchor.lectureId,
+    messages: [{id: 'a-' + text.length, role: 'assistant', text: answer, at: '2026-11-18T00:01:00.000Z', seconds: 7, model: 'gpt-test', status: 'complete'}],
+    answerFor: {recordId: record.id, aiAnswer: answer}})};
+}
+
+test('an AI answer attached after a sync is not a conflict, in either direction', async t => {
+  const {a, b, tick} = await pcs(t);
+  const sent = await asked(a, '왜 0부터 세나요?');
+  assert.equal(sent.record.revision, 1);
+  await a.sync.export();
+  await pull(b, a);
+  await b.sync.export();
+  tick();
+  const {record: answered} = await sent.answer('AI 답변');
+  assert.deepEqual([answered.revision, answered.aiAnswer], [1, 'AI 답변'], 'attaching the answer adds no revision');
+  // B's file from before the answer arrives at A: A keeps its answered copy.
+  const early = await pull(a, b);
+  assert.deepEqual([early.summary.conflicts, early.summary.kept], [[], 1]);
+  assert.equal(early.state.records[0].aiAnswer, 'AI 답변');
+  await a.sync.export();
+  const toB = await pull(b, a);
+  assert.deepEqual(toB.summary.conflicts, []);
+  assert.equal(toB.summary.updated, 1);
+  const onB = toB.state.records[0];
+  assert.deepEqual([onB.aiAnswer, onB.history.length], ['AI 답변', 0]);
+  await b.sync.export();
+  const back = await pull(a, b);
+  assert.deepEqual(back.summary.conflicts, []);
+  assert.deepEqual([back.state.records[0].aiAnswer, back.state.records[0].history.length], ['AI 답변', 0]);
+});
+
+test('an explanation written on another PC before the AI answer arrived keeps both, without a conflict', async t => {
+  const {a, b, tick} = await pcs(t);
+  const sent = await asked(a, '역전파는 왜 거꾸로?');
+  await a.sync.export();
+  await pull(b, a);
+  tick();
+  const bState = await b.store.get(), copy = bState.records[0];
+  await b.store.saveRecord({revision: bState.revision, recordRevision: copy.revision, record: {id: copy.id, ...question('역전파는 왜 거꾸로?'), explanation: '사무실에서 쓴 내 설명'}});
+  tick();
+  await sent.answer('AI 답변');
+  await a.sync.export();
+  const toB = await pull(b, a);
+  assert.deepEqual(toB.summary.conflicts, []);
+  assert.deepEqual([toB.state.records[0].explanation, toB.state.records[0].aiAnswer], ['사무실에서 쓴 내 설명', 'AI 답변']);
+  await b.sync.export();
+  const toA = await pull(a, b);
+  assert.deepEqual(toA.summary.conflicts, []);
+  assert.deepEqual([toA.state.records[0].explanation, toA.state.records[0].aiAnswer], ['사무실에서 쓴 내 설명', 'AI 답변']);
+});
