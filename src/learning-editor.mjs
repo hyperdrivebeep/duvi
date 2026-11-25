@@ -1,11 +1,12 @@
 import {RECORD_FIELDS,HELP,validateRecord,recordMarkdown,formatTime,apiErrorMessage,QUESTION_AUTOPAUSE_KEY,questionAutoPause} from './learning-model.mjs';
 import {el,button,field,describe,download,busy} from './learning-dom.mjs';
 import {prepareTutorContext,tutorRequest} from './learning-tutor-context.mjs';
+const DRAFTS_KEY='duvi-learning-drafts-v1';
 const labels={title:'제목 (선택)',question:'막힌 점 · 질문 한 줄',explanation:'내 설명 (선택)',observation:'관측 · 원자료 · 단위 · 선택/결측 규칙',assumptions:'가정 · 변수/대리 지표 · 내 해석',alternative:'대안 · 측정 오류 · 구별할 조건',prediction:'실행 전 예측 · 판별 조건 · 비용/실패 기준',result:'실제 결과 · 코드/노트북 경로 · seed · 한계',revisionNote:'바뀐 생각 · 바꾼 증거 · 아직 보류할 점'};
 export class LearningEditor{
   constructor(root,{capture,onSave,onJump,onTutor,onConflict,lectureName=id=>`강의 ${id}`}){
     Object.assign(this,{root,capture,onSave,onJump,onTutor,onConflict,lectureName});this.inputs={};this.record=null;this.savedRecord=null;this.baseRevision=undefined;this.key='';
-    try{this.drafts=JSON.parse(localStorage.getItem('duvi-learning-drafts-v1')||'{}');}catch{this.drafts={};}
+    this.drafts={};
     this.build();
   }
   build(){
@@ -41,24 +42,43 @@ export class LearningEditor{
   }
   value(){const result={...this.record,revision:this.baseRevision??this.record?.revision};for(const name of RECORD_FIELDS)result[name]=this.inputs[name].value;result.help=this.inputs.help.value;const days=this.inputs.reviewDays.value;result.reviewDueAt=days==='keep'?(this.record?.reviewDueAt??null):days==='none'?null:new Date(Date.now()+Number(days)*86400000).toISOString();return result;}
   isDirty(){if(!this.record)return false;if(!this.savedRecord)return RECORD_FIELDS.some(key=>key!=='title'&&this.inputs[key].value.trim());return RECORD_FIELDS.some(key=>(this.savedRecord[key]||'')!==this.inputs[key].value)||this.inputs.help.value!==this.savedRecord.help||this.inputs.reviewDays.value!=='keep'||JSON.stringify(this.record.anchor)!==JSON.stringify(this.savedRecord.anchor);}
-  stash(){if(!this.key)return;if(this.isDirty())this.drafts[this.key]={record:this.value(),baseRevision:this.baseRevision,reviewDays:this.inputs.reviewDays.value};else delete this.drafts[this.key];try{localStorage.setItem('duvi-learning-drafts-v1',JSON.stringify(this.drafts));}catch{this.notice.textContent='이 브라우저에 초안을 보관할 수 없습니다. 창을 닫기 전에 서버에 저장하거나 Markdown을 내려받으세요.';}}
-  acceptSaved(saved){this.record=saved;this.savedRecord=structuredClone(saved);this.baseRevision=saved.revision;this.draftConflict=false;this.inputs.reviewDays.value='keep';delete this.drafts[this.key];try{localStorage.setItem('duvi-learning-drafts-v1',JSON.stringify(this.drafts));}catch{}}
+  readDrafts(){try{return JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{return this.drafts;}}
+  writeDraft(draft){
+    const drafts=this.readDrafts();
+    if(draft===undefined){
+      if(this.draftVersion===undefined||JSON.stringify(drafts[this.key])!==this.draftVersion)return;
+      delete drafts[this.key];
+    }else drafts[this.key]=draft;
+    this.drafts=drafts;this.draftVersion=JSON.stringify(draft);
+    localStorage.setItem(DRAFTS_KEY,JSON.stringify(drafts));
+  }
+  stash(){if(!this.key)return;try{this.writeDraft(this.isDirty()?{record:this.value(),baseRevision:this.baseRevision,reviewDays:this.inputs.reviewDays.value}:undefined);}catch{this.notice.textContent='이 브라우저에 초안을 보관할 수 없습니다. 창을 닫기 전에 서버에 저장하거나 Markdown을 내려받으세요.';}}
+  acceptSaved(saved){try{this.writeDraft();}catch{}this.key=saved.id;this.draftVersion=undefined;this.record=saved;this.savedRecord=structuredClone(saved);this.baseRevision=saved.revision;this.draftConflict=false;this.inputs.reviewDays.value='keep';}
   newRecord(){const context=this.capture();if(!context?.anchor){this.notice.textContent='강의를 먼저 열어주세요.';return;}this.open({...context,title:'',help:'none'},true);}
   notePaused(seconds){this.notice.textContent=`영상을 ${formatTime(seconds)}에서 멈췄습니다. 질문을 적고 저장한 뒤 다시 재생하세요.`;}
   open(record,fresh=false){
     if(this.fields.disabled){this.notice.textContent='요청을 마친 뒤 다른 기록을 열어주세요. 현재 입력을 유지합니다.';return;}
     this.stash();this.key=record.id||`${record.anchor?.lectureId}:${record.anchor?.cueStart??record.anchor?.seconds}`;
-    const draft=this.drafts[this.key];this.savedRecord=record.id?structuredClone(record):null;this.record={...(draft?.record||record)};this.baseRevision=draft?(draft.baseRevision??draft.record.revision):record.revision;this.draftConflict=!!(record.id&&draft&&this.baseRevision!==record.revision);
+    const draft=this.readDrafts()[this.key];this.draftVersion=JSON.stringify(draft);this.savedRecord=record.id?structuredClone(record):null;this.record={...(draft?.record||record)};this.baseRevision=draft?(draft.baseRevision??draft.record.revision):record.revision;this.draftConflict=!!(record.id&&draft&&this.baseRevision!==record.revision);
     for(const name of RECORD_FIELDS)this.inputs[name].value=this.record[name]||'';this.inputs.help.value=this.record.help||'none';this.inputs.reviewDays.value=draft?.reviewDays||(record.id?'keep':'1');
     const a=this.record.anchor||{};this.anchorSummary.textContent=`${a.lectureId?this.lectureName(a.lectureId):'강의 미선택'} · ${formatTime(a.seconds)} · 원문 자막 기준`;this.aiAnswer.hidden=!this.record.aiAnswer;this.aiAnswerText.textContent=this.record.aiAnswer||'';this.anchorText.textContent=`기록 당시 원문: ${a.sourceText||'자막 없음'}${a.translation?'\n당시 번역: '+a.translation:''}`;
     this.notice.textContent=this.draftConflict?'초안 이후 서버 기록이 바뀌었습니다. 초안은 유지합니다. 최신 설명을 확인하고 반영 여부를 선택하세요.':draft?'저장하지 않은 초안을 복원했습니다.':fresh?'질문 한 줄만 적어도 저장할 수 있습니다.':'';this.conflictButton.hidden=!this.draftConflict;this.reconcileButton.hidden=true;this.tutorSend.hidden=true;this.tutorAnswer.textContent='';this.tutorPreview.textContent='';this.preview.textContent='';this.showHistory(record);this.inputs.question.focus();
   }
   showHistory(record){this.historyBody.replaceChildren(el('h4','','최초 내 설명'),el('p','learning-preserve',(record.originalExplanation??record.initialExplanation??record.explanation)||'최초 저장에는 설명이 없습니다.'));
     this.historyBody.append(el('h4','','현재 저장된 설명'),el('p','learning-preserve',record.explanation||'질문만 저장됨'),el('p','muted',HELP[record.help]||'도움 미기록'));
-    for(const [name,list] of [['수정',record.history],['복습',record.reviews]])if(list?.length){this.historyBody.append(el('h4','',name));for(const entry of list){const snapshot=entry.record||entry,detail=el('details'),date=entry.at?new Date(entry.at).toLocaleString('ko-KR'):'';detail.append(el('summary','',`${name} · ${date} · ${HELP[snapshot.help]||'도움 미기록'}${entry.device?` · 다른 PC(${entry.device}) 수정본`:''}`));for(const key of [...RECORD_FIELDS,'reflection'])if(snapshot[key])detail.append(el('h4','',labels[key]||'회상·전이 복습'),el('p','learning-preserve',snapshot[key]));const source=snapshot.anchor||record.anchor;if(source){detail.append(el('p','muted',`강의 ${source.lectureId} · ${formatTime(source.seconds)}의 원문`),button('이때 원문으로 이동',async()=>{try{const result=await this.onJump(source);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}));}this.historyBody.append(detail);}}}
+    for(const [name,list] of [['수정',record.history],['복습',record.reviews]])if(list?.length){this.historyBody.append(el('h4','',name));for(const entry of list){const snapshot=entry.record||entry,detail=el('details'),date=entry.at?new Date(entry.at).toLocaleString('ko-KR'):'';detail.append(el('summary','',`${name} · ${date} · ${HELP[snapshot.help]||'도움 미기록'}${entry.device?` · 다른 PC(${entry.device}) 수정본`:''}`));for(const key of [...RECORD_FIELDS,'reflection'])if(snapshot[key])detail.append(el('h4','',labels[key]||'회상·전이 복습'),el('p','learning-preserve',snapshot[key]));
+      if(name==='수정'&&snapshot.explanation&&snapshot.explanation!==record.explanation)detail.append(button('이 설명 복원 (저장 전 확인)',()=>{
+        if(this.fields.disabled)return;
+        this.inputs.explanation.value=snapshot.explanation;
+        if(HELP[snapshot.help])this.inputs.help.value=snapshot.help;
+        this.stash();this.tutorSend.hidden=true;
+        this.notice.textContent='이전 설명을 편집란에 불러왔습니다. 확인 후 저장하면 새 수정 이력으로 남습니다.';
+        this.inputs.explanation.focus();
+      }));
+      const source=snapshot.anchor||record.anchor;if(source){detail.append(el('p','muted',`강의 ${source.lectureId} · ${formatTime(source.seconds)}의 원문`),button('이때 원문으로 이동',async()=>{try{const result=await this.onJump(source);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}));}this.historyBody.append(detail);}}}
   async jump(){try{const result=await this.onJump(this.record.anchor);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}
   async save(){const record=this.value(),error=validateRecord(record);if(error){this.notice.textContent=error;return;}this.stash();if(this.draftConflict){this.notice.textContent='서버 기록이 바뀌었습니다. 초안을 유지한 채 최신 저장본을 먼저 확인하세요.';this.conflictButton.hidden=false;return;}this.fields.disabled=true;
-    try{const saved=await this.onSave(record);delete this.drafts[this.key];this.key=saved.id;this.acceptSaved(saved);try{localStorage.setItem('duvi-learning-drafts-v1',JSON.stringify(this.drafts));}catch{}this.showHistory(saved);this.notice.textContent='저장했습니다. 강의를 이어가거나 나중에 복습하세요.';this.conflictButton.hidden=true;}
+    try{const saved=await this.onSave(record);this.acceptSaved(saved);this.showHistory(saved);this.notice.textContent='저장했습니다. 강의를 이어가거나 나중에 복습하세요.';this.conflictButton.hidden=true;}
     catch(error){this.notice.textContent=apiErrorMessage(error);this.conflictButton.hidden=error.status!==409;}
     finally{this.fields.disabled=false;}
   }

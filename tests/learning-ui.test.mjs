@@ -4,6 +4,21 @@ import {makeAnchor,anchorState,markdownEscape,recordMarkdown,PROGRESS,HELP,nextR
 import {browserKey,captureBrowser,parseBackup} from '../src/learning-backup-ui.mjs';
 import {recordInput,LearningUI,returnFocusTarget} from '../src/learning-ui.mjs';
 import {LearningEditor} from '../src/learning-editor.mjs';
+import {installDom,createRoot,byText} from './fake-dom.mjs';
+
+test('history restores explanation and help into the editor without saving or rebasing',()=>{
+  const restore=installDom(),editor=editorHarness({...record,id:'saved',revision:7,explanation:'B',help:'full'});
+  try{
+    editor.historyBody=createRoot();editor.stash=()=>{editor.stashed=editor.value();};
+    editor.inputs.explanation.focus=()=>{editor.focused=true;};
+    LearningEditor.prototype.showHistory.call(editor,{...editor.record,history:[{record:{explanation:'A',help:'none'}}]});
+    const restoreButton=byText(editor.historyBody,/이 설명 복원/,'button');assert.ok(restoreButton);
+    restoreButton.click();
+    assert.equal(editor.stashed.explanation,'A');assert.equal(editor.stashed.help,'none');
+    assert.equal(editor.stashed.revision,7);assert.equal(editor.record.explanation,'B');
+    assert.equal(editor.focused,true);
+  }finally{restore();}
+});
 const cue={start:10,end:20,en:'A source <script>text</script>'};
 const lecture={number:1,alignmentRevision:'r1',cues:[cue]};
 const anchor=makeAnchor({lecture,seconds:12,cue,translation:'원문 번역'});
@@ -69,6 +84,41 @@ function editorHarness(saved){
   editor.inputs=Object.fromEntries(['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'].map(key=>[key,{value:saved[key]||'',focus(){}}]));editor.inputs.help={value:saved.help};editor.inputs.reviewDays={value:saved.id?'keep':'1'};
   for(const key of ['notice','anchorSummary','anchorText','aiAnswerText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend','aiAnswer'])editor[key]={hidden:true};editor.showHistory=()=>{};editor.lectureName=id=>`강의 ${id}`;return editor;
 }
+test('record editor saves and restores drafts per record without erasing another window’s draft',async()=>{
+  const previous=globalThis.localStorage;globalThis.localStorage=storageHarness();
+  try{
+    const first={...record,id:'first',revision:1,explanation:'A'},second={...record,id:'second',revision:1,explanation:'B'};
+    const a=editorHarness(first),b=editorHarness(second);
+    a.open(first);b.open(second);
+    a.inputs.explanation.value='restored older A';a.stash();
+    b.inputs.explanation.value='draft B';b.stash();
+    const loaded=editorHarness(first);
+    loaded.open(first);assert.equal(loaded.inputs.explanation.value,'restored older A');
+    b.onSave=async input=>({...input,revision:2});await b.save();
+    loaded.open(first);assert.equal(loaded.inputs.explanation.value,'restored older A');
+    loaded.open({...second,revision:2,explanation:'draft B'});assert.equal(loaded.inputs.explanation.value,'draft B');
+    assert.equal(loaded.draftConflict,false);
+    assert.deepEqual(Object.keys(JSON.parse(localStorage.getItem('duvi-learning-drafts-v1'))),['first']);
+  }finally{globalThis.localStorage=previous;}
+});
+test('record editor save does not delete a newer draft for the same record',async()=>{
+  const previous=globalThis.localStorage;globalThis.localStorage=storageHarness();
+  try{
+    const saved={...record,id:'same',revision:3,explanation:'Original'};
+    const a=editorHarness(saved),b=editorHarness(saved);
+    a.open(saved);b.open(saved);
+    a.inputs.explanation.value='A saves';
+    let finish;
+    a.onSave=input=>new Promise(resolve=>{finish=()=>resolve({...input,revision:4});});
+    const pending=a.save();
+    b.inputs.explanation.value='B newer draft';b.stash();
+    finish();await pending;
+    const reopened=editorHarness(a.savedRecord);
+    reopened.open(a.savedRecord);
+    assert.equal(reopened.inputs.explanation.value,'B newer draft');
+    assert.equal(reopened.draftConflict,true);
+  }finally{globalThis.localStorage=previous;}
+});
 test('restored dirty draft cannot preview saved provider context; exact saved version is submitted',()=>{
   const saved={...record,id:'saved',revision:3,explanation:'saved answer'},dirty={...saved,explanation:'unsaved private answer'};
   assert.throws(()=>prepareTutorContext(dirty,saved,'hint'),/저장하지 않은 변경/);

@@ -7,6 +7,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {LectureLibrary} from '../library.mjs';
 import {prepareRoadmap} from '../learning-curriculum.mjs';
+import {atomicJSON} from '../vault.mjs';
 import {ROADMAP, VIDEO_METADATA} from '../../src/learning-roadmap.mjs';
 
 const execute = promisify(execFile);
@@ -130,7 +131,8 @@ test('pending caption update serialized with preparation is preserved', async t 
   }));
   await Promise.all([prepareRoadmap(library), library.mutateLecture(key, async () => {
     const item = await library.get(key);
-    await writeJSON(path.join(library.directory, `${key}.json`), {...item, cues: [{start: 0, end: 2, en: 'Now ready.'}], captionStatus: 'ready'});
+    // Match the product writer so the concurrent library scan never sees a truncated file.
+    await atomicJSON(path.join(library.directory, `${key}.json`), {...item, cues: [{start: 0, end: 2, en: 'Now ready.'}], captionStatus: 'ready'});
   })]);
   assert.equal((await library.get(key)).captionStatus, 'ready');
   assert.equal((await library.get(key)).cues[0].en, 'Now ready.');

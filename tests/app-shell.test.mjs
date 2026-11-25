@@ -1,4 +1,45 @@
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
+import {measureTabCycle} from './browser/tab-cycle.mjs';
+test('keyboard probe measures one complete tab cycle regardless of its starting stop',async()=>{
+  for(const order of [['skip','library','video','video','body'],['skip','library','video','chat','body']]){
+    let at=2;
+    const focus=async()=>order[at],tab=async()=>{at=(at+1)%order.length;};
+    assert.deepEqual(await measureTabCycle({tab,focus,anchor:stop=>stop==='skip'}),order);
+    assert.equal(await focus(),'skip');
+    await assert.rejects(measureTabCycle({tab,focus,anchor:()=>false,limit:5}),/starting landmark/);
+  }
+});
+test('settings displays the active subscription instead of a successful callback message',async()=>{
+  const {accountStatusText}=await import('../src/app-shell.mjs');
+  const active={connected:true,planEnabled:true};
+  assert.equal(accountStatusText(active,{authMessage:'ChatGPT 연결이 완료되었습니다.'}),'ChatGPT 구독 사용 중');
+  assert.equal(accountStatusText(active,{authConnectFailed:true,authMessage:'다시 연결하세요.'}),'다시 연결하세요.');
+  assert.equal(accountStatusText(active,{},'연결 요청 실패'),'연결 요청 실패');
+});
+import {installDom,createRoot} from './fake-dom.mjs';
+
+test('Escape and confirmation persist the welcome dismissal without reopening on a stale poll',async()=>{
+  const {setupWelcome}=await import('../src/app-shell.mjs');
+  const undo=installDom();
+  try{
+    const dialog=createRoot(),confirm=createRoot(),error=createRoot(),acks=[];
+    dialog.open=false;dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;};
+    const welcome=setupWelcome({dialog,confirm,error,acknowledge:async()=>{acks.push(true);}});
+    const a={id:'a',needsWelcome:true};
+    welcome.update(a);
+    assert.equal(dialog.dispatch('cancel').defaultPrevented,true);
+    await Promise.resolve();
+    welcome.update(a);assert.equal(dialog.open,false);assert.equal(acks.length,1);
+    welcome.update({id:'b',needsWelcome:true});assert.equal(dialog.open,true);
+    confirm.click();await Promise.resolve();assert.equal(dialog.open,false);assert.equal(acks.length,2);
+  }finally{undo();}
+});
+test('welcome information is repeated in the ChatGPT settings section',async()=>{
+  const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+  const copy=html.match(/id="welcome"[^>]*><h2[^>]*>[^<]+<\/h2><p>([^<]+)<\/p>/)?.[1];
+  assert.ok(copy);assert.ok(html.split('<h3>ChatGPT 연결</h3>')[1].split('<hr>')[0].includes(copy));
+});
 import assert from 'node:assert/strict';
 import {VIEWS,viewElementId,nextView,installLectureKeys} from '../src/app-shell.mjs';
 import {lectureStream,unanswered} from '../src/learning-stream-model.mjs';

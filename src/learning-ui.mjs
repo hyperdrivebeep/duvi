@@ -27,7 +27,7 @@ export class LearningUI{
     const jumpFromRecord=async anchor=>{const result=await onJump(anchor);if(result.status==='matched'&&this.recordDialog.open)this.recordDialog.close();return result;};
     this.editor=new LearningEditor(document.getElementById('learningQuestion'),{capture:()=>this.context(),onSave:record=>this.saveRecord(record),onJump:jumpFromRecord,onTutor:body=>this.api('/api/learning/tutor',{...body,model:this.getModel()}),onConflict:async()=>{await this.refresh();return this.state.records.find(r=>r.id===this.editor.record?.id);},lectureName:id=>this.lectureName(id)});
     this.chat=new ChatPanel(document.getElementById('learningChat'),{api,stream,capture,...player,getState:()=>this.state,
-      applyThread:(thread,revision,record)=>this.applyThread(thread,revision,record),openDetails:record=>this.edit(record),cueAt,onCount:onChatCount,
+      applyThread:(thread,revision,record)=>this.applyThread(thread,revision,record),openDetails:(record,history)=>this.edit(record,history),cueAt,onCount:onChatCount,
       saveExplanation:(item,text,help,revision)=>this.saveExplanation(item,text,help,revision),
       latestExplanation:async key=>{await this.refresh();return this.streamItems().find(row=>row.key===key)?.record;}});
     this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
@@ -93,7 +93,7 @@ export class LearningUI{
     this.recordOpener=document.activeElement;this.showView('lecture');this.modal(this.recordDialog);this.editor.newRecord();
     if(paused)this.editor.notePaused(this.player.time());
   }
-  edit(record){this.recordOpener=document.activeElement;if(this.dialog.open)this.dialog.close();this.modal(this.recordDialog);this.editor.open(record);}
+  edit(record,history=false){this.recordOpener=document.activeElement;if(this.dialog.open)this.dialog.close();this.modal(this.recordDialog);this.editor.open(record);if(history){this.editor.history.open=true;this.editor.history.querySelector('summary').focus();}}
   async jump(record){try{const result=await this.onJump(record.anchor);if(result.status==='matched'){if(this.dialog.open)this.dialog.close();this.openPanel('chat');}else this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}
   async openResource(resource){
     this.resourceError='';this.notice.textContent='강의를 여는 중…';try{await this.onOpen(resource);this.closeLibrary();this.dialog.close();this.notice.textContent='';}catch(error){this.resourceError=error.message;this.notice.textContent=error.message;}this.sync();

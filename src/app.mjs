@@ -2,7 +2,7 @@ import {cueAt} from './core.mjs';
 import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
-import {setupShell,installLectureKeys} from './app-shell.mjs';
+import {setupShell,installLectureKeys,setupWelcome,accountStatusText} from './app-shell.mjs';
 import {LearningUI} from './learning-ui.mjs';
 import {makeAnchor,anchorState} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
@@ -30,7 +30,7 @@ function readStored(key,fallback){try{return JSON.parse(localStorage.getItem(key
 const playPositions=readStored('study-positions',{});
 const positionState=new LearningPlaybackState(playPositions,localStorage);
 let lecture,translator,generation=0,current=-1,working=false,repeat=false,chromeTranslations={},aiTranslations={},nodes=[],savedAt=0,lastTime=0,translationError='';
-let session,modelKey='',polling=false,job=null,lastJobVersion='',accountBusy=false,aiNotice='',lastAuthMessage='';
+let session,modelKey='',polling=false,job=null,lastJobVersion='',accountBusy=false,aiNotice='',connectError='';
 const fmt=seconds=>{seconds=Math.max(0,Math.floor(seconds||0));return `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;};
 const chromeMode=()=>$('provider').value==='chrome';
 const translated=i=>chromeMode()?chromeTranslations[i]:aiTranslations[i]?.ko;
@@ -168,8 +168,11 @@ function renderAI(){
   $('sample').disabled=$('translateAll').disabled=!active?.planEnabled||!$('model').value||running||accountBusy||!lecture?.cues.length;
   $('stopJob').hidden=!running;$('aiProgress').hidden=!job;
   if(job){$('aiProgress').max=Math.max(1,job.total);$('aiProgress').value=job.done;}
-  if(aiNotice)$('aiStatus').textContent=aiNotice;else if(job)$('aiStatus').textContent=`${job.title||job.number} · ${job.message}${job.error?.code?' ('+job.error.code+')':''}`;
-  $('accountStatus').textContent=active?.planEnabled?'ChatGPT 구독 사용 중':active?.connected?'구독 사용 동의가 필요합니다.':'로그인하면 ChatGPT 구독으로 번역할 수 있습니다.';
+  const connectionMessage=connectError||session?.authMessage||'';
+  $('aiStatus').textContent=aiNotice||(job?`${job.title||job.number} · ${job.message}${job.error?.code?' ('+job.error.code+')':''}`:connectionMessage);
+  const accountMessage=accountStatusText(active,session,connectError);
+  if($('accountStatus').textContent!==accountMessage)$('accountStatus').textContent=accountMessage;
+  learningUI.chat.setConnectionNotice(connectError||(session?.authConnectFailed?connectionMessage:''));
   $('chromeHelp').hidden=!chromeMode();progress();
 }
 async function refreshModels(){
@@ -186,26 +189,25 @@ async function refreshSession(){
   if(incoming.accounts.some(a=>a.id===choice))$('account').value=choice;else $('account').value=incoming.activeId||'';
   const active=incoming.accounts.find(a=>a.id===incoming.activeId),key=`${incoming.activeId}/${active?.connected}/${active?.planEnabled}`;
   if(key!==modelKey){modelKey=key;$('account').value=incoming.activeId||'';if(active?.planEnabled)await refreshModels();else $('model').replaceChildren(new Option('로그인 후 선택',''));}
-  if(active?.needsWelcome&&!$('welcome').open)$('welcome').showModal();
-  if(incoming.authMessage&&incoming.authMessage!==lastAuthMessage){lastAuthMessage=incoming.authMessage;if(!job&&!aiNotice)aiNotice=incoming.authMessage;}
+  welcome.update(active);
   const version=job?`${job.id}/${job.done}/${job.status}`:'';
   if(version!==lastJobVersion){lastJobVersion=version;if(lecture)await loadAICache();}renderAI();
 }
 $('provider').value=localStorage.getItem('mit6100-provider')==='chrome'?'chrome':'chatgpt';
 $('provider').onchange=()=>{localStorage.setItem('mit6100-provider',$('provider').value);paintTranslations();renderAI();void translateAhead();};
 $('connect').onclick=async()=>{
-  accountBusy=true;renderAI();
+  connectError='';accountBusy=true;renderAI();
   try{const {path}=await api('/api/auth/start',{accountId:$('account').value||null});location.assign(path);}
-  catch(error){aiNotice=error.message;accountBusy=false;renderAI();}
+  catch(error){connectError=error.message;accountBusy=false;renderAI();}
 };
 $('account').onchange=async()=>{
   if(!$('account').value){$('accountStatus').textContent='Continue with ChatGPT로 새 계정을 연결하세요.';return;}
-  accountBusy=true;renderAI();try{await api('/api/auth/select',{accountId:$('account').value});await refreshSession();}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
+  accountBusy=true;renderAI();try{await api('/api/auth/select',{accountId:$('account').value});connectError='';await refreshSession();}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
 };
 $('signout').onclick=async()=>{
   accountBusy=true;renderAI();try{const result=await api('/api/auth/signout',{});await refreshSession();aiNotice=result.revoked?'ChatGPT 연결을 해제했습니다. 저장한 번역은 계속 볼 수 있습니다.':'PC의 로그인 정보는 지웠습니다. 서버 측 해제는 확인하지 못했으므로 ChatGPT 설정에서 앱 연결을 해제하세요.';}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
 };
-$('ackWelcome').onclick=async()=>{try{await api('/api/auth/ack',{});$('welcome').close();}catch(e){$('aiStatus').textContent=e.message;}};
+const welcome=setupWelcome({dialog:$('welcome'),confirm:$('ackWelcome'),error:$('welcomeError'),acknowledge:()=>api('/api/auth/ack',{})});
 $('refreshModels').onclick=refreshModels;$('model').onchange=()=>localStorage.setItem('mit6100-ai-model',$('model').value);
 async function startJob(scope){
   accountBusy=true;aiNotice='';renderAI();try{({job}=await api('/api/translate',{lecture:lecture.number,model:$('model').value,scope,start:video.currentTime,sentenceAligned:scope==='lecture'}));renderAI();await refreshSession();}

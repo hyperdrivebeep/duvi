@@ -139,3 +139,26 @@ test('HTTP rejects cross-origin writes, DNS rebinding, private files; exposes no
     const start=await(await fetch(base+'/api/auth/start',{method:'POST',headers,body:'{}'})).json();assert.ok(start.path.startsWith('/auth/launch/'));assert.equal(JSON.stringify(start).includes('id_token'),false);
   }finally{await new Promise(r=>server.close(r));}
 });
+test('selecting a different connected account clears the callback failure in that session',async()=>{
+  // A distinct origin avoids reusing fetch's idle socket from the preceding HTTP test.
+  const port=6187,base=`http://127.0.0.1:${port}`;
+  let activeId='first';
+  const auth={
+    publicState:()=>({activeId,accounts:[{id:'first'},{id:'second',connected:true,planEnabled:true}]}),
+    callback:async()=>{throw new Error('stubbed callback failure');},
+    select:async id=>{activeId=id;}
+  };
+  const server=createServer({auth,translations:{publicJob:()=>null},library:{},root:temp,port});
+  await new Promise(r=>server.listen(port,'127.0.0.1',r));
+  try{
+    const initial=await fetch(base+'/api/session'),cookie=initial.headers.get('set-cookie').split(';')[0],{csrf}=await initial.json();
+    const session=async()=>await (await fetch(base+'/api/session',{headers:{Cookie:cookie}})).json();
+    const callback=await fetch(base+'/auth/callback',{headers:{Cookie:cookie},redirect:'manual'});
+    assert.equal(callback.status,303);await callback.text();
+    assert.equal((await session()).authConnectFailed,true);
+    const selected=await fetch(base+'/api/auth/select',{method:'POST',headers:{Cookie:cookie,Origin:base,'X-CSRF-Token':csrf,'Content-Type':'application/json'},body:'{"accountId":"second"}'});
+    assert.equal(selected.status,200);await selected.json();
+    const next=await session();
+    assert.equal(next.activeId,'second');assert.equal(next.authConnectFailed,false);assert.equal(next.authMessage,'');
+  }finally{await new Promise(r=>server.close(r));}
+});

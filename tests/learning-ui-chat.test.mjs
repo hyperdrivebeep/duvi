@@ -4,6 +4,99 @@ import {parseEvents,textSegments,parseClock,composerAction,lectureThreads,withTh
 import {recordInput} from '../src/learning-ui.mjs';
 import {recordMarkdown} from '../src/learning-model.mjs';
 import {ChatPanel} from '../src/learning-chat.mjs';
+import {installDom,createRoot,byTag,byText} from './fake-dom.mjs';
+
+test('a connection error is shown with a settings action without replacing the question status',()=>{
+  const restore=installDom(),notice=createRoot(),connectionNotice=createRoot();
+  try{
+    const panel=Object.assign(Object.create(ChatPanel.prototype),{notice,connectionNotice,openSettings:()=>opened++});
+    let opened=0;
+    notice.textContent='질문 초안은 유지했습니다.';
+    panel.setConnectionNotice('ChatGPT 연결 동의가 완료되지 않았습니다.');
+    assert.match(connectionNotice.textContent,/동의가 완료되지/);
+    byText(connectionNotice,'연결 설정 열기','button').click();
+    assert.equal(opened,1);assert.equal(notice.textContent,'질문 초안은 유지했습니다.');
+    panel.setConnectionNotice('');assert.equal(connectionNotice.textContent,'');
+  }finally{restore();}
+});
+
+test('explanation draft edits and deletion leave other windows’ question drafts intact',async()=>{
+  const restore=installDom(),savedStorage=globalThis.localStorage,savedOption=globalThis.Option;
+  const values=new Map([['duvi-explanation-drafts-v1','{"old":"legacy text"}']]);
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    const windowA=new Panel(createRoot(),{}),windowB=new Panel(createRoot(),{saveExplanation:async()=>{}});
+    const draft=(panel,key)=>byTag(wrap(panel,key),'textarea')[0];
+    function wrap(panel,key){panel.editing.add(key);const root=createRoot();root.append(panel.mine({key,seconds:22,record:{revision:3,explanation:''}}));return root;}
+    const a=draft(windowA,'q1');a.value='draft A';a.dispatch('input');
+    const b=draft(windowB,'q2');b.value='draft B';b.dispatch('input');
+    assert.equal(draft(new Panel(createRoot(),{}),'q1').value,'draft A');
+    windowB.notice={};
+    byTag(wrap(windowB,'q2'),'form')[0].dispatch('submit');
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(draft(new Panel(createRoot(),{}),'q1').value,'draft A');
+    assert.equal(draft(new Panel(createRoot(),{}),'q2').value,'');
+    assert.equal(draft(windowB,'old').value,'legacy text');
+  }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
+});
+
+test('saving a same-question draft only clears the exact draft this editor last wrote',async()=>{
+  const restore=installDom(),savedStorage=globalThis.localStorage,savedOption=globalThis.Option;
+  const values=new Map(), key='duvi-explanation-drafts-v1';
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    let finish;
+    const open=saveExplanation=>{
+      const panel=new Panel(createRoot(),{saveExplanation});panel.notice={};panel.editing.add('q');
+      const form=byTag(panel.mine({key:'q',seconds:22,record:{revision:3,explanation:''}}),'form')[0];
+      return {form,text:byTag(form,'textarea')[0]};
+    };
+    const stale=open(async()=>{}),b=open(()=>new Promise(resolve=>{finish=resolve;}));
+    b.text.value='B saves';b.text.dispatch('input');b.form.dispatch('submit');
+    const a=open(async()=>{});a.text.value='newer A draft';a.text.dispatch('input');
+    stale.text.value='stale edit';stale.text.dispatch('input');
+    assert.match(byTag(stale.form,'p').map(node=>node.textContent).join(' '),/다른 창.*새로고침/);
+    assert.equal(stale.text.value,'stale edit');
+    finish();await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(open().text.value,'newer A draft');
+    assert.equal(JSON.parse(values.get(key)).q.revision,3);
+    a.form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(open().text.value,'');
+  }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
+});
+
+test('saving a reloaded explanation without typing clears its old revision',async()=>{
+  const restore=installDom(),keep={localStorage:globalThis.localStorage,Option:globalThis.Option};
+  const values=new Map(),key='duvi-explanation-drafts-v1';
+  const revisions=[];
+  let record={revision:3,explanation:''};
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    function reopen(){
+      const panel=new Panel(createRoot(),{saveExplanation:async(_item,text,_help,revision)=>{
+        revisions.push(revision);
+        if(record.revision!==revision)throw Object.assign(new Error('stale revision'),{status:409});
+        record={revision:revision+1,explanation:text};
+      }});
+      panel.notice={};panel.editing.add('q');
+      const form=byTag(panel.mine({key:'q',seconds:22,record}),'form')[0];
+      return {form,text:byTag(form,'textarea')[0]};
+    }
+    const first=reopen();first.text.value='persisted draft';first.text.dispatch('input');
+    const reloaded=reopen();assert.equal(reloaded.text.value,'persisted draft');
+    reloaded.form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(record.revision,4);
+    const remaining=JSON.parse(values.get(key)).q;
+    reopen().form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual({remaining,revisions},{remaining:undefined,revisions:[3,4]});
+  }finally{restore();Object.assign(globalThis,keep);}
+});
 
 test('switching lectures isolates the draft and typing time, including a failure arriving after the switch',async()=>{
   let lectureId='1',reject;
