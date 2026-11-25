@@ -68,6 +68,36 @@ test('v4 main flow: completed legacy stage 5 leads to its check, earlier prerequ
   assert.equal(title(), ROADMAP.phases.find(phase => phase.id === 'learning-phase-5b').resources[0].title);
 }));
 
+test('v4 stage 8 lists and recommends I-CAP before E07', () => withRoadmap(({root, finish, hero, update}) => {
+  const phase8 = all(root, node => node.dataset.phaseId === 'learning-phase-8')[0];
+  const cardIds = all(phase8, node => node.dataset.v4Card).map(node => node.dataset.v4Card);
+  assert.deepEqual(cardIds.filter(id => ['v4-i-cap', 'v4-e07'].includes(id)), ['v4-i-cap', 'v4-e07']);
+
+  for (const phase of ROADMAP.phases) finish(stageCheck(phase).id);
+  const required = studyCards(ROADMAP).filter(card => card.level === 'required');
+  for (const card of required) if (!['v4-i-cap', 'v4-e07'].includes(card.id)) finish(card.id);
+  const nextTitle = () => byTag(hero(), 'h3')[0].textContent;
+  update();
+  assert.equal(nextTitle(), required.find(card => card.id === 'v4-i-cap').title);
+  finish('v4-i-cap'); update();
+  assert.equal(nextTitle(), required.find(card => card.id === 'v4-e07').title);
+}, '8'));
+
+test('v4 stage lists put every same-stage prerequisite before its required dependent', () => withRoadmap(({root}) => {
+  for (const phase of ROADMAP.phases) {
+    const required = (ROADMAP.curriculumV4.phases[phase.id] || []).filter(card => card.level === 'required');
+    const section = all(root, node => node.dataset.phaseId === phase.id)[0];
+    const positions = new Map(all(section, node => node.dataset.v4Card).map((node, index) => [node.dataset.v4Card, index]));
+    for (const card of required) {
+      assert.ok(positions.has(card.id), `${phase.id}: missing required card ${card.id}`);
+      for (const id of card.cardPrerequisites || []) {
+        if (!required.some(candidate => candidate.id === id)) continue;
+        assert.ok(positions.get(id) < positions.get(card.id), `${phase.id}: ${id} must precede ${card.id}`);
+      }
+    }
+  }
+}));
+
 test('v4 stage headers count only their required cards and update when a card is marked', () => withRoadmap(({finish, heading, update}) => {
   assert.match(heading('3b').textContent, /필수 v4 0\/4/);
   assert.match(heading('5').textContent, /필수 v4 0\/1/);
