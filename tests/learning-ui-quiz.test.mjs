@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {installDom,createRoot,all,byTag,byText,settle} from './fake-dom.mjs';
 import {fakeApi,quizStatus,ITEMS,LEARNING,EVIDENCE} from './quiz-fixtures.mjs';
 import {renderQuizScreen,renderLectureQuizTab} from '../src/quiz-view.mjs';
@@ -118,4 +119,19 @@ test('the view api maps to the registered routes',async()=>{
   await api.quiz('yt_abc');await api.preview({a:1});await api.generate({token:'t'});await api.cancel(1);await api.attempt({});await api.item({});await api.evidence();await api.models();
   assert.deepEqual(seen.map(row=>row[0]),['/api/learning/quizzes/yt_abc','/api/learning/quiz/preview','/api/learning/quiz/generate','/api/learning/quiz/cancel','/api/learning/quiz/attempt','/api/learning/quiz/item','/api/learning/evidence','/api/learning/chat/models']);
   assert.deepEqual(seen[3][1],{lectureId:'1'});
+});
+
+// Fullscreen puts the lecture panel on a dark background; tabs styled for the light panel must switch their colour tokens.
+const srcCss=file=>readFileSync(new URL(`../src/${file}`,import.meta.url),'utf8');
+const ruleVars=(text,selector)=>{
+  const start=text.indexOf(selector),block=start<0?'':text.slice(text.indexOf('{',start)+1,text.indexOf('}',start));
+  return Object.fromEntries([...block.matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-f]{6})/gi)].map(match=>[match[1],match[2]]));
+};
+const luminance=hex=>{const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=0.03928?v/12.92:((v+0.055)/1.055)**2.4);return 0.2126*r+0.7152*g+0.0722*b;};
+const contrast=(a,b)=>{const [hi,lo]=[luminance(a),luminance(b)].sort((x,y)=>y-x);return (hi+0.05)/(lo+0.05);};
+test('in fullscreen the 확인 문제 and 개념 tabs use colours that reach 4.5:1 on the dark panel',()=>{
+  const panel=srcCss('study-view.css').match(/\.study-focus>\.transcript-panel\{[^}]*background:(#[0-9a-f]{6})/i)[1];
+  const quiz=ruleVars(srcCss('quiz-view.css'),'.study-focus .quiz-tab'),map=ruleVars(srcCss('concept-map.css'),'.study-focus .cmap-lecture');
+  const colours={'quiz text':quiz['--q-ink'],'quiz muted':quiz['--q-muted'],'quiz link':quiz['--q-accent'],'map text':map['--cmap-ink'],'map muted':map['--cmap-muted'],'map link':map['--cmap-accent']};
+  for(const [name,colour] of Object.entries(colours))assert.ok(colour&&contrast(colour,panel)>=4.5,`${name} ${colour} on ${panel}: ${colour?contrast(colour,panel).toFixed(2):'not set'}`);
 });

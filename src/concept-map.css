@@ -100,6 +100,8 @@
 .cmap-lecture ul { margin: 0; padding: 0; list-style: none; }
 .cmap-lecture li { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--cmap-line); font-size: 15px; }
 .cmap-lecture .cmap-muted { color: var(--cmap-muted); }
+/* Fullscreen puts the lecture panel on #141922: light-on-dark colours there. */
+.study-focus .cmap-lecture { --cmap-ink: #ffffff; --cmap-muted: #bfcada; --cmap-line: #ffffff26; --cmap-accent: #9cc3ff; }
 
 @media (max-width: 1100px) {
   .cmap { grid-template-columns: minmax(0, 1fr) 300px; }
