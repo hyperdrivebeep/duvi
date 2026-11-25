@@ -32,6 +32,19 @@ async function fixture(t,{seed=true,...options}={}){
   }
   return {root,store,library,service:new LearningBackup({store,library,...options})};
 }
+test('v4 exercise and stage-check progress survive backup export, preview, import and re-export', async t => {
+  const source = await fixture(t, {seed:false}), target = await fixture(t, {seed:false});
+  await source.store.setProgress({revision:0, resourceId:'mit-1', status:'watching'});
+  await source.store.setProgress({revision:1, resourceId:'v4-e01', status:'practicing', completed:false});
+  const saved = await source.store.setProgress({revision:2, resourceId:'v4-check-learning-phase-5', status:'explained', completed:true});
+  const backup = JSON.parse(JSON.stringify(await source.service.export()));
+  assert.deepEqual(backup.learning.progress, saved.progress);
+  const preview = await target.service.preview({backup});
+  assert.equal(preview.counts.progress, 3);
+  const imported = await target.service.commit({revision:0, token:preview.token, mode:'merge'});
+  assert.deepEqual(imported.progress, saved.progress);
+  assert.deepEqual((await target.service.export()).learning.progress, saved.progress);
+});
 test('whitelisted export round trips lectures, ordered folders, aligned translations and learning to an empty directory',async t=>{
   const source=await fixture(t),target=await fixture(t,{seed:false}),exported=await source.service.export();
   const serialized=JSON.stringify(exported);for(const value of ['do-not-export','folder-secret','translation-secret','cache-secret','auth-file-secret','access_token','apiKey','refresh_token','extraLocalData'])assert.equal(serialized.includes(value),false);

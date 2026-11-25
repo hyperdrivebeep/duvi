@@ -15,7 +15,9 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
   const progressHelp=el('p','muted','진행률은 완료 표시한 자료 수입니다. 영상·읽기·실습을 모두 포함하며, 시청 시간이나 이해도를 뜻하지 않습니다. 완료는 ');progressHelp.append(el('span','learning-keep-phrase','취소할 수 있습니다.'));
   root.append(purpose,progressHelp);
   const source=roadmap.source,sourceLine=el('div','learning-source');
-  sourceLine.append(el('span','muted',`로드맵 버전 ${roadmap.version||'미기록'} · ${typeof source==='object'?(source.checkedAt||source.verifiedAt||source.commit||source.sha||'원문 기준'):source||'원문 확인 필요'}`));
+  const checked=source?.checkedAt||source?.verifiedAt;
+  const origin=checked?`${roadmap.curriculumV4?'v3 기준 원문':'원문'} 확인일 ${checked}`:source?.commit||source?.sha||(typeof source==='string'&&source)||'원문 확인 필요';
+  sourceLine.append(el('span','muted',`로드맵 버전 ${roadmap.version||'미기록'} · ${origin}`));
   if(source?.url)sourceLine.append(link('로드맵 원문',source.url));root.append(sourceLine);
   renderV4Summary(root,roadmap,updates);
   for(const [index,phase] of (roadmap.phases||[]).entries()){

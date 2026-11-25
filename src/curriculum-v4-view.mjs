@@ -4,6 +4,23 @@ import {stageCheck, studyCards, missingPrerequisites, requiredStudy} from './cur
 
 const labels = {required: '필수', recommended: '권장', optional: '선택'};
 const text = (root, label, value) => { if (value) root.append(el('p', 'learning-preserve', `${label}${value}`)); };
+const sectionNames = {
+  actions: 'Hugging Face · 에이전트의 행동과 도구 호출',
+  observations: 'Hugging Face · 도구 반환과 관측',
+  'scoring-workflow.html': 'Inspect · 채점 절차와 재채점',
+  'setting-limits.html': 'Inspect · 실행 한도 설정',
+  'evaluation-protocols-and-metrics': 'ContinualAI · 평가 절차와 지표',
+  monitoring: 'Made With ML · 운영 모니터링',
+  'ps3.pdf': 'Stanford CS229 · 독립 성분 분석 문제 (13쪽)',
+  'journal-article-discussion': 'MIT Comm Lab · 논문 토론 작성',
+};
+
+function appendRelatedSections(root, ref) {
+  for (const url of ref.additionalUrls || []) {
+    const slug = new URL(url).pathname.split('/').filter(Boolean).at(-1);
+    root.append(document.createTextNode(' · '), link(`${sectionNames[slug] || `${ref.title} · ${slug}`} ↗`, url));
+  }
+}
 
 export function focusV4Card(root, id) {
   const card = [...root.querySelectorAll('[data-v4-card]')].find(node => node.dataset.v4Card === id);
@@ -92,16 +109,17 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     const source = (title, url) => { if (url) sources.append(link(`${title} ↗`, url)); };
     const displaySource = ref => {
       source(ref.title, ref.url);
-      ref.additionalUrls?.forEach((url, index) => source(`관련 절 ${index + 2}`, url));
+      appendRelatedSections(sources, ref);
     };
     if (card.url) displaySource(card);
     for (const path of card.readingPaths || []) {
       const pathBox = el('p', 'muted', path.countsTowardExercise ? '실습 분량에 포함: ' : '별도 선택 참고: ');
       const refs = path.resourceIds.map(id => byId.get(id)).filter(Boolean);
-      refs.forEach(ref => {
+      refs.forEach((ref, index) => {
+        if (index) pathBox.append(document.createTextNode(' / '));
         pathBox.append(link(`${ref.title} ↗`, ref.url));
-        if (ref.section) pathBox.append(document.createTextNode(` (${ref.section}) `));
-        ref.additionalUrls?.forEach((url, index) => pathBox.append(link(`관련 절 ${index + 2} ↗`, url)));
+        if (ref.section) pathBox.append(document.createTextNode(` (${ref.section})`));
+        appendRelatedSections(pathBox, ref);
       });
       item.append(pathBox);
     }
@@ -160,13 +178,13 @@ function toggle(card, label, updates, roadmap, onComplete) {
     try { await onComplete(card); } catch { /* existing progress notice reports errors */ }
     finally { busy = false; control.disabled = !ready && !done; }
   }, 'learning-complete');
-  control.setAttribute('aria-label', `${card.title} ${label}`);
   updates.push(({progress}) => {
     done = resourceCompleted(roadmap, progress, card);
     ready = !missingPrerequisites(roadmap, card, progress).length;
     control.textContent = done ? '✓ 완료 · 취소' : label;
+    control.setAttribute('aria-label', `${control.textContent} · ${card.title}`);
     control.disabled = busy || (!done && !ready);
-    control.setAttribute('aria-pressed', String(done));
+    control.dataset.completed = String(done);
   });
   return control;
 }
