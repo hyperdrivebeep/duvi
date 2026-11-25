@@ -101,6 +101,24 @@ test('record editor saves and restores drafts per record without erasing another
     assert.deepEqual(Object.keys(JSON.parse(localStorage.getItem('duvi-learning-drafts-v1'))),['first']);
   }finally{globalThis.localStorage=previous;}
 });
+test('record editor save does not delete a newer draft for the same record',async()=>{
+  const previous=globalThis.localStorage;globalThis.localStorage=storageHarness();
+  try{
+    const saved={...record,id:'same',revision:3,explanation:'Original'};
+    const a=editorHarness(saved),b=editorHarness(saved);
+    a.open(saved);b.open(saved);
+    a.inputs.explanation.value='A saves';
+    let finish;
+    a.onSave=input=>new Promise(resolve=>{finish=()=>resolve({...input,revision:4});});
+    const pending=a.save();
+    b.inputs.explanation.value='B newer draft';b.stash();
+    finish();await pending;
+    const reopened=editorHarness(a.savedRecord);
+    reopened.open(a.savedRecord);
+    assert.equal(reopened.inputs.explanation.value,'B newer draft');
+    assert.equal(reopened.draftConflict,true);
+  }finally{globalThis.localStorage=previous;}
+});
 test('restored dirty draft cannot preview saved provider context; exact saved version is submitted',()=>{
   const saved={...record,id:'saved',revision:3,explanation:'saved answer'},dirty={...saved,explanation:'unsaved private answer'};
   assert.throws(()=>prepareTutorContext(dirty,saved,'hint'),/저장하지 않은 변경/);
