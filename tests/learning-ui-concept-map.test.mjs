@@ -217,6 +217,26 @@ test('graph view: nodes and edges from data, selection emphasises edges, control
   assert.match(fitNote.textContent, new RegExp(`'${concept.field}' 분야`));
 }));
 
+test('graph node names read as separate phrases, without the material glyph, keeping every state word', () => withDom(() => {
+  const nodeName = (state, name) => {
+    const root = new FakeNode('div');
+    renderConceptMap(root, {data, state, view: 'graph'});
+    return root.find(node => hasClass('cmap-node')(node) && node.getAttribute('data-id') === named(name).id).getAttribute('aria-label');
+  };
+  const empty = {progress: {}, records: [], attempts: []}, line = named('변수·수직선'), marked = conceptCounts(data, line, empty).marked;
+  assert.equal(nodeName(empty, 'GIES'), 'GIES, 자료 없음, 확인 문제 0');
+  assert.equal(nodeName(empty, '변수·수직선'), `변수·수직선, 자료 있음${marked ? `, 내가 표시 ${marked.done}/${marked.total}` : ''}, 질문 0, 확인 문제 0`);
+  assert.equal(nodeName({}, 'GIES'), `GIES, 자료 없음, ${NO_EVIDENCE}`);
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const words = text => text.replace(/[●◐○]/g, '').replace(/ · |, /g, '').replace(/\s+/g, '');
+  for (const node of root.all(hasClass('cmap-node'))) {
+    const label = node.getAttribute('aria-label');
+    assert.ok(label && !/[●◐○]/.test(label), label);
+    assert.equal(words(label), words(node.textContent), 'the name keeps every word shown on the node');
+  }
+}));
+
 test('lecture panel lists the lecture concepts and opens one', () => withDom(() => {
   const root = new FakeNode('div'), opened = [], concept = named('연쇄법칙(합성함수의 미분)'), [lecture] = lecturesOf(concept);
   renderLectureConcepts(root, {data, state: {records: []}, lectureId: lecture.lectureId, onOpenConcept: id => opened.push(id)});
