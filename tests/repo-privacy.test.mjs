@@ -8,23 +8,32 @@ import {readFileSync} from 'node:fs';
 // Vendored third-party code and the lockfile are skipped.
 const root = new URL('..', import.meta.url);
 const BINARY = /\.(webp|png|jpe?g|gif|ico|woff2?|ttf|exe|zip|wasm)$/i, SKIP = /^(package-lock\.json|backend\/vendor\/)/;
-const USER_HOME = /(?:[a-z]:[\\/]{1,2}|\/(?:[a-z]\/)?)users[\\/]{1,2}([^\\/\s`'"<>…]+)/gi;
-const UNIX_HOME = /\/home\/([\w.-]+)/g;
+// A Unix-style root must start a token, not be a component of a URL or API route.
+const USER_HOME = /(?:(?<![\w/:.-])[a-z]:[\\/]{1,2}|(?<=^|[\s`'"([{<])\/(?:(?:mnt\/)?[a-z]\/)?)users[\\/]{1,2}([^\\/\s`'"<>…]+)/gi;
+const UNIX_HOME = /(?<=^|[\s`'"([{<])\/home\/([\w.-]+)/g;
+// Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
+const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
 const EMAIL = /(?<![\w.+\-/:])[\w.+-]+@([a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,})(?![\w-]|\.[\w-])/gi;
 const WORKSPACE = /duvi-work[\\/]/g;
 // Reserved test domains (RFC 2606, RFC 6761) name nobody.
 const RESERVED = /(^|\.)(example|invalid|test|localhost)$|^example\.(com|net|org)$/i;
 const DENSITY_ASSET = /^[23]x\.(?:png|jpe?g|gif|webp|svg)$/i;
+const PACKAGE_ARCHIVE = /^\d+\.\d+\.\d+(?:-[a-z0-9-]+(?:\.[a-z0-9-]+)*)?\.tgz$/i;
 
 function personalMatches(text) {
   const found = [];
-  for (const match of text.matchAll(USER_HOME)) if (!SHARED_USERS.has(match[1].toLowerCase())) found.push(match[0]);
-  for (const match of text.matchAll(UNIX_HOME)) if (!SANDBOX_USERS.has(match[1])) found.push(match[0]);
+  for (const match of text.matchAll(USER_HOME)) {
+    const name = match[1].toLowerCase();
+    if (!SHARED_USERS.has(name) && !PLACEHOLDERS.has(name)) found.push(match[0]);
+  }
+  for (const match of text.matchAll(UNIX_HOME)) {
+    if (!SANDBOX_USERS.has(match[1]) && !PLACEHOLDERS.has(match[1].toLowerCase())) found.push(match[0]);
+  }
   for (const match of text.matchAll(EMAIL)) {
     const gitRemote = match[1] === 'github.com' && match[0].startsWith('git@') &&
       /^:[\w.-]+\/[\w.-]+/.test(text.slice(match.index+match[0].length));
-    if (!RESERVED.test(match[1]) && !DENSITY_ASSET.test(match[1]) && !gitRemote) found.push(match[0]);
+    if (!RESERVED.test(match[1]) && !DENSITY_ASSET.test(match[1]) && !PACKAGE_ARCHIVE.test(match[1]) && !gitRemote) found.push(match[0]);
   }
   for (const match of text.matchAll(WORKSPACE)) found.push(match[0]);
   return found;
@@ -39,9 +48,14 @@ test('privacy scanner detects personal home paths across shells and operating sy
     ['C:', 'Users', 'DemoUser'].join('\\\\'),
     ['', 'c', 'Users', '9DemoUser'].join('/'),
     ['', 'd', 'users', 'DemoUser'].join('/'),
+    ['', 'mnt', 'c', 'Users', 'DemoUser'].join('/'),
     ['', 'Users', 'DemoUser'].join('/'),
     ['', 'home', 'demo-user'].join('/')
-  ]) assert.deepEqual(personalMatches(home+'/notes'), [home], home);
+  ]) {
+    for (const text of [home+'/notes', `Location: "${home}/notes"`, `Paths:\n${home}/notes`]) {
+      assert.deepEqual(personalMatches(text), [home], text);
+    }
+  }
 
   for (const home of [
     ['C:', 'Users', 'Public'].join('\\'),
@@ -50,8 +64,20 @@ test('privacy scanner detects personal home paths across shells and operating sy
     ['C:', 'Users', '나'].join('\\'),
     ['', 'home', 'pyodide'].join('/'),
     ['', 'home', 'web_user'].join('/'),
+    ['C:', 'Users', 'YourName'].join('\\'),
+    ['', 'Users', 'USERNAME'].join('/'),
+    ['', 'home', 'YourName'].join('/'),
+    ['', 'c', 'Users', '<user>'].join('/'),
+    ['', 'mnt', 'c', 'Users', '<name>'].join('/'),
+    ['', 'home', '<user>'].join('/'),
     ['', 'opt', 'users-guide'].join('/')
   ]) assert.deepEqual(personalMatches(home+'/notes'), [], home);
+
+  for (const text of [
+    'GET /api/users/123', 'github.com/users/octo', 'https://github.com/users/octo',
+    'https://example.org/home/index', 'https://example.org/c/Users/octo',
+    'https://example.org/mnt/c/Users/octo', 'https://example.org/C:/Users/octo'
+  ]) assert.deepEqual(personalMatches(text), [], text);
 });
 
 test('privacy scanner distinguishes personal email and workspace paths from package and asset notation', () => {
@@ -65,7 +91,7 @@ test('privacy scanner distinguishes personal email and workspace paths from pack
     assert.deepEqual(personalMatches(prefix+'fixture'), [prefix]);
   }
   for (const text of [
-    'vite@6.4.2', 'pyodide@314.0.8', '@scope/tool@1.2.3-beta.1', 'icon@2x.png',
+    'vite@6.4.2', 'pyodide@314.0.8', '@scope/tool@1.2.3-beta.1', 'icon@2x.png', 'pkg@1.2.3-beta.tgz',
     'git@github.com:org/repo', 'person@example.org', 'person@subdomain.example', 'person@host.test', 'Home/End'
   ]) assert.deepEqual(personalMatches(text), [], text);
 });

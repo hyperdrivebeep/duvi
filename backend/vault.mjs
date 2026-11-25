@@ -1,20 +1,20 @@
-import {readFile,writeFile,rename,mkdir,open,rm} from 'node:fs/promises';
+import {readFile,rename,mkdir,open,rm} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-export async function atomicJSON(file,value){
+export async function atomicWrite(file,content,{renameFile=rename,platform=process.platform}={}){
   await mkdir(path.dirname(file),{recursive:true});
-  const json=JSON.stringify(value,null,2),temp=`${file}.${process.pid}.${randomUUID()}.tmp`;
+  const temp=`${file}.${process.pid}.${randomUUID()}.tmp`;
   const handle=await open(temp,'wx',0o600);
   try{
-    try{await handle.writeFile(json);}finally{await handle.close();}
+    try{await handle.writeFile(content);}finally{await handle.close();}
     // A concurrent reader on Windows can briefly block replacing the destination.
     for(let attempt=0;;attempt++){
-      try{await rename(temp,file);return;}
+      try{await renameFile(temp,file);return;}
       catch(error){
-        if(process.platform!=='win32'||!['EPERM','EBUSY'].includes(error.code)||attempt>=4)throw error;
+        if(platform!=='win32'||!['EPERM','EBUSY'].includes(error.code)||attempt>=4)throw error;
         await delay(10 * 2**attempt);
       }
     }
@@ -22,6 +22,9 @@ export async function atomicJSON(file,value){
     await rm(temp,{force:true}).catch(()=>{});
     throw error;
   }
+}
+export async function atomicJSON(file,value){
+  await atomicWrite(file,JSON.stringify(value,null,2));
 }
 function dpapi(mode,text){
   return new Promise((resolve,reject)=>{
@@ -45,8 +48,7 @@ export function createVault(directory){
       const snapshot=JSON.stringify(value);
       const operation=writes.then(async()=>{
         const encrypted=await dpapi('encrypt',snapshot);
-        await mkdir(directory,{recursive:true});
-        await writeFile(file+'.tmp',encrypted,{mode:0o600});await rename(file+'.tmp',file);
+        await atomicWrite(file,encrypted);
       });
       writes=operation.catch(()=>{});return operation;
     }

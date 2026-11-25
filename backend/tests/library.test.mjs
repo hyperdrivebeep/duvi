@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,readdir,rename,rm} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import os from 'node:os';
@@ -8,7 +8,7 @@ import path from 'node:path';
 import {LectureLibrary,youtubePlaylistId,PLAYLIST_LIMIT} from '../library.mjs';
 import {createServer} from '../http-server.mjs';
 import {TranslationService} from '../chatgpt-translate.mjs';
-import {atomicJSON} from '../vault.mjs';
+import {atomicJSON,atomicWrite} from '../vault.mjs';
 
 const ids=['VMj-3S1tku0','PaCmpygFfXo','TCH_1BHY58I'];
 const url='https://www.youtube.com/playlist?list=PLtestPlaylist123';
@@ -46,6 +46,36 @@ test('a failed JSON replacement removes its temporary file',async t=>{
   await mkdir(file);
   await assert.rejects(atomicJSON(file,{ready:true}));
   assert.deepEqual((await readdir(root)).sort(),['data','lecture.json']);
+});
+
+test('Windows atomic replacement succeeds after two transient EPERM failures',async t=>{
+  const {root}=await fixture(t),file=path.join(root,'accounts.dpapi');
+  const eperm=Object.assign(new Error('injected EPERM'),{code:'EPERM'}),temps=[];
+  await writeFile(file,'previous ciphertext');
+  await atomicWrite(file,'new ciphertext',{platform:'win32',renameFile:async(temp,dest)=>{
+    temps.push(temp);
+    if(temps.length<=2)throw eperm;
+    await rename(temp,dest);
+  }});
+  assert.equal(temps.length,3);
+  assert.equal(new Set(temps).size,1);
+  assert.equal(await readFile(file,'utf8'),'new ciphertext');
+  await assert.rejects(readFile(temps[0]),{code:'ENOENT'});
+});
+
+test('Windows atomic replacement stops after five EPERM failures and removes its temp file',async t=>{
+  const {root}=await fixture(t),file=path.join(root,'accounts.dpapi');
+  const eperm=Object.assign(new Error('injected EPERM'),{code:'EPERM'}),temps=[];
+  await writeFile(file,'previous ciphertext');
+  await assert.rejects(atomicWrite(file,'new ciphertext',{platform:'win32',renameFile:async temp=>{
+    temps.push(temp);
+    if(temps.length>5)throw new Error('retry limit exceeded');
+    throw eperm;
+  }}),error=>error===eperm);
+  assert.equal(temps.length,5);
+  assert.equal(new Set(temps).size,1);
+  assert.equal(await readFile(file,'utf8'),'previous ciphertext');
+  assert.deepEqual((await readdir(root)).sort(),['accounts.dpapi','data']);
 });
 
 test('playlist URL parser restricts protocol/host/credentials and accepts shared video links',()=>{
