@@ -141,10 +141,14 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     const concept = byId.get(node.id), material = materialLabel(data, concept), counts = conceptCounts(data, concept, state, evidence);
     const materialParts = [material, counts.marked && `내가 표시 ${counts.marked.done}/${counts.marked.total}`].filter(Boolean), records = evidenceParts(counts);
     // The visible lines give the name no break between them and the glyph is decoration, so the node is named by its phrases.
-    const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'aria-pressed': 'false', title: concept.name,
+    // No title: next to the aria-label a screen reader reads it again as the description. A name cut off by the ellipsis
+    // is shown in full by a CSS tooltip (data-name) on hover or focus instead, measured when it is needed.
+    const name = h('span', {className: 'cmap-node-name', text: concept.name});
+    const reveal = () => setClass(button, 'cmap-cut', name.scrollWidth > name.clientWidth);
+    const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'data-name': concept.name, 'aria-pressed': 'false',
       'aria-label': [concept.name, ...materialParts, ...records].join(', '),
-      style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id)},
-    h('span', {className: 'cmap-node-name', text: concept.name}),
+      style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id), onMouseenter: reveal, onFocus: reveal},
+    name,
     h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${materialParts.join(' · ')}`}),
     h('span', {className: 'cmap-node-line cmap-muted', text: records.join(' · ')}));
     return [node.id, button];

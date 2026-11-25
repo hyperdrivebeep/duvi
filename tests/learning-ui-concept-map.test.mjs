@@ -237,6 +237,24 @@ test('graph node names read as separate phrases, without the material glyph, kee
   }
 }));
 
+test('graph nodes carry no title (read again as a description); a cut-off name is shown in full on hover or focus', () => withDom(() => {
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const nodes = root.all(hasClass('cmap-node'));
+  assert.equal(nodes.length, data.concepts.length);
+  for (const node of nodes) {
+    const concept = data.concepts.find(item => item.id === node.getAttribute('data-id'));
+    assert.equal(node.getAttribute('title'), null, concept.name);
+    assert.equal(node.getAttribute('data-name'), concept.name);
+  }
+  const [cut, whole] = nodes, nameOf = node => node.find(hasClass('cmap-node-name'));
+  Object.defineProperties(nameOf(cut), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
+  Object.defineProperties(nameOf(whole), {scrollWidth: {value: 120}, clientWidth: {value: 180}});
+  cut.fire('mouseenter'); whole.fire('focus');
+  assert.ok(hasClass('cmap-cut')(cut), 'a cut-off name gets the tooltip');
+  assert.equal(hasClass('cmap-cut')(whole), false, 'a name that fits gets none');
+}));
+
 test('lecture panel lists the lecture concepts and opens one', () => withDom(() => {
   const root = new FakeNode('div'), opened = [], concept = named('연쇄법칙(합성함수의 미분)'), [lecture] = lecturesOf(concept);
   renderLectureConcepts(root, {data, state: {records: []}, lectureId: lecture.lectureId, onOpenConcept: id => opened.push(id)});

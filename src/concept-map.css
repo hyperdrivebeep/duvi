@@ -72,6 +72,10 @@
 .cmap-node[aria-pressed="true"] { border: 2px solid var(--cmap-accent); background: var(--cmap-selected); padding: 7px 11px; }
 .cmap-node.cmap-dim { opacity: .35; }
 .cmap-node-name { font-size: 15px; font-weight: 700; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The full name of a node cut off by the ellipsis, on hover or focus. A title attribute would be read again as a description. */
+.cmap-node.cmap-cut:is(:hover, :focus) { z-index: 3; }
+.cmap-node.cmap-cut:is(:hover, :focus)::after { content: attr(data-name); position: absolute; left: 0; top: calc(100% + 4px); width: max-content; max-width: 360px;
+  padding: 6px 10px; border-radius: 6px; background: var(--cmap-ink); color: #fff; font-size: 14px; font-weight: 400; line-height: 1.4; white-space: normal; pointer-events: none; }
 .cmap-node-line { font-size: 14px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cmap-controls { position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--cmap-line); border-radius: 10px; padding: 4px; box-shadow: 0 2px 8px rgb(17 26 45 / 8%); cursor: default; }
 .cmap-control { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; }
