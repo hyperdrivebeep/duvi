@@ -122,7 +122,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
             const target=await auth.start(s.id,base+'/auth/callback',body.accountId||null);
             const launchPath='/auth/launch/'+fresh();s.launch={path:launchPath,url:target,expires:Date.now()+60000};s.authMessage='';s.authConnectFailed=false;json(res,200,{path:launchPath});return;
           }
-          if(pathname==='/api/auth/select'){await auth.select(body.accountId);json(res,200,auth.publicState());return;}
+          if(pathname==='/api/auth/select'){await auth.select(body.accountId);s.authMessage='';s.authConnectFailed=false;json(res,200,auth.publicState());return;}
           if(pathname==='/api/auth/ack'){await auth.acknowledge();json(res,200,{ok:true});return;}
           if(pathname==='/api/auth/signout'){if(translations.starting)throw new AppError('번역 준비가 끝난 뒤 연결을 해제하세요.','busy',409);await translations.stop();json(res,200,await auth.signOut());return;}
           if(pathname==='/api/library/import'){json(res,200,await library.importIntoFolder(body));return;}

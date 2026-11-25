@@ -202,7 +202,7 @@ $('connect').onclick=async()=>{
 };
 $('account').onchange=async()=>{
   if(!$('account').value){$('accountStatus').textContent='Continue with ChatGPT로 새 계정을 연결하세요.';return;}
-  accountBusy=true;renderAI();try{await api('/api/auth/select',{accountId:$('account').value});await refreshSession();}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
+  accountBusy=true;renderAI();try{await api('/api/auth/select',{accountId:$('account').value});connectError='';await refreshSession();}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
 };
 $('signout').onclick=async()=>{
   accountBusy=true;renderAI();try{const result=await api('/api/auth/signout',{});await refreshSession();aiNotice=result.revoked?'ChatGPT 연결을 해제했습니다. 저장한 번역은 계속 볼 수 있습니다.':'PC의 로그인 정보는 지웠습니다. 서버 측 해제는 확인하지 못했으므로 ChatGPT 설정에서 앱 연결을 해제하세요.';}catch(e){aiNotice=e.message;}finally{accountBusy=false;renderAI();}
