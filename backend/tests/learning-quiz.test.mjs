@@ -421,6 +421,52 @@ for name in names + ['fs', 'net', 'node:sqlite', 'child_process', 'inspector', '
   assert.deepEqual(Object.entries(loaded).filter(([,value])=>value!=='blocked'),[],'no built-in module can be loaded after setup');
 });
 
+test('with JavaScript reached, no internal handle class connects to or creates a host named pipe',{skip:process.platform!=='win32'&&'named pipes are measured on Windows only'},async t=>{
+  const name=`duvi-h3-${process.pid}-${Date.now()}`,local=`\\\\.\\pipe\\${name}`,connections=[];
+  const server=net.createServer(socket=>{connections.push(1);socket.destroy();});
+  await new Promise(resolve=>server.listen(local,resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+  // Every handle class the snippet can reach: the stdio streams' handles and the active handles (the re-review used stderr's Pipe).
+  const settings=JSON.stringify({local,unc:`\\\\127.0.0.1\\pipe\\${name}`,created:`\\\\.\\pipe\\${name}-child`});
+  const code=`import js as g, json
+S = ${settings}
+P = g.process
+found = []
+for name in ('stdin', 'stdout', 'stderr'):
+    try:
+        h = getattr(P, name)._handle
+        if h:
+            found.append((name, h.constructor))
+    except Exception:
+        pass
+try:
+    for o in P._getActiveHandles():
+        if o._handle:
+            found.append(('active', o._handle.constructor))
+except Exception:
+    pass
+results = {}
+def attempt(key, action):
+    try:
+        rc = action()
+        results[key] = 'allowed' if rc in (0, None) else f'rc {rc}'
+    except Exception:
+        results[key] = 'blocked'
+def serve(C):
+    server = C.new(1)
+    rc = server.bind(S['created'])
+    return rc if rc else server.listen(1)
+for name, C in found:
+    for label in ('local', 'unc'):
+        attempt(f'{name}.connect.{label}', lambda: C.new(0).connect(C.new(0), S[label]))
+    attempt(f'{name}.bind+listen', lambda: serve(C))
+print(json.dumps({'classes': [n for n, _ in found], 'results': results}))`;
+  const result=await runPython(code,{pythonGuard:false,runMs:10000});
+  assert.ok(result.status==='executed'&&result.error===null,JSON.stringify(result));
+  const report=JSON.parse(result.output);
+  assert.deepEqual(connections,[],'the parent named pipe server got no connection (local or UNC)');
+  assert.deepEqual(Object.entries(report.results).filter(([,value])=>value==='allowed'),[],`no handle class connects, binds or listens: ${result.output}`);
+});
+
 test('problem code that reaches into the interpreter is not run and its answer stays unverified',async t=>{
   const runs=[],quoted={source:{kind:'transcript',ref:'00:06'},quote:'it calculates and it remembers.',concepts:[]};
   const items=[
