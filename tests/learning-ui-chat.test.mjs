@@ -42,6 +42,31 @@ test('explanation draft edits and deletion leave other windows’ question draft
   }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
 });
 
+test('saving a same-question draft only clears the exact draft this editor last wrote',async()=>{
+  const restore=installDom(),savedStorage=globalThis.localStorage,savedOption=globalThis.Option;
+  const values=new Map(), key='duvi-explanation-drafts-v1';
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    let finish;
+    const open=saveExplanation=>{
+      const panel=new Panel(createRoot(),{saveExplanation});panel.notice={};panel.editing.add('q');
+      const form=byTag(panel.mine({key:'q',seconds:22,record:{revision:3,explanation:''}}),'form')[0];
+      return {form,text:byTag(form,'textarea')[0]};
+    };
+    const stale=open(async()=>{}),b=open(()=>new Promise(resolve=>{finish=resolve;}));
+    b.text.value='B saves';b.text.dispatch('input');b.form.dispatch('submit');
+    const a=open(async()=>{});a.text.value='newer A draft';a.text.dispatch('input');
+    stale.text.value='stale edit';stale.text.dispatch('input');
+    finish();await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(open().text.value,'newer A draft');
+    assert.equal(JSON.parse(values.get(key)).q.revision,3);
+    a.form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(open().text.value,'');
+  }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
+});
+
 test('switching lectures isolates the draft and typing time, including a failure arriving after the switch',async()=>{
   let lectureId='1',reject;
   const panel=Object.assign(Object.create(ChatPanel.prototype),{questions:new Map(),input:{value:''},capture:()=>({lectureId}),getState:()=>({chats:[]}),time:()=>300,editing:new Set(),notice:{},fit(){},render(){},reveal(){},hideCite(){},liveNode(){},autoPause:{checked:false},modelSelect:{value:'m'},sendTranscript:{input:{checked:true}},sendNotes:{input:{checked:false}},stream:()=>new Promise((_resolve,no)=>{reject=no;})});
