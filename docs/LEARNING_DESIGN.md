@@ -243,6 +243,14 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
   - 2422180: JavaScript를 쥐었다고 가정하면 `node:sqlite`의 `DatabaseSync`가 fs 쓰기 권한 없이 호스트에 DB 파일을 만들었고
     (같은 상태에서 `fs.writeFileSync`는 `ERR_ACCESS_DENIED`), `process._kill(pid, 0)`이 성공했다. **이 Node 버전의 권한 모델은
     `node:sqlite`의 파일 쓰기를 막지 않는다.**
+  - df874f9: JavaScript를 쥐었다고 가정하면 `process.stderr._handle.constructor`(Node 내부 `Pipe` 클래스)로 부모 쪽 named
+    pipe(`\\.\pipe\…`와 UNC `\\127.0.0.1\pipe\…`)에 연결했고(연결 2건), 새 파이프를 bind+listen할 수 있었다(rc 0, 0).
+    UNC 형태는 SMB를 거쳐 다른 호스트로 나갈 수 있다(원격 호스트로는 시험하지 않았다).
+
+  **기본값은 실행하지 않음이다.** 독립 리뷰가 고칠 때마다 새 탈출 경로를 찾았다(셸, JavaScript 브리지, sqlite, 내부 핸들).
+  그래서 아래 격리는 여러 겹의 방어이지 보장이 아니다. 문제 코드 실행은 서버를 `DUVI_QUIZ_CODE_EXECUTION=1`로 시작했을
+  때만 켜진다. 꺼져 있으면 아무 프로세스도 띄우지 않고, 코드가 있는 문제는 AI 답을 그대로 둔 채 `ai_unverified`와
+  이유 "코드 실행 꺼짐"으로 남는다. 확인 문제 화면은 실행이 꺼져 있다는 것과 켜는 방법을 보여 준다.
 
   지금의 겹과 그 성격은 다음과 같다. 생성된 코드가 이 프로세스의 JavaScript에 닿을 수 있다고 전제한다.
   1. **Node 프로세스 플래그**: 문제마다 새 Node 프로세스(`backend/python-runner-worker.mjs`)를 `--permission
@@ -271,6 +279,10 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
        `_debugProcess`, `execve`, `dlopen`, `binding`, `_linkedBinding`, `loadEnvFile`, `chdir`, `umask`, `abort`,
        `_rawDebug`, `getBuiltinModule` 등은 모두 예외를 던지고 다시 쓸 수 없다. `process.report`도 얼린다.
      - 전역 `fetch`·`WebSocket`·`EventSource`·`localStorage`·`navigator`도 막는다.
+     - stdio 핸들: runner는 stdin·stdout·stderr를 모두 `ignore`로 띄우고 IPC 채널만 파이프로 둔다. 측정하면 이 상태의 자식에는
+       활성 핸들이 없고, `process.channel`(`Control`)은 파이프를 비공개 필드에 둔다. 잠금은 그래도 남아 있는 활성 핸들의
+       내부 클래스 메서드(connect·bind·listen·open 등)를 모두 예외로 바꾸고 얼린다. 그 뒤 `process.stdin/stdout/stderr`는
+       쓰기를 버리는 메모리 스트림으로 바뀐다. 그래서 `_handle`로 닿는 내부 클래스가 없다.
      - 잠금이 하나라도 적용되지 않으면 문제 코드를 실행하지 않는다.
   3. **Python 층(우회할 수 있는 한 겹)**: JavaScript 연결 모듈과 `subprocess`·`ctypes`·`socket`·`ssl`·`multiprocessing`
      import를 막고, `os`·`posix`의 프로세스 함수를 지우고, 실행 전에 gc에서 보이는 Pyodide 모듈 객체를 모두 비운다
@@ -294,6 +306,10 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
     연결은 0이다. `builtinModules`의 어떤 모듈도 더 불러올 수 없다.
   - 내부 접근 코드는 실행되지 않고 `ai_unverified`가 된다.
   - Python 층 우회로도 프로세스나 호스트 파일이 생기지 않는다. Python `open()`은 메모리 안 파일 시스템에만 쓴다.
+  - JavaScript를 쥔 상태에서 stdio와 활성 핸들에서 닿는 모든 핸들 클래스로 부모 쪽 named pipe(로컬, UNC 127.0.0.1)에 연결하거나
+    새 파이프를 bind+listen하는 시도가 성공하지 않고, 부모 파이프 서버의 연결 수가 0이다(df874f9에서는 2건이라 실패한다).
+  - 실행 스위치가 꺼져 있으면(기본값) runner가 불리지 않고 코드 문제가 "코드 실행 꺼짐"으로 `ai_unverified`가 된다. 켜면
+    실행된다.
 
   보장하지 않는 것:
   - Node·V8·WebAssembly·Pyodide 자체의 취약점.
@@ -303,7 +319,10 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
     측정은 Node 24.19에서만 했다.
   - 생성된 코드가 IPC로 거짓 실행 결과를 보내는 것(결과는 "실행됨" 근거로 저장된다).
   - CPU 사용(시간과 old-space만 제한).
-  - Windows 밖의 동작.
+  - `process.channel` 등 Node 내부 객체가 비공개 필드나 심볼로 가진 핸들. JavaScript에서 닿는 경로를 찾지 못했지만
+    전수 조사는 아니다.
+  - 정적 거부와 Python 층은 우회된다(문자열 연결, `getattr`, 유니코드 정규화로 정적 거부를 넘는 것이 재리뷰에서 측정됐다).
+  - Windows 밖의 동작(모든 측정은 Windows, Node 24.19).
 
   실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를 기록한다. 시간 초과, 취소, 정적 거부, 격리된
   프로세스를 띄우지 못했거나 Pyodide를 불러오지 못한 경우는 실행 결과 없이 `ai_unverified`와 이유로 남는다. 격리 없이
