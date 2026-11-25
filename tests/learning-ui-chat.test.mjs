@@ -4,6 +4,29 @@ import {parseEvents,textSegments,parseClock,composerAction,lectureThreads,withTh
 import {recordInput} from '../src/learning-ui.mjs';
 import {recordMarkdown} from '../src/learning-model.mjs';
 import {ChatPanel} from '../src/learning-chat.mjs';
+import {installDom,createRoot,byTag} from './fake-dom.mjs';
+
+test('explanation draft edits and deletion leave other windows’ question drafts intact',async()=>{
+  const restore=installDom(),savedStorage=globalThis.localStorage,savedOption=globalThis.Option;
+  const values=new Map([['duvi-explanation-drafts-v1','{"old":"legacy text"}']]);
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    const windowA=new Panel(createRoot(),{}),windowB=new Panel(createRoot(),{saveExplanation:async()=>{}});
+    const draft=(panel,key)=>byTag(wrap(panel,key),'textarea')[0];
+    function wrap(panel,key){panel.editing.add(key);const root=createRoot();root.append(panel.mine({key,seconds:22,record:{revision:3,explanation:''}}));return root;}
+    const a=draft(windowA,'q1');a.value='draft A';a.dispatch('input');
+    const b=draft(windowB,'q2');b.value='draft B';b.dispatch('input');
+    assert.equal(draft(new Panel(createRoot(),{}),'q1').value,'draft A');
+    windowB.notice={};
+    byTag(wrap(windowB,'q2'),'form')[0].dispatch('submit');
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(draft(new Panel(createRoot(),{}),'q1').value,'draft A');
+    assert.equal(draft(new Panel(createRoot(),{}),'q2').value,'');
+    assert.equal(draft(windowB,'old').value,'legacy text');
+  }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
+});
 
 test('switching lectures isolates the draft and typing time, including a failure arriving after the switch',async()=>{
   let lectureId='1',reject;

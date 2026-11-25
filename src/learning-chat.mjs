@@ -18,7 +18,7 @@ export class ChatPanel{
     this.nodes=new Map();this.editing=new Set();this.clock='';this.questions=new Map();
     // Unsent questions per lecture survive a reload (like explanation drafts), with their time and id.
     try{for(const [id,draft] of Object.entries(JSON.parse(localStorage.getItem(QUESTIONS_KEY)||'{}')||{}))this.questions.set(id,draft);}catch{}
-    try{this.drafts=JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{this.drafts={};}
+    this.drafts={};
     this.build();
   }
   build(){
@@ -204,17 +204,17 @@ export class ChatPanel{
     }
     const form=el('form','chat-mine-edit'),id=`mine-${item.key.replace(/[^A-Za-z0-9_-]/g,'-')}`,label=el('label','chat-mine-label');
     label.htmlFor=id;label.append('내 설명 ',el('span','muted','AI 답과 따로 저장돼요'));
-    const draft=this.drafts[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
+    const draft=this.readDrafts()[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
     let base=record,revision=draft===undefined||typeof draft==='string'?record?.revision:draft.revision;
     const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||(record?.explanation?record.help:item.answers?.length?'full':record?.help||'none');
-    const stash=()=>{this.drafts[item.key]={text:text.value,help:help.value,revision:revision??1};this.saveDrafts();};
+    const stash=()=>this.saveDraft(item.key,{text:text.value,help:help.value,revision:revision??1});
     text.addEventListener('input',stash);help.addEventListener('change',stash);
     const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
     const row=el('div','chat-mine-row'),save=button('저장',null,'primary');save.type='submit';
     row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
     form.append(label,text,row,notice);
     form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
-      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
+      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);this.saveDraft(item.key);this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
         catch(error){notice.textContent=apiErrorMessage(error);
           if(error.status===409){const compare=button('최신 저장본 확인',async()=>{try{
             const latest=await this.latestExplanation(item.key);if(!latest)throw new Error('기록을 찾을 수 없습니다. 초안은 유지했습니다.');
@@ -225,7 +225,14 @@ export class ChatPanel{
   }
   edit(item){this.editing.add(item.key);this.renderLog();const text=this.nodes.get(`${item.key}:mine`)?.node.querySelector('textarea');if(text){this.reveal(text.closest('.chat-mine'),'nearest');text.focus({preventScroll:true});}}
   focusMine(key){this.nodes.get(`${key}:mine`)?.node.querySelector('button')?.focus({preventScroll:true});}
-  saveDrafts(){try{localStorage.setItem(DRAFTS_KEY,JSON.stringify(this.drafts));}catch{}}
+  readDrafts(){try{return JSON.parse(localStorage.getItem(DRAFTS_KEY)||'{}')||{};}catch{return this.drafts;}}
+  saveDraft(key,draft){
+    // Other windows may have changed this map since the last render.
+    const drafts=this.readDrafts();
+    if(draft===undefined)delete drafts[key];else drafts[key]=draft;
+    this.drafts=drafts;
+    try{localStorage.setItem(DRAFTS_KEY,JSON.stringify(drafts));}catch{}
+  }
   /** Stores every lecture's unsent question, the open lecture's from the box. */
   saveQuestions(){
     if(this.lectureId){if(this.input.value)this.questions.set(this.lectureId,{text:this.input.value,anchor:this.anchor,unsent:this.unsent,questionId:this.questionId});else this.questions.delete(this.lectureId);}
