@@ -19,10 +19,10 @@ export function runPython(code,{loadMs=RUNNER_LIMITS.loadMs,runMs=RUNNER_LIMITS.
   if(typeof code!=='string'||!code.trim()||code.length>RUNNER_LIMITS.code)return Promise.resolve({status:'unavailable',reason:'실행할 코드가 없거나 너무 깁니다.'});
   if(signal?.aborted)return Promise.resolve({status:'cancelled',reason:'실행을 취소했습니다.'});
   return new Promise(resolve=>{
-    // No inherited environment (it may hold credentials); stdout is unused, stderr is kept short for the failure reason.
-    const child=spawn(process.execPath,[...runnerArgs(),WORKER],{stdio:['ignore','ignore','pipe','ipc'],env:{},cwd:PYODIDE_DIR,windowsHide:true});
-    let timer,result=null,stderr='';
-    child.stderr.setEncoding('utf8');child.stderr.on('data',text=>{if(stderr.length<1000)stderr+=text;});
+    // No inherited environment (it may hold credentials). Only the IPC channel is a pipe: a stdio pipe would give the
+    // child a Pipe handle whose class can connect to or create host named pipes; failures are reported over IPC.
+    const child=spawn(process.execPath,[...runnerArgs(),WORKER],{stdio:['ignore','ignore','ignore','ipc'],env:{},cwd:PYODIDE_DIR,windowsHide:true});
+    let timer,result=null;
     // The promise settles only once the process is gone, so a timeout or cancel never leaves it running.
     const finish=value=>{
       if(result)return;result=value;clearTimeout(timer);signal?.removeEventListener('abort',abort);
@@ -40,10 +40,7 @@ export function runPython(code,{loadMs=RUNNER_LIMITS.loadMs,runMs=RUNNER_LIMITS.
       else if(message?.type==='unavailable')finish({status:'unavailable',reason:`Python 실행 환경(Pyodide)을 불러오지 못했습니다: ${String(message.reason).slice(0,300)}`});
     });
     child.once('error',error=>{finish({status:'unavailable',reason:`Python 실행 환경을 시작하지 못했습니다: ${String(error?.message||error).slice(0,200)}`});resolve(result);});
-    child.once('exit',()=>{
-      const reason=stderr.trim().split('\n').find(line=>/^\w*Error\b|ERR_/.test(line))?.trim().slice(0,200);
-      finish({status:'unavailable',reason:`Python 실행 환경이 예기치 않게 종료되었습니다.${reason?` (${reason})`:''}`});resolve(result);
-    });
+    child.once('exit',()=>{finish({status:'unavailable',reason:'Python 실행 환경이 예기치 않게 종료되었습니다.'});resolve(result);});
     child.send({pyodideUrl:PYODIDE,code,maxOutput,pythonGuard});
   });
 }

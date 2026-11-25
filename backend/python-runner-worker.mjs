@@ -20,8 +20,6 @@ const refuseClass=(Class,label,stop)=>{for(let proto=Class.prototype;proto&&prot
 // process.binding is denied under --permission; Emscripten's NODEFS.staticInit only reads the fs open flags from it
 // while Pyodide loads. lockdown() removes it with the other process functions.
 Object.defineProperty(process,'binding',{value:name=>{if(name==='constants')return {fs:fsConstants,os:osConstants};throw refuse(`process.binding(${name})`)();},writable:false,configurable:true});
-// stdout/stderr are created lazily through net.Socket; create them before net is restricted.
-void process.stdout;void process.stderr;
 
 /**
  * Built-ins left usable after lockdown: none of them opens a file, socket, process or debugger by itself, and Node's
@@ -69,9 +67,23 @@ function lockdown(){
   syncBuiltinESMExports();
   for(const name of ['fetch','WebSocket','EventSource','XMLHttpRequest','localStorage','sessionStorage','navigator'])
     if(Object.getOwnPropertyDescriptor(globalThis,name)?.configurable!==false)Object.defineProperty(globalThis,name,{value:refuse(name),writable:false,configurable:false});
+  // Taken before the process functions (and with them _getActiveHandles) are refused below.
+  const handles=process._getActiveHandles(),{Readable,Writable}=load('stream');
   deny(process.report,'process.report',1);
   for(const name of Object.getOwnPropertyNames(process))
     if(!KEEP_PROCESS.has(name)&&typeof Object.getOwnPropertyDescriptor(process,name).value==='function')fix(process,name,refuse(`process.${name}`));
+  // The runner starts this process with every stdio stream ignored, so no Pipe, TCP or TTY handle exists (measured:
+  // stdio becomes fs streams, process.channel keeps its pipe in a private field). Should one exist anyway, its class can
+  // still connect, bind or listen (named pipes, including UNC paths to other hosts): every own method of that internal
+  // class throws and the prototype is frozen. From here on process.stdin/stdout/stderr are in-memory streams that
+  // discard writes (Node and Emscripten still write to stderr late), so no stdio handle or fd stream is reachable.
+  for(const object of handles){
+    const proto=object?._handle&&Object.getPrototypeOf(object._handle);
+    if(proto&&!Object.isFrozen(proto)){refuseAll(proto,`${proto.constructor?.name||'handle'}`);Object.freeze(proto);}
+  }
+  const sink=()=>new Writable({write(chunk,encoding,done){done();}});
+  for(const [name,stream] of [['stdin',Readable.from([])],['stdout',sink()],['stderr',sink()]])
+    Object.defineProperty(process,name,{value:stream,writable:false,configurable:false});
 }
 
 const BRIDGES=['js','pyodide','pyodide_js','_pyodide','_pyodide_core','micropip','pyodide_http','pyodide_kernel'];
