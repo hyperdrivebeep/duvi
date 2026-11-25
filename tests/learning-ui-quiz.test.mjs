@@ -50,6 +50,16 @@ test('a free-text AI question is self-graded after revealing the unverified answ
   byText(root,'내가 확인 (답이 맞다)','button').click();await settle();assert.deepEqual(api.calls.filter(call=>call[0]==='item').at(-1)[1],{lectureId:'1',segmentId:'s0',itemId:'q2',action:'confirm'});
 });
 
+test('with code execution off a coded AI question reads 꺼짐, not a failed run, and stays unverified',async()=>{
+  const coded={...ITEMS[1],code:'print(7 / 2)',execution:{status:'disabled',reason:'코드 실행 꺼짐'}};
+  const root=createRoot(),api=fakeApi({quiz:()=>Promise.resolve({...quizStatus({items:[coded]}),codeExecution:false})}),view=renderQuizScreen(root,api,{lectureId:'1'});await view.ready;
+  assert.ok(byText(root,/^문제 코드 실행이 꺼져 있습니다/));assert.ok(byText(root,'△ AI 제안 · 정답 미검증'));
+  const answer=all(root,node=>node.tagName==='TEXTAREA')[0];answer.value='3.5';answer.dispatch('input');choose(root,'confidence','low');
+  byText(root,'확인','button').click();await settle();
+  assert.ok(byText(root,'AI 제안 답 (정답 미검증 · 채점은 내가)'));assert.ok(byText(root,'○ 코드 실행 꺼짐 · 정답 미검증','p'));
+  assert.equal(/실행하지 못해/.test(root.textContent),false,'an execution switched off is not shown as a failed run');
+});
+
 test('generation states: no set → preview of what is sent → generating with cancel → failed with retry, input kept',async()=>{
   let fail;const pending=new Promise((resolve,reject)=>{fail=reject;});
   const root=createRoot(),api=fakeApi({quiz:()=>Promise.resolve(quizStatus({set:false})),generate:body=>{api.calls.push(['generate',body]);return pending;}});

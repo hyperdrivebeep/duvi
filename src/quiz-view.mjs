@@ -31,6 +31,8 @@ function answerLabel(item,grading=false){
 }
 function executionNotes(item){
   const run=item.execution;if(!run)return [];
+  // Execution switched off (the default) is a setting, not a failed run.
+  if(run.status==='disabled')return [el('p','quiz-muted','○ 코드 실행 꺼짐 · 정답 미검증')];
   if(run.status!=='executed')return [el('p','quiz-muted','✕ 문제 코드를 실행하지 못해 정답이 확인되지 않았습니다: '+(run.reason||''))];
   const notes=[];
   if(run.mismatch)notes.push(el('p','quiz-muted',`AI가 예상한 답(${run.aiAnswer.replace(/\n/g,' / ')})과 실제 출력이 달라 실제 출력을 정답으로 썼습니다.`));
