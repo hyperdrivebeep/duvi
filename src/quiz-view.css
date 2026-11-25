@@ -68,7 +68,7 @@
 .quiz-checkpoint-text{flex:1;min-width:0}
 .quiz-glyph{flex:none;width:14px;text-align:center}
 /* Fullscreen puts the lecture panel on #141922: the tab switches to the panel's light-on-dark colours. */
-.study-focus .quiz-tab{--q-ink:#ffffff;--q-body:#dce3ee;--q-muted:#bfcada;--q-line:#ffffff26;--q-accent:#9cc3ff}
+.study-focus .quiz-tab{--q-fill:#232e40;--q-ink:#ffffff;--q-body:#dce3ee;--q-muted:#bfcada;--q-line:#ffffff26;--q-accent:#9cc3ff}
 /* Inside the app shell: the shell's form rules make selects full width; the picker and links keep their own size. */
 .quiz-picker span{white-space:nowrap}
 .quiz-picker select{width:auto;min-width:240px}

@@ -119,7 +119,10 @@ carries its evidence: real output of the question's fixed code, a verbatim quote
 confirmation, or "AI 제안 · 정답 미검증". Running problem code is opt-in and off by default (lead decision 2026-11-25:
 independent reviews kept finding escape paths, so the isolation is defence in depth, not a guarantee); it is on only when
 the server starts with `DUVI_QUIZ_CODE_EXECUTION=1`. When off nothing is spawned and coded questions stay "AI 제안 ·
-정답 미검증" with the reason 코드 실행 꺼짐, and the quiz screen says so. When on, only fixed problem code runs, once at generation, in Pyodide inside a
+정답 미검증" with the reason 코드 실행 꺼짐, and the quiz screen says so. Recorded decision (2026-11-25): before execution may default to
+ON or get a UI switch, it needs OS-level isolation (a separate user or a container, no network) and a new independent
+review. Items saved as `executed` while execution was on stay `executed` after it is turned off (the switch applies at
+generation only). When on, only fixed problem code runs, once at generation, in Pyodide inside a
 separate Node process started with `--permission`, read access to the Pyodide package only (no write, child-process,
 worker, addon, WASI or inspector grant), `--disallow-code-generation-from-strings`, `--no-experimental-sqlite` and
 `--no-addons`, killed on timeout or cancel (cancel saves nothing). Treat that code as untrusted (its prompt includes

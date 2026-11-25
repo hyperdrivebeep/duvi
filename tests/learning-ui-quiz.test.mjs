@@ -134,4 +134,6 @@ test('in fullscreen the 확인 문제 and 개념 tabs use colours that reach 4.5
   const quiz=ruleVars(srcCss('quiz-view.css'),'.study-focus .quiz-tab'),map=ruleVars(srcCss('concept-map.css'),'.study-focus .cmap-lecture');
   const colours={'quiz text':quiz['--q-ink'],'quiz muted':quiz['--q-muted'],'quiz link':quiz['--q-accent'],'map text':map['--cmap-ink'],'map muted':map['--cmap-muted'],'map link':map['--cmap-accent']};
   for(const [name,colour] of Object.entries(colours))assert.ok(colour&&contrast(colour,panel)>=4.5,`${name} ${colour} on ${panel}: ${colour?contrast(colour,panel).toFixed(2):'not set'}`);
+  // A .quiz-button (다시 불러오기 in the tab's load error) is ink on the fill colour.
+  const fill=quiz['--q-fill'];assert.ok(fill&&contrast(quiz['--q-ink'],fill)>=4.5,`quiz button ${quiz['--q-ink']} on ${fill}: ${fill?contrast(quiz['--q-ink'],fill).toFixed(2):'fill not set'}`);
 });
