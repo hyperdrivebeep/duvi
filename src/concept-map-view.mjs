@@ -137,40 +137,51 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   });
   const bandLabels = layout.bands.map(band => h('h3', {className: 'cmap-band', style: `top:${band.y}px`},
     `${band.field} · ${band.gap ? '커리큘럼에 없음 · 자료 없음' : `자료 있음 ${band.withMaterial}/${band.total}`}`));
-  // A name cut off by the ellipsis is shown in full by a tooltip on hover or keyboard focus. Escape hides it from anywhere
-  // without moving focus or the pointer (WCAG 1.4.13); the next hover or focus measures and shows it again.
-  let tipNode = null;
+  // Tooltips (a name cut off by the ellipsis, a glyph-only control's name) show on hover or keyboard focus, one at a time.
+  // Escape hides it from anywhere without moving focus or the pointer (WCAG 1.4.13); the next hover or focus shows it again.
+  let tipOwner = null;
   const hideTip = event => {
     if (event.key !== 'Escape') return;
-    if (tipNode) setClass(tipNode, 'cmap-cut', false);
-    tipNode = null; document.removeEventListener('keydown', hideTip);
+    if (tipOwner) setClass(tipOwner, 'cmap-tip-on', false);
+    tipOwner = null; document.removeEventListener('keydown', hideTip);
   };
-  const showTip = (button, name) => {
-    const cut = name.scrollWidth > name.clientWidth;
-    setClass(button, 'cmap-cut', cut);
-    if (cut) { tipNode = button; document.addEventListener('keydown', hideTip); }
+  const showTip = (button, on) => {
+    if (tipOwner && tipOwner !== button) setClass(tipOwner, 'cmap-tip-on', false);
+    setClass(button, 'cmap-tip-on', on);
+    tipOwner = on ? button : null;
+    if (on) document.addEventListener('keydown', hideTip);
   };
   const nodeEls = new Map(layout.nodes.map(node => {
     const concept = byId.get(node.id), material = materialLabel(data, concept), counts = conceptCounts(data, concept, state, evidence);
     const materialParts = [material, counts.marked && `내가 표시 ${counts.marked.done}/${counts.marked.total}`].filter(Boolean), records = evidenceParts(counts);
+    const lines = [`${MATERIAL_GLYPH[material]} ${materialParts.join(' · ')}`, records.join(' · ')];
     // The visible lines give the name no break between them and the glyph is decoration, so the node is named by its phrases.
     // No title: next to the aria-label a screen reader reads it again as the description. The tooltip is aria-hidden
-    // for the same reason: the aria-label already carries the full name.
-    const name = h('span', {className: 'cmap-node-name', text: concept.name});
+    // for the same reason: the aria-label already carries the full name. It repeats the state lines under the full name,
+    // so the node it lies over loses nothing while it is shown.
+    const name = h('span', {className: 'cmap-node-name', text: concept.name}), cut = () => name.scrollWidth > name.clientWidth;
     const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'aria-pressed': 'false',
       'aria-label': [concept.name, ...materialParts, ...records].join(', '),
       style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id),
-      onMouseenter: () => showTip(button, name), onFocus: () => showTip(button, name)},
+      onMouseenter: () => showTip(button, cut()), onFocus: () => showTip(button, cut())},
     name,
-    h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${materialParts.join(' · ')}`}),
-    h('span', {className: 'cmap-node-line cmap-muted', text: records.join(' · ')}),
-    h('span', {className: 'cmap-node-tip', 'aria-hidden': 'true', text: concept.name}));
+    h('span', {className: 'cmap-node-line', text: lines[0]}),
+    h('span', {className: 'cmap-node-line cmap-muted', text: lines[1]}),
+    h('span', {className: 'cmap-node-tip', 'aria-hidden': 'true'},
+      h('span', {className: 'cmap-node-tip-name', text: concept.name}), ...lines.map(text => h('span', {className: 'cmap-node-line', text}))));
     return [node.id, button];
   }));
   const layer = h('div', {className: 'cmap-layer', style: `width:${layout.width}px;height:${layout.height}px`}, edgesLayer, ...bandLabels, ...nodeEls.values());
   const note = h('p', {className: 'cmap-fit-note', role: 'status'});
   const focusIds = (focusConceptIds || []).filter(id => nodeOf.has(id));
-  const control = (label, glyph, action, extra = {}) => h('button', {type: 'button', className: 'cmap-control', 'aria-label': label, title: label, onClick: action, ...extra}, h('span', {'aria-hidden': 'true', text: glyph}), extra.showText ? h('span', {text: label}) : null);
+  // Named by the aria-label alone: a title equal to the name is read again as the description. A control that shows only
+  // its glyph shows its name in an aria-hidden tooltip instead, like the node names.
+  const control = (label, glyph, action, {showText, ...extra} = {}) => {
+    const tip = showText ? {} : {onMouseenter: () => showTip(button, true), onFocus: () => showTip(button, true)};
+    const button = h('button', {type: 'button', className: 'cmap-control', 'aria-label': label, onClick: action, ...extra, ...tip},
+      h('span', {'aria-hidden': 'true', text: glyph}), h('span', showText ? {text: label} : {className: 'cmap-control-tip', 'aria-hidden': 'true', text: label}));
+    return button;
+  };
   const controls = h('div', {className: 'cmap-controls', role: 'group', 'aria-label': '그래프 보기 조절'},
     control('화면 맞춤', '⛶', () => fit(), {showText: true}),
     focusConceptIds ? control('지금 강의 개념으로', '◎', () => focusCurrent(), {showText: true, disabled: focusIds.length ? null : true}) : null,

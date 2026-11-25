@@ -253,9 +253,8 @@ test('graph nodes carry no title (read again as a description); a cut-off name i
   const [cut, whole] = nodes, nameOf = node => node.find(hasClass('cmap-node-name'));
   Object.defineProperties(nameOf(cut), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
   Object.defineProperties(nameOf(whole), {scrollWidth: {value: 120}, clientWidth: {value: 180}});
-  cut.fire('mouseenter'); whole.fire('focus');
-  assert.ok(hasClass('cmap-cut')(cut), 'a cut-off name gets the tooltip');
-  assert.equal(hasClass('cmap-cut')(whole), false, 'a name that fits gets none');
+  cut.fire('mouseenter'); assert.ok(hasClass('cmap-tip-on')(cut), 'a cut-off name gets the tooltip');
+  whole.fire('focus'); assert.equal(hasClass('cmap-tip-on')(whole), false, 'a name that fits gets none');
 }));
 
 const cutNode = () => {
@@ -270,17 +269,55 @@ test('the full-name tooltip is an aria-hidden element, so it adds no second text
   const {node, concept} = cutNode(), tip = node.find(hasClass('cmap-node-tip'));
   assert.ok(tip, 'the tooltip is an element of its own');
   assert.equal(tip.getAttribute('aria-hidden'), 'true');
-  assert.equal(tip.textContent, concept.name);
+  assert.equal(tip.find(hasClass('cmap-node-tip-name')).textContent, concept.name);
+}));
+
+test('the full-name tooltip repeats the state lines of its node, so the node it covers loses nothing', () => withDom(() => {
+  const {node} = cutNode(), tip = node.find(hasClass('cmap-node-tip'));
+  const own = node.children.filter(hasClass('cmap-node-line')).map(line => line.textContent);
+  assert.equal(own.length, 2);
+  assert.deepEqual(tip.children.filter(hasClass('cmap-node-line')).map(line => line.textContent), own);
 }));
 
 test('Escape hides a shown tooltip without moving focus; the next hover or focus shows it again', () => withDom(() => {
-  const {node} = cutNode(), cut = () => hasClass('cmap-cut')(node);
+  const {node} = cutNode(), cut = () => hasClass('cmap-tip-on')(node);
   node.fire('focus'); assert.ok(cut());
   document.fire('keydown', {key: 'a'}); assert.ok(cut(), 'another key leaves it');
   document.fire('keydown', {key: 'Escape'}); assert.equal(cut(), false, 'Escape hides it');
   node.fire('mouseenter'); assert.ok(cut(), 'the next hover shows it');
   document.fire('keydown', {key: 'Escape'}); assert.equal(cut(), false);
   node.fire('focus'); assert.ok(cut(), 'the next focus shows it');
+}));
+
+test('a tooltip shown on one node is taken down when another one shows, so Escape never leaves one behind', () => withDom(() => {
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const [first, second] = root.all(hasClass('cmap-node'));
+  for (const node of [first, second]) Object.defineProperties(node.find(hasClass('cmap-node-name')), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
+  first.fire('focus'); second.fire('mouseenter');
+  assert.equal(hasClass('cmap-tip-on')(first), false);
+  document.fire('keydown', {key: 'Escape'});
+  assert.equal([first, second].some(hasClass('cmap-tip-on')), false);
+}));
+
+test('graph controls are named once (no title read again as the description); glyph-only ones show their name in a dismissible tooltip', () => withDom(() => {
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph', focusConceptIds: [data.concepts[0].id]});
+  const controls = root.all(hasClass('cmap-control'));
+  assert.deepEqual(controls.map(button => button.getAttribute('aria-label')), ['화면 맞춤', '지금 강의 개념으로', '확대', '축소']);
+  for (const button of controls) {
+    const label = button.getAttribute('aria-label');
+    assert.equal(button.getAttribute('title'), null, label);
+    assert.equal(button.getAttribute('showText'), null, label);
+    const visible = button.children.filter(child => child.getAttribute('aria-hidden') !== 'true').map(child => child.textContent).join('');
+    const tip = button.find(hasClass('cmap-control-tip'));
+    if (visible) { assert.equal(visible, label); assert.equal(tip, undefined, label); continue; }
+    assert.equal(tip.getAttribute('aria-hidden'), 'true', label); assert.equal(tip.textContent, label);
+    button.fire('mouseenter'); assert.ok(hasClass('cmap-tip-on')(button), label);
+    document.fire('keydown', {key: 'Escape'}); assert.equal(hasClass('cmap-tip-on')(button), false, label);
+    button.fire('focus'); assert.ok(hasClass('cmap-tip-on')(button), label);
+    document.fire('keydown', {key: 'Escape'});
+  }
 }));
 
 test('lecture panel lists the lecture concepts and opens one', () => withDom(() => {
