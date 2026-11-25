@@ -8,9 +8,10 @@ import {readFileSync} from 'node:fs';
 // Vendored third-party code and the lockfile are skipped.
 const root = new URL('..', import.meta.url);
 const BINARY = /\.(webp|png|jpe?g|gif|ico|woff2?|ttf|exe|zip|wasm)$/i, SKIP = /^(package-lock\.json|backend\/vendor\/)/;
-// A Unix-style root must start a token, not be a component of a URL or API route.
-const USER_HOME = /(?:(?<![\w/:.-])[a-z]:[\\/]{1,2}|(?<=^|[\s`'"([{<])\/(?:(?:mnt\/)?[a-z]\/)?)users[\\/]{1,2}([^\\/\s`'"<>…]+)/gi;
-const UNIX_HOME = /(?<=^|[\s`'"([{<])\/home\/([\w.-]+)/g;
+// Reject roots embedded in URL/path segments, but allow delimiters and explicit local file URLs.
+// A drive embedded in a URL (host/C:/Users/...) must not fall back to a bare /Users match.
+const USER_HOME = /(?<![\w.%\/-])(?:file:\/\/\/(?=[a-z]:)|file:\/\/)?(?:[a-z]:[\\/]{1,2}|(?<![\w.%\/-]\/[a-z]:)\/(?:(?:mnt\/)?[a-z]\/)?)users[\\/]{1,2}([^\\/\s`'"<>…]+)/gi;
+const UNIX_HOME = /(?<![\w.%\/-])(?:file:\/\/)?\/home\/([\w.-]+)/g;
 // Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
 const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
@@ -94,6 +95,24 @@ test('privacy scanner distinguishes personal email and workspace paths from pack
     'vite@6.4.2', 'pyodide@314.0.8', '@scope/tool@1.2.3-beta.1', 'icon@2x.png', 'pkg@1.2.3-beta.tgz',
     'git@github.com:org/repo', 'person@example.org', 'person@subdomain.example', 'person@host.test', 'Home/End'
   ]) assert.deepEqual(personalMatches(text), [], text);
+});
+
+test('privacy scanner detects personal paths in local file URLs and after delimiters', () => {
+  const windows = ['C:', 'Users', 'DemoUser'].join('/');
+  const mac = ['', 'Users', 'DemoUser'].join('/');
+  const unix = ['', 'home', 'demo-user'].join('/');
+  const escapedWindows = ['C:', 'Users', 'DemoUser'].join('\\\\');
+  for (const fileHome of [`file:///${windows}`, `file://${unix}`, `file://${mac}`]) {
+    assert.deepEqual(personalMatches(fileHome), [fileHome], fileHome);
+    assert.deepEqual(personalMatches(fileHome+'/logs'), [fileHome], fileHome);
+  }
+  for (const [text, home] of [
+    [`HOME=${unix}`, unix], [`--root=${mac}/notes`, mac],
+    [`PATH=/usr/bin:${unix}/bin`, unix], [`a,${unix}/x`, unix],
+    [`out>${unix}/log`, unix], [`out|${unix}/bin`, unix],
+    [`\`${unix}/x\``, unix], [`'${mac}/x'`, mac],
+    [`"${escapedWindows}"`, escapedWindows], [`[log](${unix}/x)`, unix]
+  ]) assert.deepEqual(personalMatches(text), [home], text);
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {

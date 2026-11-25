@@ -1,7 +1,7 @@
 import test from 'node:test';
 import os from 'node:os';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {request as httpRequest} from 'node:http';
@@ -111,6 +111,18 @@ test('Cancellation aborts current request and prevents partial cache writes',asy
 });
 test('Windows DPAPI persists UTF-8 and does not store plaintext tokens',async()=>{
   const dir=path.join(temp,'vault'),vault=createVault(dir);const value={token:'TEST-ONLY-not-a-real-secret',label:'한국어 계정'};await vault.write(value);assert.deepEqual(await vault.read(),value);assert.equal((await readFile(path.join(dir,'accounts.dpapi'),'utf8')).includes(value.token),false);
+});
+test('Windows DPAPI save leaves the legacy fixed temp path untouched',async t=>{
+  const dir=await mkdtemp(path.join(temp,'vault-temp-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  // Occupy the old name so a fixed-temp writer cannot use it, without a timing race.
+  const legacyTemp=path.join(dir,'accounts.dpapi.tmp');
+  await mkdir(legacyTemp);
+  const vault=createVault(dir),value={label:'Temporary test account'};
+  await vault.write(value);
+  assert.deepEqual(await vault.read(),value);
+  assert.deepEqual(await readdir(legacyTemp),[]);
+  assert.deepEqual((await readdir(dir)).sort(),['accounts.dpapi','accounts.dpapi.tmp']);
 });
 test('YouTube URLs restrict hosts and normalize supported forms',()=>{
   for(const url of ['https://youtu.be/xAcTmDO6NTI?t=1','https://www.youtube.com/watch?v=xAcTmDO6NTI','https://m.youtube.com/shorts/xAcTmDO6NTI'])assert.equal(youtubeId(url),'xAcTmDO6NTI');
