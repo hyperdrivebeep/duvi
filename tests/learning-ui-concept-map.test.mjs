@@ -131,7 +131,10 @@ const shown = node => { for (let at = node; at; at = at.parentNode) if (at.hidde
 const conceptRows = root => root.all(node => node.tagName === 'TR' && node.getAttribute('data-id') && shown(node));
 function withDom(run) {
   const original = globalThis.document;
-  globalThis.document = {createElement: tag => new FakeNode(tag), createElementNS: (namespace, tag) => new FakeNode(tag), createTextNode: text => ({textContent: String(text)})};
+  const listeners = {};
+  globalThis.document = {createElement: tag => new FakeNode(tag), createElementNS: (namespace, tag) => new FakeNode(tag), createTextNode: text => ({textContent: String(text)}),
+    addEventListener: (type, listener) => (listeners[type] ||= new Set()).add(listener), removeEventListener: (type, listener) => listeners[type]?.delete(listener),
+    fire: (type, extra = {}) => { for (const listener of [...(listeners[type] || [])]) listener({type, ...extra}); }};
   try { return run(); } finally { globalThis.document = original; }
 }
 
@@ -233,8 +236,51 @@ test('graph node names read as separate phrases, without the material glyph, kee
   for (const node of root.all(hasClass('cmap-node'))) {
     const label = node.getAttribute('aria-label');
     assert.ok(label && !/[●◐○]/.test(label), label);
-    assert.equal(words(label), words(node.textContent), 'the name keeps every word shown on the node');
+    const shown = node.children.filter(child => child.getAttribute('aria-hidden') !== 'true').map(child => child.textContent).join('');
+    assert.equal(words(label), words(shown), 'the name keeps every word shown on the node');
   }
+}));
+
+test('graph nodes carry no title (read again as a description); a cut-off name is shown in full on hover or focus', () => withDom(() => {
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const nodes = root.all(hasClass('cmap-node'));
+  assert.equal(nodes.length, data.concepts.length);
+  for (const node of nodes) {
+    const concept = data.concepts.find(item => item.id === node.getAttribute('data-id'));
+    assert.equal(node.getAttribute('title'), null, concept.name);
+  }
+  const [cut, whole] = nodes, nameOf = node => node.find(hasClass('cmap-node-name'));
+  Object.defineProperties(nameOf(cut), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
+  Object.defineProperties(nameOf(whole), {scrollWidth: {value: 120}, clientWidth: {value: 180}});
+  cut.fire('mouseenter'); whole.fire('focus');
+  assert.ok(hasClass('cmap-cut')(cut), 'a cut-off name gets the tooltip');
+  assert.equal(hasClass('cmap-cut')(whole), false, 'a name that fits gets none');
+}));
+
+const cutNode = () => {
+  const root = new FakeNode('div');
+  renderConceptMap(root, {data, state: {}, view: 'graph'});
+  const [node] = root.all(hasClass('cmap-node'));
+  Object.defineProperties(node.find(hasClass('cmap-node-name')), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
+  return {node, concept: data.concepts.find(item => item.id === node.getAttribute('data-id'))};
+};
+
+test('the full-name tooltip is an aria-hidden element, so it adds no second text to the accessibility tree', () => withDom(() => {
+  const {node, concept} = cutNode(), tip = node.find(hasClass('cmap-node-tip'));
+  assert.ok(tip, 'the tooltip is an element of its own');
+  assert.equal(tip.getAttribute('aria-hidden'), 'true');
+  assert.equal(tip.textContent, concept.name);
+}));
+
+test('Escape hides a shown tooltip without moving focus; the next hover or focus shows it again', () => withDom(() => {
+  const {node} = cutNode(), cut = () => hasClass('cmap-cut')(node);
+  node.fire('focus'); assert.ok(cut());
+  document.fire('keydown', {key: 'a'}); assert.ok(cut(), 'another key leaves it');
+  document.fire('keydown', {key: 'Escape'}); assert.equal(cut(), false, 'Escape hides it');
+  node.fire('mouseenter'); assert.ok(cut(), 'the next hover shows it');
+  document.fire('keydown', {key: 'Escape'}); assert.equal(cut(), false);
+  node.fire('focus'); assert.ok(cut(), 'the next focus shows it');
 }));
 
 test('lecture panel lists the lecture concepts and opens one', () => withDom(() => {
