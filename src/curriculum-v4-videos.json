@@ -1,0 +1,1533 @@
+{
+  "videos": {
+    "P7NE4WF8j-Q": {
+      "title": "Lecture 4: Conditional Probability | Statistics 110",
+      "channel": "Harvard University",
+      "url": "https://www.youtube.com/watch?v=P7NE4WF8j-Q",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "Nx0lRBaXoz4": {
+      "title": "Lec 29 | MIT 18.06 Linear Algebra, Spring 2005",
+      "channel": "MIT OpenCourseWare",
+      "url": "https://www.youtube.com/watch?v=Nx0lRBaXoz4",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "fSytzGwwBVw": {
+      "title": "Machine Learning Fundamentals: Cross Validation",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=fSytzGwwBVw",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "KUIIgUwxGxs": {
+      "title": "Statistical Learning: 6.R.4 Ridge Regression and Lasso",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=KUIIgUwxGxs",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "Rsc5znwR5FA": {
+      "title": "Statistical Power, Clearly Explained!!!",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=Rsc5znwR5FA",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "8r_pMRnG97s": {
+      "title": "Statistical Learning: 13.4 Holm's Method for Controlling FWER",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=8r_pMRnG97s",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "-fz_kZvlWpw": {
+      "title": "Pre-Registration by Daniel Lakens",
+      "channel": "Daniel Lakens",
+      "url": "https://www.youtube.com/watch?v=-fz_kZvlWpw",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "ci3muJMEYho": {
+      "title": "Causality: Interventions | Part A",
+      "channel": "UCLA Automated Reasoning Group",
+      "url": "https://www.youtube.com/watch?v=ci3muJMEYho",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "1_b7jgupoAE": {
+      "title": "10 - Causal Discovery from Observational Data",
+      "channel": "Brady Neal - Causal Inference",
+      "url": "https://www.youtube.com/watch?v=1_b7jgupoAE",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "SQ3fZ1sAqXI": {
+      "title": "Stanford CS336 Language Modeling from Scratch | Spring 2025 | Lecture 1: Overview and Tokenization",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=SQ3fZ1sAqXI",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "zduSFxRajkE": {
+      "title": "Let's build the GPT Tokenizer",
+      "channel": "Andrej Karpathy",
+      "url": "https://www.youtube.com/watch?v=zduSFxRajkE",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "o6l6tJQgUg4": {
+      "title": "Post-Training and RLHF Overview | Post-Training Book Course, Lecture 1",
+      "channel": "Nathan Lambert",
+      "url": "https://www.youtube.com/watch?v=o6l6tJQgUg4",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "jF43_wj_DCQ": {
+      "title": "Training with PyTorch",
+      "channel": "PyTorch Foundation",
+      "url": "https://www.youtube.com/watch?v=jF43_wj_DCQ",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "gsS9RPWiSvY": {
+      "title": "[Continual Learning Course] Lecture #5: Methodologies (Part 1)",
+      "channel": "ContinualAI",
+      "url": "https://www.youtube.com/watch?v=gsS9RPWiSvY",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "l812pUnKxME": {
+      "title": "Lecture 7: Debugging and Profiling (2020)",
+      "channel": "Missing Semester",
+      "url": "https://www.youtube.com/watch?v=l812pUnKxME",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "bHSDPgZYie0": {
+      "title": "Stanford CS25: Transformers United V6 I Overview of Transformers",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=bHSDPgZYie0",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "mE7IDf2SmJg": {
+      "title": "Stanford CS25: V3 I Retrieval Augmented Language Models",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=mE7IDf2SmJg",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "MiqLoAZFRSE": {
+      "title": "Yann Lecun | Objective-Driven AI: Towards AI systems that can learn, remember, reason, and plan",
+      "channel": "Harvard CMSA",
+      "url": "https://www.youtube.com/watch?v=MiqLoAZFRSE",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "92-98SYOdlY": {
+      "title": "ML Tutorial: Gaussian Processes (Richard Turner)",
+      "channel": "Marc Deisenroth",
+      "url": "https://www.youtube.com/watch?v=92-98SYOdlY",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "c4KKvyWW_Xk": {
+      "title": "INFORMS TutORial: Bayesian Optimization",
+      "channel": "INFORMS",
+      "url": "https://www.youtube.com/watch?v=c4KKvyWW_Xk",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "Sl6dooO4GAk": {
+      "title": "The Multi-Armed Bandit Problem and Thompson Sampling",
+      "channel": "Microsoft Research",
+      "url": "https://www.youtube.com/watch?v=Sl6dooO4GAk",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "YbFgNsM6r44": {
+      "title": "1. Simple Harmonic Motion & Problem Solving Introduction",
+      "channel": "MIT OpenCourseWare",
+      "url": "https://www.youtube.com/watch?v=YbFgNsM6r44",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "df43V4OjMVs": {
+      "title": "Python Symbolic Regression (PySR) [Physics Informed Machine Learning]",
+      "channel": "Steve Brunton",
+      "url": "https://www.youtube.com/watch?v=df43V4OjMVs",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "E0i9qDhKF3o": {
+      "title": "Francesco Locatello - Learning to See the Hidden World: A Perspective on Causal Representations",
+      "channel": "ML in PL",
+      "url": "https://www.youtube.com/watch?v=E0i9qDhKF3o",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "mAmb32vi3Ns": {
+      "title": "Introduction to Transparent Data Visualization",
+      "channel": "Berkeley Initiative for Transparency in the Social Sciences (BITSS)",
+      "url": "https://www.youtube.com/watch?v=mAmb32vi3Ns",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "mt9WKbQJrI4": {
+      "title": "Statistical Rethinking 2023 - 17 - Measurement & Misclassification",
+      "channel": "Richard McElreath",
+      "url": "https://www.youtube.com/watch?v=mt9WKbQJrI4",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "kJLiOGle3Lw": {
+      "title": "Stanford Webinar - Agentic AI: A Progression of Language Model Usage",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=kJLiOGle3Lw",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "9N6a-VLBa2I": {
+      "title": "Python Tutorial: Working with JSON Data using the json Module",
+      "channel": "Corey Schafer",
+      "url": "https://www.youtube.com/watch?v=9N6a-VLBa2I",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "jxmzY9soFXg": {
+      "title": "Python Tutorial: Logging Advanced - Loggers, Handlers, and Formatters",
+      "channel": "Corey Schafer",
+      "url": "https://www.youtube.com/watch?v=jxmzY9soFXg",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "UnCAdBtvZhc": {
+      "title": "[Continual Learning Course] Lecture #2: Understanding Catastrophic Forgetting",
+      "channel": "ContinualAI",
+      "url": "https://www.youtube.com/watch?v=UnCAdBtvZhc",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "6tNS--WetLI": {
+      "title": "Python Tutorial: Unit Testing Your Code with the unittest Module",
+      "channel": "Corey Schafer",
+      "url": "https://www.youtube.com/watch?v=6tNS--WetLI",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "VK51E3gHENc": {
+      "title": "How to Write a Great Research Paper",
+      "channel": "Microsoft Research",
+      "url": "https://www.youtube.com/watch?v=VK51E3gHENc",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "YfRoEIk7_5I": {
+      "title": "5 Key Tips to Respond to Peer Reviewer Comments",
+      "channel": "Editage",
+      "url": "https://www.youtube.com/watch?v=YfRoEIk7_5I",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "TqOeMYtOc1w": {
+      "title": "Confidence Intervals, Clearly Explained!!!",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=TqOeMYtOc1w",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "AEpMHDXK8UI": {
+      "title": "Understanding non-significant results using equivalence tests",
+      "channel": "Daniel Quintana",
+      "url": "https://www.youtube.com/watch?v=AEpMHDXK8UI",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "-6zM6mydlfA": {
+      "title": "Statistical Learning: 13.2 Introduction to Multiple Testing and Family Wise Error Rate",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=-6zM6mydlfA",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "4RPUrwzgO6c": {
+      "title": "Statistical Learning: 13.5 False Discovery Rate and Benjamini Hochberg Method",
+      "channel": "Stanford Online",
+      "url": "https://www.youtube.com/watch?v=4RPUrwzgO6c",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "VX_M3tIyiYk": {
+      "title": "Power Analysis, Clearly Explained!!!",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=VX_M3tIyiYk",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "2AqoK8itEFQ": {
+      "title": "Wilcoxon Test (Wilcoxon signed-rank test) — Simply explained",
+      "channel": "numiqo",
+      "url": "https://www.youtube.com/watch?v=2AqoK8itEFQ",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "cajVExuCeE4": {
+      "title": "Simulation-Based Approach for Analyzing Paired Data",
+      "channel": "ISI-Stats",
+      "url": "https://www.youtube.com/watch?v=cajVExuCeE4",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "PFHnZw6aCbo": {
+      "title": "Two-pop. Conf. Int. Sofware Part3",
+      "channel": "Matt Teachout",
+      "url": "https://www.youtube.com/watch?v=PFHnZw6aCbo",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "Kdsp6soqA7o": {
+      "title": "Machine Learning Fundamentals: The Confusion Matrix",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=Kdsp6soqA7o",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "nnjKCtdORwY": {
+      "title": "10.3 - Markov Equivalence and Graphical Criterion",
+      "channel": "Brady Neal - Causal Inference",
+      "url": "https://www.youtube.com/watch?v=nnjKCtdORwY",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "NeHPjOX8SNM": {
+      "title": "11.7 - Interventional Markov Equivalence",
+      "channel": "Brady Neal - Causal Inference",
+      "url": "https://www.youtube.com/watch?v=NeHPjOX8SNM",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "uagJZYuuNzI": {
+      "title": "Statistically Efficient Greedy Equivalence Search",
+      "channel": "Uncertainty in Artificial Intelligence",
+      "url": "https://www.youtube.com/watch?v=uagJZYuuNzI",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "2Fp1N6dof0Y": {
+      "title": "Python Tutorial: Calling External Commands Using the Subprocess Module",
+      "channel": "Corey Schafer",
+      "url": "https://www.youtube.com/watch?v=2Fp1N6dof0Y",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "nRVT4olRbMA": {
+      "title": "Python Concurrent Futures - ThreadPoolExecutor & ProcessPoolExecutor",
+      "channel": "BugBytes",
+      "url": "https://www.youtube.com/watch?v=nRVT4olRbMA",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "V9HBtGCr0w8": {
+      "title": "Verify File Content with Python hashlib Checksums",
+      "channel": "PythonLessonLab",
+      "url": "https://www.youtube.com/watch?v=V9HBtGCr0w8",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "AMCmhRoKnSk": {
+      "title": "How to align your LLM judge for better evaluations",
+      "channel": "CoreWeave",
+      "url": "https://www.youtube.com/watch?v=AMCmhRoKnSk",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "kwkdKirqi6s": {
+      "title": "Shaping AI Benchmarks with Together AI Co-Founder Percy Liang",
+      "channel": "CoreWeave",
+      "url": "https://www.youtube.com/watch?v=kwkdKirqi6s",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": null
+      }
+    },
+    "57fZOskTPxc": {
+      "title": "What Do Kernels, Length Scale & Amplitude Mean in Gaussian Processes?",
+      "channel": "Learning Bayesian Statistics",
+      "url": "https://www.youtube.com/watch?v=57fZOskTPxc",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "HIpzCx9-4T0": {
+      "title": "Exhaustive Symbolic Regression, or how to find the best function for your data",
+      "channel": "Institut d'astrophysique de Paris",
+      "url": "https://www.youtube.com/watch?v=HIpzCx9-4T0",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "bw9O7FlsL0g": {
+      "title": "Minimum Description Length - Georgia Tech - Machine Learning",
+      "channel": "Udacity",
+      "url": "https://www.youtube.com/watch?v=bw9O7FlsL0g",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    },
+    "MHCi8IR81ok": {
+      "title": "11 - Causal Discovery from Interventions",
+      "channel": "Brady Neal - Causal Inference",
+      "url": "https://www.youtube.com/watch?v=MHCi8IR81ok",
+      "oembed": {
+        "status": 200,
+        "checked_on": "2026-11-25",
+        "previously_verified_on": "2026-11-23"
+      }
+    }
+  },
+  "topics": {
+    "learning-phase-2": [
+      {
+        "videoId": "P7NE4WF8j-Q",
+        "range": "전체",
+        "minutes": 49.8,
+        "reason": "독립과 조건부확률, 베이즈 규칙을 예제 전개대로 따라가고 같은 우도·다른 사전의 표를 다시 계산한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-2"
+        ]
+      }
+    ],
+    "learning-phase-2b": [
+      {
+        "videoId": "Nx0lRBaXoz4",
+        "range": "전체",
+        "minutes": 41.6,
+        "reason": "Strang의 SVD 유도와 행렬 분해를 손계산하고, 분해가 숨은 생성 변수 식별을 보장하지 않음을 별도로 확인한다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-2b"
+        ]
+      }
+    ],
+    "learning-phase-3": [
+      {
+        "videoId": "fSytzGwwBVw",
+        "range": "전체",
+        "minutes": 6.1,
+        "reason": "교차검증에서 검증 셋의 역할을 잡는다. 동일 세계/시드가 폴드를 건너지 않도록 그룹 규칙을 직접 붙인다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-2b",
+          "learning-phase-3"
+        ]
+      },
+      {
+        "videoId": "KUIIgUwxGxs",
+        "range": "전체",
+        "minutes": 16.6,
+        "reason": "ridge와 lasso 계수 경로를 따라간다. R 실습은 작은 Python 선형계 풀이로 옮기고 E03의 비영점 사전 중심은 승인 자료로 보완한다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-2b",
+          "learning-phase-3"
+        ]
+      }
+    ],
+    "learning-phase-3b": [
+      {
+        "videoId": "Rsc5znwR5FA",
+        "range": "전체",
+        "minutes": 8.3,
+        "reason": "효과·변동·표본 수가 검정력에 미치는 관계를 그림으로 본다. 낮은 검정력이 효과 0의 증거가 아님을 설명한다.",
+        "prerequisite": [
+          "learning-phase-3",
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "8r_pMRnG97s",
+        "range": "전체",
+        "minutes": 5.9,
+        "reason": "Holm 단계별 문턱과 중단 규칙을 계산하고 Bonferroni의 고정 문턱과 구별한다.",
+        "prerequisite": [
+          "learning-phase-3",
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "-fz_kZvlWpw",
+        "range": "전체",
+        "minutes": 14.8,
+        "reason": "분석을 보기 전 약속하는 이유를 익힌 뒤, 시드·누락·주/보조 비교와 편차를 등록표에 기록한다.",
+        "prerequisite": [
+          "learning-phase-3",
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "learning-phase-4": [
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-2b",
+          "learning-phase-4"
+        ]
+      },
+      {
+        "videoId": "1_b7jgupoAE",
+        "range": "전체",
+        "minutes": 51.2,
+        "reason": "가정→Markov 동치→PC→식별 실패→추가 가정의 흐름을 따라간다. 관찰 GES의 구현 강의는 아니다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-2b",
+          "learning-phase-4"
+        ]
+      },
+      {
+        "videoId": "MHCi8IR81ok",
+        "range": "전체",
+        "minutes": 50.6,
+        "reason": "개입 가정·동치와 모형 비교를 전체 강의로 연결한다.",
+        "prerequisite": [
+          "learning-phase-4"
+        ]
+      }
+    ],
+    "learning-phase-5": [
+      {
+        "videoId": "SQ3fZ1sAqXI",
+        "range": "전체",
+        "minutes": 79,
+        "reason": "언어 모델 학습 요소와 BPE 토큰화의 관계를 한 강의에서 구조화한다. MIT 클래스와 작은 bigram 뒤에 배치한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-2b",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ]
+      },
+      {
+        "videoId": "zduSFxRajkE",
+        "range": "전체",
+        "minutes": 133.6,
+        "reason": "문자열 바이트, BPE 학습, 인코더·디코더, 특수 토큰을 구현한다. 영상만 134분 가까우므로 챕터마다 실행하되 전체를 남긴다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-2b",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ]
+      }
+    ],
+    "learning-phase-6": [
+      {
+        "videoId": "o6l6tJQgUg4",
+        "range": "전체",
+        "minutes": 46.2,
+        "reason": "RL 기본 개념과 InstructGPT 세 단계, 사후학습에서 SFT·선호·보상 모델의 역할을 구분한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-2b",
+          "learning-phase-3b",
+          "learning-phase-6"
+        ]
+      },
+      {
+        "videoId": "Sl6dooO4GAk",
+        "range": "전체",
+        "minutes": 36.7,
+        "reason": "밴딧과 Thompson sampling의 원리·변형을 배운 뒤, 동일 시드·같은 예산에서 기존 ε-greedy와 별도 비교한다.",
+        "prerequisite": [
+          "learning-phase-2",
+          "learning-phase-5d",
+          "learning-phase-6"
+        ]
+      }
+    ],
+    "learning-phase-5b": [
+      {
+        "videoId": "jF43_wj_DCQ",
+        "range": "전체",
+        "minutes": 15,
+        "reason": "PyTorch 공식 실습의 배치→손실→역전파→업데이트→검증 흐름을 한 배치 과적합 점검으로 옮긴다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "gsS9RPWiSvY",
+        "range": "전체",
+        "minutes": 98.5,
+        "reason": "전략 분류에서 replay와 Avalanche 실습까지 연결한다. E02에서는 Naive/Replay/Fresh와 과거 표본 노출 수만 남긴다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "l812pUnKxME",
+        "range": "전체",
+        "minutes": 54.2,
+        "reason": "로그·디버거·프로파일러를 언제 쓰는지 비교한다. 마지막 증상과 첫 이상을 구별하는 연습에 적합하며 Windows에서는 도구 구문을 그대로 복제하지 않는다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5b"
+        ]
+      }
+    ],
+    "learning-phase-5c": [
+      {
+        "videoId": "bHSDPgZYie0",
+        "range": "전체",
+        "minutes": 76.8,
+        "reason": "Transformer 개요를 따라가며 기존 작은 GPT 코드에서 attention, 마스크와 블록 위치를 다시 찾는다.",
+        "prerequisite": [
+          "learning-phase-5",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      },
+      {
+        "videoId": "mE7IDf2SmJg",
+        "range": "전체",
+        "minutes": 79.4,
+        "reason": "외부 조회와 모델 파라미터를 분리하는 구조를 원저자 설명으로 학습한다. E03은 RAG 재현이 아니라 고정된 외부 노트가 ridge 사전 중심에 미치는 비교다.",
+        "prerequisite": [
+          "learning-phase-5",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      },
+      {
+        "videoId": "MiqLoAZFRSE",
+        "range": "전체",
+        "minutes": 76.9,
+        "reason": "픽셀 복원 대신 표현을 맞히는 JEPA의 동기와 월드 모델의 맥락. MAE 픽셀 표적 및 I-JEPA stop-grad/EMA 세부는 승인 원문과 대조한다.",
+        "prerequisite": [
+          "learning-phase-5",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      }
+    ],
+    "learning-phase-5d": [
+      {
+        "videoId": "92-98SYOdlY",
+        "range": "전체",
+        "minutes": 113.5,
+        "reason": "GP 사전·커널·조건부 예측·하이퍼파라미터를 깊게 학습한다. 1D 길이 변경과 예측 구간 변화를 직접 그래프로 확인한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-5c",
+          "learning-phase-5d"
+        ]
+      },
+      {
+        "videoId": "c4KKvyWW_Xk",
+        "range": "전체",
+        "minutes": 87.1,
+        "reason": "GP를 획득 함수로 연결하고 EI·entropy search·knowledge gradient 및 적용 예를 비교한다. Duvi에서 엔트로피 탐색 개념은 정확한 EIG 구현과 구별한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-5c",
+          "learning-phase-5d"
+        ]
+      }
+    ],
+    "learning-phase-7": [
+      {
+        "videoId": "YbFgNsM6r44",
+        "range": "01:31–10:27 및 24:17–25:07",
+        "minutes": 9.8,
+        "reason": "이상 스프링의 복원력·주기 유도와 실제 매달린 질량 예시. 전기 회로와 강체 진동이 필요하면 전체로 확장한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "df43V4OjMVs",
+        "range": "전체",
+        "minutes": 16.2,
+        "reason": "PySR 시연에서 후보식 복잡도와 오차를 보고, 학습 적합과 보류 입력 오류를 별도로 기록한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "E0i9qDhKF3o",
+        "range": "전체",
+        "minutes": 49.9,
+        "reason": "잠재 변수의 인과적으로 유효한 대리변수 문제를 연구자 강연으로 본다. E05의 백색화·가우스 회전 반례는 별도의 승인 자료·실습이다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ]
+      }
+    ],
+    "learning-phase-8": [
+      {
+        "videoId": "-fz_kZvlWpw",
+        "range": "전체",
+        "minutes": 14.8,
+        "reason": "분석을 보기 전 약속하는 이유를 익힌 뒤, 시드·누락·주/보조 비교와 편차를 등록표에 기록한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "mAmb32vi3Ns",
+        "range": "전체",
+        "minutes": 4.8,
+        "reason": "투명하게 보이는 그림의 출발점. 실패 점·표본 수·축 단위·분모를 남기는 실습과 결합한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "mt9WKbQJrI4",
+        "range": "전체",
+        "minutes": 77.3,
+        "reason": "관측과정이 만든 측정 오차와 오분류를 모형에서 명시하는 사례. Duvi의 네 조건과 1:1 대응하지 않으므로 별도 독립 판정표가 필요하다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-e01": [
+      {
+        "videoId": "kJLiOGle3Lw",
+        "range": "00:00–47:40",
+        "minutes": 47.7,
+        "reason": "모델 사용과 실행 루프를 연결한다. 16:30 도구 호출, 24:00 사례, 36:00 설계 패턴을 포함한다. 외부 API 없이 스텁 호출/반환으로 재현한다. 적용: 호출→반환→장부→결정적 재생을 한 번 끝까지 해본다. 호출 수 상한과 실제 소비를 분리한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ]
+      },
+      {
+        "videoId": "9N6a-VLBa2I",
+        "range": "전체",
+        "minutes": 20.6,
+        "reason": "loads/dumps와 파일 입출력. 배열 JSON 시연을 사건별 한 줄 JSONL로 바꾸고 sort_keys, UTF-8 등 표현 규약은 별도로 고정한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ]
+      },
+      {
+        "videoId": "jxmzY9soFXg",
+        "range": "전체",
+        "minutes": 19.8,
+        "reason": "로그 메시지와 handler/formatter를 분리하고 run/call ID를 넣는다. 구조화 JSONL, 재생 및 idempotency는 실습으로 보완한다.",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ]
+      }
+    ],
+    "v4-e02": [
+      {
+        "videoId": "UnCAdBtvZhc",
+        "range": "전체",
+        "minutes": 99.5,
+        "reason": "단일 뉴런의 망각에서 순차 MNIST·도구까지 학습한다. 순서별 과거·새 과제 성능 표를 그리되 원 강의의 전체 순열 실험을 복제하지 않는다. 적용: 순서 두 가지에서 과거·현재 과제 점수를 각각 읽고 추가 replay 노출을 공개한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "gsS9RPWiSvY",
+        "range": "전체",
+        "minutes": 98.5,
+        "reason": "전략 분류에서 replay와 Avalanche 실습까지 연결한다. E02에서는 Naive/Replay/Fresh와 과거 표본 노출 수만 남긴다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ]
+      }
+    ],
+    "v4-e03": [
+      {
+        "videoId": "KUIIgUwxGxs",
+        "range": "전체",
+        "minutes": 16.6,
+        "reason": "ridge와 lasso 계수 경로를 따라간다. R 실습은 작은 Python 선형계 풀이로 옮기고 E03의 비영점 사전 중심은 승인 자료로 보완한다. 적용: 같은 특성·규제·조회 예산에서 관련/혼동 세계를 모두 비교한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      },
+      {
+        "videoId": "mE7IDf2SmJg",
+        "range": "전체",
+        "minutes": 79.4,
+        "reason": "외부 조회와 모델 파라미터를 분리하는 구조를 원저자 설명으로 학습한다. E03은 RAG 재현이 아니라 고정된 외부 노트가 ridge 사전 중심에 미치는 비교다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      }
+    ],
+    "v4-e04": [
+      {
+        "videoId": "MiqLoAZFRSE",
+        "range": "전체",
+        "minutes": 76.9,
+        "reason": "픽셀 복원 대신 표현을 맞히는 JEPA의 동기와 월드 모델의 맥락. MAE 픽셀 표적 및 I-JEPA stop-grad/EMA 세부는 승인 원문과 대조한다. 적용: 동일한 동결 probe를 사용한다. L-fixed는 JEPA 재현이 아니다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ]
+      }
+    ],
+    "v4-e05": [
+      {
+        "videoId": "E0i9qDhKF3o",
+        "range": "전체",
+        "minutes": 49.9,
+        "reason": "잠재 변수의 인과적으로 유효한 대리변수 문제를 연구자 강연으로 본다. E05의 백색화·가우스 회전 반례는 별도의 승인 자료·실습이다. 적용: 관측 회전과 개입쌍·셔플·등방 재표집을 서로 다른 표로 읽는다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-7"
+        ]
+      }
+    ],
+    "v4-e06": [
+      {
+        "videoId": "6tNS--WetLI",
+        "range": "전체",
+        "minutes": 39.2,
+        "reason": "assertEqual·예외·setUp/tearDown 실습을 정상/실패 로그의 회귀 테스트로 옮긴다. 적용: 최초 이상→단위 원인→복구/늦은 결과 분리→동일 입력 재생.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "jxmzY9soFXg",
+        "range": "전체",
+        "minutes": 19.8,
+        "reason": "로그 메시지와 handler/formatter를 분리하고 run/call ID를 넣는다. 구조화 JSONL, 재생 및 idempotency는 실습으로 보완한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "l812pUnKxME",
+        "range": "전체",
+        "minutes": 54.2,
+        "reason": "로그·디버거·프로파일러를 언제 쓰는지 비교한다. 마지막 증상과 첫 이상을 구별하는 연습에 적합하며 Windows에서는 도구 구문을 그대로 복제하지 않는다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ]
+      }
+    ],
+    "v4-e07": [
+      {
+        "videoId": "VK51E3gHENc",
+        "range": "전체",
+        "minutes": 57.7,
+        "reason": "문제를 먼저 제시하고 핵심 아이디어와 증거를 연결하는 구성법. 같은 결과를 논문형/기술 글형으로 재배열한다. 적용: 같은 표에서 비공개 결과 초안 두 개를 만들고 불리한 행도 남긴다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "mAmb32vi3Ns",
+        "range": "전체",
+        "minutes": 4.8,
+        "reason": "투명하게 보이는 그림의 출발점. 실패 점·표본 수·축 단위·분모를 남기는 실습과 결합한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-e08": [
+      {
+        "videoId": "YfRoEIk7_5I",
+        "range": "전체",
+        "minutes": 3,
+        "reason": "독자 지적별로 답변과 실제 수정 위치를 대응시킨다. 정정·추가 측정·반박을 나누는 표는 학습자가 직접 만든다. 적용: 검토 내용을 정정·불확실성·다음 측정으로 나눈다. 신규 수행과 신규 설계를 구별한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-i-stat": [
+      {
+        "videoId": "TqOeMYtOc1w",
+        "range": "전체",
+        "minutes": 6.7,
+        "reason": "신뢰구간을 먼저 읽고, 통계 차이의 유무와 실무 허용폭을 별개 열에 기록한다. 독립 두 구간의 겹침으로 짝 차이를 판정하지 않는다. 적용: 세계 짝, 비교 가족, 허용폭부터 표시하고 구간·통계량·판정을 따로 본다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "AEpMHDXK8UI",
+        "range": "전체",
+        "minutes": 6,
+        "reason": "비유의를 동등으로 결론내릴 수 없는 이유와 TOST를 익힌다. 비열등·우월·불충분 및 로그비는 Lakens 원문과 합성표로 확장한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-mult": [
+      {
+        "videoId": "-6zM6mydlfA",
+        "range": "전체",
+        "minutes": 12.5,
+        "reason": "여러 개의 가설 검정에서 family-wise error가 커지는 이유를 예제에서 확인한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "8r_pMRnG97s",
+        "range": "전체",
+        "minutes": 5.9,
+        "reason": "Holm 단계별 문턱과 중단 규칙을 계산하고 Bonferroni의 고정 문턱과 구별한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "4RPUrwzgO6c",
+        "range": "전체",
+        "minutes": 11.2,
+        "reason": "BH 순위별 기준과 FDR을 학습하고 주가설의 Holm과 직접 대조한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-eq": [
+      {
+        "videoId": "AEpMHDXK8UI",
+        "range": "전체",
+        "minutes": 6,
+        "reason": "비유의를 동등으로 결론내릴 수 없는 이유와 TOST를 익힌다. 비열등·우월·불충분 및 로그비는 Lakens 원문과 합성표로 확장한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-pow": [
+      {
+        "videoId": "Rsc5znwR5FA",
+        "range": "전체",
+        "minutes": 8.3,
+        "reason": "효과·변동·표본 수가 검정력에 미치는 관계를 그림으로 본다. 낮은 검정력이 효과 0의 증거가 아님을 설명한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "VX_M3tIyiYk",
+        "range": "전체",
+        "minutes": 16.7,
+        "reason": "검정력 분석을 계산 예제까지 따라가며 목표 검정력·MDE·표본 수를 구별한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-wil": [
+      {
+        "videoId": "2AqoK8itEFQ",
+        "range": "전체",
+        "minutes": 8,
+        "reason": "같은 쌍의 차이→절댓값 순위→부호의 순서. 대칭·0·동률 처리의 구체 정책은 SciPy 매뉴얼과 맞춘다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-perm": [
+      {
+        "videoId": "cajVExuCeE4",
+        "range": "전체",
+        "minutes": 9.6,
+        "reason": "짝을 짓고 한 쌍 안에서만 라벨을 바꾸는 모의 검정을 따라간다. Duvi 8쌍에서는 256개 부호를 전수 열거한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-pair": [
+      {
+        "videoId": "PFHnZw6aCbo",
+        "range": "전체",
+        "minutes": 5.8,
+        "reason": "StatKey 두 모집단 구간 시연의 마지막 부분. 같은 강사의 2F 교재에서 matched pair 차이열의 1표본 부트스트랩을 실행하는 것이 필수다. 영상의 짝 세부 범위는 미확인이라 단독 공개/배정으로 쓰지 않는다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-reg": [
+      {
+        "videoId": "-fz_kZvlWpw",
+        "range": "전체",
+        "minutes": 14.8,
+        "reason": "분석을 보기 전 약속하는 이유를 익힌 뒤, 시드·누락·주/보조 비교와 편차를 등록표에 기록한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-route": [
+      {
+        "videoId": "Kdsp6soqA7o",
+        "range": "전체",
+        "minutes": 7.2,
+        "reason": "혼동행렬의 행·열과 잘못 분류한 수를 읽는다. 비용 행렬을 곱하고 균형 정확도·층화·유보 문턱은 승인 실습에 연결한다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      },
+      {
+        "videoId": "fSytzGwwBVw",
+        "range": "전체",
+        "minutes": 6.1,
+        "reason": "교차검증에서 검증 셋의 역할을 잡는다. 동일 세계/시드가 폴드를 건너지 않도록 그룹 규칙을 직접 붙인다.",
+        "prerequisite": [
+          "learning-phase-3b"
+        ]
+      }
+    ],
+    "v4-i-gies": [
+      {
+        "videoId": "nnjKCtdORwY",
+        "range": "전체",
+        "minutes": 11.5,
+        "reason": "같은 skeleton과 v-structure가 주는 관측 동치의 그래프 기준을 따라간다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4"
+        ]
+      },
+      {
+        "videoId": "NeHPjOX8SNM",
+        "range": "전체",
+        "minutes": 9.7,
+        "reason": "개입이 동치군을 좁히는 조건을 본다. GIES의 실제 연산·특이 적합 처리까지 가르치는 영상은 아니다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4"
+        ]
+      },
+      {
+        "videoId": "uagJZYuuNzI",
+        "range": "전체",
+        "minutes": 8.1,
+        "reason": "연구자 발표로 관측 greedy search의 아이디어를 본다. 발표 변형을 GIES 원 알고리즘과 동일시하지 않는다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4"
+        ]
+      }
+    ],
+    "v4-i-map": [
+      {
+        "videoId": "8r_pMRnG97s",
+        "range": "전체",
+        "minutes": 5.9,
+        "reason": "Holm 단계별 문턱과 중단 규칙을 계산하고 Bonferroni의 고정 문턱과 구별한다. 적용: 시청은 개념 표시일 뿐 직접 수행이 아니다. Holm·SCM·GIES 각각의 표지/연결/수행을 새 사례에서 분류한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4"
+        ]
+      },
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4"
+        ]
+      }
+    ],
+    "v4-i-ops": [
+      {
+        "videoId": "jxmzY9soFXg",
+        "range": "전체",
+        "minutes": 19.8,
+        "reason": "로그 메시지와 handler/formatter를 분리하고 run/call ID를 넣는다. 구조화 JSONL, 재생 및 idempotency는 실습으로 보완한다.",
+        "prerequisite": [
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "2Fp1N6dof0Y",
+        "range": "전체",
+        "minutes": 19,
+        "reason": "로컬 하위 프로세스의 종료 코드·표준출력을 수집한다. timeout·재시도·중복 재개·원자 교체는 카드의 별도 점검.",
+        "prerequisite": [
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "nRVT4olRbMA",
+        "range": "전체",
+        "minutes": 10.9,
+        "reason": "Future와 스레드/프로세스 풀 차이를 익힌다. 작업 영속화 및 완료 무결성은 코드 연습에서 따로 검증한다.",
+        "prerequisite": [
+          "learning-phase-5b"
+        ]
+      }
+    ],
+    "v4-i-hash": [
+      {
+        "videoId": "V9HBtGCr0w8",
+        "range": "전체",
+        "minutes": 6.9,
+        "reason": "파일 바이트에 SHA-256을 계산하는 개념. 정규화한 JSON에서 순서·인코딩이 다를 때의 쌍을 별도로 시험한다.",
+        "prerequisite": [
+          "learning-phase-5b"
+        ]
+      },
+      {
+        "videoId": "9N6a-VLBa2I",
+        "range": "전체",
+        "minutes": 20.6,
+        "reason": "loads/dumps와 파일 입출력. 배열 JSON 시연을 사건별 한 줄 JSONL로 바꾸고 sort_keys, UTF-8 등 표현 규약은 별도로 고정한다.",
+        "prerequisite": [
+          "learning-phase-5b"
+        ]
+      }
+    ],
+    "v4-i-lev": [
+      {
+        "videoId": "AMCmhRoKnSk",
+        "range": "전체",
+        "minutes": 60.6,
+        "reason": "평가 목적, 추적, 맞춤 채점과 비교까지 연결한다. 무료 동영상만 사용하고 예제 SaaS/API는 실행하지 않아도 된다. 고정 12개 응답에서 기준을 다시 만든다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5c"
+        ]
+      },
+      {
+        "videoId": "kwkdKirqi6s",
+        "range": "전체",
+        "minutes": 53.3,
+        "reason": "HELM 연구자 인터뷰에서 다면 벤치마크와 프로토콜의 의미를 정리한다. 실제 라벨 일치·오차 막대는 별도 계산한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5c"
+        ]
+      }
+    ],
+    "v4-i-gp": [
+      {
+        "videoId": "57fZOskTPxc",
+        "range": "전체",
+        "minutes": 3.9,
+        "reason": "커널 길이·진폭 직관의 짧은 문답. 길이 척도 두 값, 동일 잡음의 GP와 보류 오차를 직접 비교한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-5d"
+        ]
+      },
+      {
+        "videoId": "92-98SYOdlY",
+        "range": "전체",
+        "minutes": 113.5,
+        "reason": "GP 사전·커널·조건부 예측·하이퍼파라미터를 깊게 학습한다. 1D 길이 변경과 예측 구간 변화를 직접 그래프로 확인한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-5d"
+        ]
+      }
+    ],
+    "v4-i-rl": [
+      {
+        "videoId": "Sl6dooO4GAk",
+        "range": "전체",
+        "minutes": 36.7,
+        "reason": "밴딧과 Thompson sampling의 원리·변형을 배운 뒤, 동일 시드·같은 예산에서 기존 ε-greedy와 별도 비교한다. 적용: 기존 Silver/Easy21에서 ε-greedy 기초를 먼저 하고, 이 영상(Thompson)은 새로운 심화 대안이다.",
+        "prerequisite": [
+          "learning-phase-6"
+        ]
+      }
+    ],
+    "v4-i-sym": [
+      {
+        "videoId": "df43V4OjMVs",
+        "range": "전체",
+        "minutes": 16.2,
+        "reason": "PySR 시연에서 후보식 복잡도와 오차를 보고, 학습 적합과 보류 입력 오류를 별도로 기록한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "HIpzCx9-4T0",
+        "range": "전체",
+        "minutes": 59.3,
+        "reason": "ESR 후보 생성과 복잡도-적합 적정선의 연구 강연. Duvi의 단위/변수 공간 정렬과 양방향 복원 판정은 제공 합성표로 별도 구현한다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "bw9O7FlsL0g",
+        "range": "전체",
+        "minutes": 4.1,
+        "reason": "Georgia Tech 강의의 MDL 개념을 식 길이·데이터 적합 상충으로 옮긴다. PySR의 선택 함수를 그대로 MDL로 부르지 않는다.",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-7"
+        ]
+      }
+    ],
+    "v4-i-id": [
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다. 적용: 범위 밖 판별 관측이 있어야 두 식 중 하나를 주장할 수 있는지 점검한다.",
+        "prerequisite": [
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ]
+      },
+      {
+        "videoId": "E0i9qDhKF3o",
+        "range": "전체",
+        "minutes": 49.9,
+        "reason": "잠재 변수의 인과적으로 유효한 대리변수 문제를 연구자 강연으로 본다. E05의 백색화·가우스 회전 반례는 별도의 승인 자료·실습이다.",
+        "prerequisite": [
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ]
+      }
+    ],
+    "v4-i-rec": [
+      {
+        "videoId": "HIpzCx9-4T0",
+        "range": "전체",
+        "minutes": 59.3,
+        "reason": "ESR 후보 생성과 복잡도-적합 적정선의 연구 강연. Duvi의 단위/변수 공간 정렬과 양방향 복원 판정은 제공 합성표로 별도 구현한다. 적용: 같은 변수 공간과 단위에서 양방향·항 제거를 검사하고 회복/적합/보류를 별도 집계한다.",
+        "prerequisite": [
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "df43V4OjMVs",
+        "range": "전체",
+        "minutes": 16.2,
+        "reason": "PySR 시연에서 후보식 복잡도와 오차를 보고, 학습 적합과 보류 입력 오류를 별도로 기록한다.",
+        "prerequisite": [
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-i-cap": [
+      {
+        "videoId": "-fz_kZvlWpw",
+        "range": "전체",
+        "minutes": 14.8,
+        "reason": "분석을 보기 전 약속하는 이유를 익힌 뒤, 시드·누락·주/보조 비교와 편차를 등록표에 기록한다. 적용: 네 조건과 해설 예제는 Duvi 고유이다. 영상은 비교 전 약속과 식별 한계의 배경이며 승격은 별도 무힌트 표로 한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "ci3muJMEYho",
+        "range": "07:17–끝",
+        "minutes": 28.2,
+        "reason": "개입확률→그래프 절단→관측만으로 부족한 이유→식별 기준을 예제로 따라간다. Duvi의 예측 범위 동치와 인과 효과 식별은 별개다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-i-diag": [
+      {
+        "videoId": "l812pUnKxME",
+        "range": "전체",
+        "minutes": 54.2,
+        "reason": "로그·디버거·프로파일러를 언제 쓰는지 비교한다. 마지막 증상과 첫 이상을 구별하는 연습에 적합하며 Windows에서는 도구 구문을 그대로 복제하지 않는다. 적용: 색인에서 1건을 선택해 최초 이상과 근본 원인, 후속 최소 검사를 남긴다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "jxmzY9soFXg",
+        "range": "전체",
+        "minutes": 19.8,
+        "reason": "로그 메시지와 handler/formatter를 분리하고 run/call ID를 넣는다. 구조화 JSONL, 재생 및 idempotency는 실습으로 보완한다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      }
+    ],
+    "v4-i-write": [
+      {
+        "videoId": "VK51E3gHENc",
+        "range": "전체",
+        "minutes": 57.7,
+        "reason": "문제를 먼저 제시하고 핵심 아이디어와 증거를 연결하는 구성법. 같은 결과를 논문형/기술 글형으로 재배열한다. 적용: 초안의 문장·원자료·재실행 명령·표 행을 연결하고 공개하지 않는다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      },
+      {
+        "videoId": "YfRoEIk7_5I",
+        "range": "전체",
+        "minutes": 3,
+        "reason": "독자 지적별로 답변과 실제 수정 위치를 대응시킨다. 정정·추가 측정·반박을 나누는 표는 학습자가 직접 만든다.",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ]
+      }
+    ]
+  }
+}

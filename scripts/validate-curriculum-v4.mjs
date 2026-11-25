@@ -5,6 +5,7 @@ import {ROADMAP} from '../src/learning-roadmap.mjs';
 import {studyCards, stageCheck} from '../src/curriculum-v4-model.mjs';
 import {orderedResources, progressStatus, resourceCompleted, resourceProgressId, completionSummary, nextResource} from '../src/learning-model.mjs';
 import fixture from '../tests/fixtures/curriculum-v3-progress.json' with {type: 'json'};
+import mit from './mit-sources.json' with {type: 'json'};
 
 export function checkCompatibility(roadmap) {
   assert.deepEqual(roadmap.phases.map(phase => ({
@@ -54,7 +55,29 @@ export function validateCurriculum(roadmap) {
     for (const id of card.resourceIds || []) assert.ok(byId.has(id), `${card.id} -> ${id}`);
     verifyChain(card);
   }
-  return {cards: cards.length, required: cards.filter(card => card.level === 'required').length};
+  const legacyVideos = new Set([...mit.map(item => item.youtubeId),
+    ...existing.flatMap(item => [item.lectureId?.match(/^yt_([\w-]{11})$/)?.[1], item.url?.match(/[?&]v=([\w-]{11})/)?.[1]])]);
+  const {videos, topics} = roadmap.curriculumV4;
+  const used = new Set();
+  assert.ok(!topics['learning-phase-1'], 'first-stage videos unchanged');
+  for (const [topic, links] of Object.entries(topics)) {
+    assert.ok(phases.has(topic) || byId.has(topic), topic);
+    assert.ok(links.length >= 1 && links.length <= 3, topic);
+    assert.equal(new Set(links.map(link => link.videoId)).size, links.length, topic);
+    for (const {videoId, minutes, range, prerequisite} of links) {
+      assert.match(videoId, /^[\w-]{11}$/);
+      assert.ok(!legacyVideos.has(videoId), `duplicate video: ${videoId}`);
+      assert.ok(Number.isFinite(minutes) && minutes > 0 && range);
+      assert.ok(prerequisite.every(id => phases.has(id)));
+      const video = videos[videoId], url = new URL(video.url);
+      assert.equal(video.oembed.status, 200);
+      assert.equal(url.origin, 'https://www.youtube.com');
+      assert.equal(url.searchParams.get('v'), videoId);
+      used.add(videoId);
+    }
+  }
+  assert.deepEqual(used, new Set(Object.keys(videos)));
+  return {cards: cards.length, required: cards.filter(card => card.level === 'required').length, videos: used.size};
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {

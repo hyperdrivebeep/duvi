@@ -32,8 +32,9 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
   const v4 = roadmap.curriculumV4;
   if (!v4) return;
   const cards = v4.phases[phase.id] || [];
-  const referenced = studyCards(roadmap).some(card => card.prerequisite?.includes(phase.id));
-  if (!cards.length && !referenced) return;
+  const referenced = studyCards(roadmap).some(card => card.prerequisite?.includes(phase.id))
+    || Object.values(v4.topics || {}).flat().some(video => video.prerequisite?.includes(phase.id));
+  if (!cards.length && !referenced && !v4.topics?.[phase.id]?.length) return;
   const group = el('details', 'learning-v4-group');
   group.append(el('summary', '', `v4 학습 · 직접 수행 확인${cards.length ? ` 및 카드 ${cards.length}개` : ''}`));
   if (referenced) {
@@ -41,6 +42,7 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     text(group, '', '위 단계의 직접 과제를 도움 없이 해 보고 설명할 수 있을 때 확인하세요. 영상 이수와 별도로 기록됩니다.');
     group.append(toggle(check, '단계 직접 수행 확인', updates, roadmap, onComplete));
   }
+  renderVideos(group, roadmap, phase.id, updates);
   const byId = new Map(studyCards(roadmap).map(card => [card.id, card]));
   for (const card of cards) {
     const item = el('details', 'learning-v4-card');
@@ -113,10 +115,41 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     }
     for (const entry of card.readingPrerequisites || []) text(item, '발췌 선수: ', `${entry.portion} 이전에 ${entry.resourceIds.join(' · ')} 직접 확인`);
     if (sources.childElementCount) item.append(sources);
+    renderVideos(item, roadmap, card.id, updates, card);
     item.append(toggle(card, '완료로 표시', updates, roadmap, onComplete));
     group.append(item);
   }
   section.append(group);
+}
+
+function renderVideos(root, roadmap, topic, updates, card) {
+  const entries = roadmap.curriculumV4.topics?.[topic];
+  if (!entries?.length) return;
+  const group = el('details', 'learning-v4-card'), list = el('ul');
+  group.append(el('summary', '', `선택 YouTube 강의 · ${entries.length}개`), list);
+  for (const entry of entries) {
+    const video = roadmap.curriculumV4.videos[entry.videoId], li = el('li');
+    const url = new URL(video.url);
+    const time = entry.range.match(/^(\d+):(\d{2})(?::(\d{2}))?/);
+    if (time) {
+      const [, a, b, c] = time;
+      url.searchParams.set('t', String(c ? 3600 * +a + 60 * +b + +c : 60 * +a + +b));
+    }
+    const title = el('span');
+    text(li, '', `${video.channel} · ${entry.range} · ${entry.minutes}분 · ${entry.reason}`);
+    li.prepend(title);
+    updates.push(({progress}) => {
+      const missing = missingPrerequisites(roadmap, {
+        prerequisite: [...new Set([...(card?.prerequisite || []), ...entry.prerequisite])],
+        cardPrerequisites: card?.cardPrerequisites,
+      }, progress);
+      title.replaceChildren(missing.length
+        ? el('span', 'muted', `${video.title} · 선수 확인 대기: ${missing.map(check => check.title).join(' / ')}`)
+        : link(`${video.title} ↗`, url.href));
+    });
+    list.append(li);
+  }
+  root.append(group);
 }
 
 function toggle(card, label, updates, roadmap, onComplete) {

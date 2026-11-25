@@ -32,6 +32,7 @@ const phaseCards = Object.fromEntries(research.stages.filter(stage => stage.id !
     ...exercise, id: key(exercise.id), label: exercise.id, kind: 'exercise',
     ...decisions.get(exercise.id),
     ...(connections[exercise.id] && {cardPrerequisites: connections[exercise.id].map(key)}),
+    ...(exercise.id === 'E08' && {spec: exercise.spec.replace('E07과 같은 네 주에 넣지 않는다.', 'E07 초안을 마친 뒤 별도 수정 단계로 진행한다.')}),
     ...(exercise.id === 'E01' ? {
       estimate: '12–18시간부터 · 통과 기준에 닿을 때까지 연장',
       steps: [

@@ -1,5 +1,6 @@
 // Curated snapshot of the canonical plan, not a learner's completion record.
 import curriculumV4 from './curriculum-v4-data.json' with {type: 'json'};
+import curriculumV4Videos from './curriculum-v4-videos.json' with {type: 'json'};
 const commit = 'a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4';
 const wiki = `https://github.com/hyperdrivebeep/glorious-purpose/blob/${commit}/PROJECT_WIKI`;
 const mit = 'https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/';
@@ -205,7 +206,7 @@ const stanford = {
 
 export const ROADMAP = {
   version: 4,
-  curriculumV4,
+  curriculumV4: {...curriculumV4, ...curriculumV4Videos},
   source: {
     url: `${wiki}/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md`, commit,
     document: 'PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md', checkedAt: '2026-11-17',
