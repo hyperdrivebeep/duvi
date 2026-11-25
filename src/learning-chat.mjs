@@ -216,15 +216,20 @@ export class ChatPanel{
     const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||(record?.explanation?record.help:item.answers?.length?'full':record?.help||'none');
     // This is the draft the form currently represents, whether restored or typed here.
     let expected=JSON.stringify(draft);
+    const draftNotice=el('p','notice chat-mine-notice');draftNotice.setAttribute('role','status');
     const stash=()=>{
       const next={text:text.value,help:help.value,revision:revision??1};
-      if(this.saveDraft(item.key,next,expected))expected=JSON.stringify(next);
+      if(this.saveDraft(item.key,next,expected)){
+        expected=JSON.stringify(next);draftNotice.textContent='';
+      }else if(!draftNotice.textContent){
+        draftNotice.textContent='다른 창에서 초안이 바뀌어 이 입력은 임시 저장되지 않았습니다. 새로고침하거나 닫기 전에 저장하거나 복사하세요.';
+      }
     };
     text.addEventListener('input',stash);help.addEventListener('change',stash);
     const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
     const row=el('div','chat-mine-row'),save=button('저장',null,'primary');save.type='submit';
     row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
-    form.append(label,text,row,notice);
+    form.append(label,text,row,notice,draftNotice);
     form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
       void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);if(expected!==undefined)this.saveDraft(item.key,undefined,expected);this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
         catch(error){notice.textContent=apiErrorMessage(error);

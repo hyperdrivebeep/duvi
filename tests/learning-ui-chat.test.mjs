@@ -59,6 +59,8 @@ test('saving a same-question draft only clears the exact draft this editor last 
     b.text.value='B saves';b.text.dispatch('input');b.form.dispatch('submit');
     const a=open(async()=>{});a.text.value='newer A draft';a.text.dispatch('input');
     stale.text.value='stale edit';stale.text.dispatch('input');
+    assert.match(byTag(stale.form,'p').map(node=>node.textContent).join(' '),/다른 창.*새로고침/);
+    assert.equal(stale.text.value,'stale edit');
     finish();await new Promise(resolve=>setImmediate(resolve));
     assert.equal(open().text.value,'newer A draft');
     assert.equal(JSON.parse(values.get(key)).q.revision,3);
