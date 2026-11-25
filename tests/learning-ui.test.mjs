@@ -84,6 +84,23 @@ function editorHarness(saved){
   editor.inputs=Object.fromEntries(['title','question','explanation','observation','assumptions','alternative','prediction','result','revisionNote'].map(key=>[key,{value:saved[key]||'',focus(){}}]));editor.inputs.help={value:saved.help};editor.inputs.reviewDays={value:saved.id?'keep':'1'};
   for(const key of ['notice','anchorSummary','anchorText','aiAnswerText','tutorAnswer','tutorPreview','preview'])editor[key]={textContent:''};for(const key of ['conflictButton','reconcileButton','tutorSend','aiAnswer'])editor[key]={hidden:true};editor.showHistory=()=>{};editor.lectureName=id=>`강의 ${id}`;return editor;
 }
+test('record editor saves and restores drafts per record without erasing another window’s draft',async()=>{
+  const previous=globalThis.localStorage;globalThis.localStorage=storageHarness();
+  try{
+    const first={...record,id:'first',revision:1,explanation:'A'},second={...record,id:'second',revision:1,explanation:'B'};
+    const a=editorHarness(first),b=editorHarness(second);
+    a.open(first);b.open(second);
+    a.inputs.explanation.value='restored older A';a.stash();
+    b.inputs.explanation.value='draft B';b.stash();
+    const loaded=editorHarness(first);
+    loaded.open(first);assert.equal(loaded.inputs.explanation.value,'restored older A');
+    b.onSave=async input=>({...input,revision:2});await b.save();
+    loaded.open(first);assert.equal(loaded.inputs.explanation.value,'restored older A');
+    loaded.open({...second,revision:2,explanation:'draft B'});assert.equal(loaded.inputs.explanation.value,'draft B');
+    assert.equal(loaded.draftConflict,false);
+    assert.deepEqual(Object.keys(JSON.parse(localStorage.getItem('duvi-learning-drafts-v1'))),['first']);
+  }finally{globalThis.localStorage=previous;}
+});
 test('restored dirty draft cannot preview saved provider context; exact saved version is submitted',()=>{
   const saved={...record,id:'saved',revision:3,explanation:'saved answer'},dirty={...saved,explanation:'unsaved private answer'};
   assert.throws(()=>prepareTutorContext(dirty,saved,'hint'),/저장하지 않은 변경/);
