@@ -318,6 +318,7 @@ async function showMap({conceptId}={}){
   if(shell.current()!=='map')return;
   mounts.map=renderConceptMap($('mapRoot'),{data:mapData,state:{progress:state.progress,records:state.records,attempts:attemptsByConcept(mapData,state.attempts||[])},evidence,
     focusConceptIds:currentConcepts(),view:previous?.view||'graph',selected:conceptId||previous?.selected||null,
+    onOpenRoadmapCard:id=>void learningUI.open('roadmap',id),
     onOpenLecture:resource=>void openTarget({kind:'lecture',lectureId:resource.lectureId}).catch(error=>{$('status').textContent=error.message;})});
 }
 async function openMap(conceptId){

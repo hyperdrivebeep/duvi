@@ -35,6 +35,11 @@ The user selected **Duvi (듀비)** on 2026-10-09 and authorized publishing this
 
 ## Learning and discovery direction
 
+Curriculum v4 keeps the existing 13 stages and first two weeks unchanged. Protect
+legacy resource IDs, URLs, lecture grouping and order. Prioritize independent
+performance over elapsed time; E01 is the first required v4 exercise. Weekly
+hours are a pacing reference, never an exercise cap. See docs/CURRICULUM_V4_APPLY.md.
+
 The learning product direction and implementation boundaries are documented in docs/LEARNING_DESIGN.md. The local roadmap, timestamped records, revision history, review scheduling, Markdown export, and backup/restore now have source implementations. Distinguish source implementation, automated checks, and observed browser/live-service behavior; never report one as proof of another.
 
 The first action is **학습 로드맵 → MIT 1강 시작하기**, then MIT Python Lecture 2 and 3 in order. Keep the canonical roadmap URL and commit in src/learning-roadmap.mjs; do not silently create a competing schedule. Curriculum preparation follows setup, reuses existing lectures, and must not imply captions are downloaded or learning is complete.

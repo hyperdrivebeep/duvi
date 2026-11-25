@@ -1,5 +1,7 @@
 # 학습 커리큘럼과 강의·자료 목록
 
+**현재 버전은 v4입니다.** 첫 두 주와 기존 13단계·227개 자료는 아래 v3 기준 목록과 같습니다. [v4 적용 설계](CURRICULUM_V4_APPLY.md)에 필수·권장·선택 분류, 선수 및 단계별 추정 시간을 정리했습니다. E01은 1·3B·5단계 뒤 첫 필수 v4 실습이며, 12–18시간은 시작 추정치입니다. 시간을 채우는 것이 아니라 새 로그까지 독립적으로 검증하고 설명하는 것이 통과 기준입니다.
+
 > Duvi 학습 로드맵 버전 3을 읽기 편하게 펼쳐 쓴 문서입니다. 단계 순서·영상·자료의 정본은 [앱의 학습 로드맵 소스](../src/learning-roadmap.mjs)와 [Glorious Purpose 학습 로드맵](https://github.com/hyperdrivebeep/glorious-purpose/blob/a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4/PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md)입니다. 앱 정본 버전: `a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4` (확인 기록 2026-11-18). 이 문서는 학습 기록이나 개인 완료 상태를 담지 않습니다.
 
 ## 이 순서로 배우는 이유

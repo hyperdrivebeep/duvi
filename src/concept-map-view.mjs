@@ -46,12 +46,12 @@ function lectureButton(resource, onOpenLecture) {
 }
 
 /** Inspector for the selected concept: definition, reason, prerequisite chain, lectures and evidence. */
-function renderInspector(root, {data, state, evidence, onOpenLecture, onSelect}, concept) {
+function renderInspector(root, {data, state, evidence, onOpenLecture, onOpenRoadmapCard, onSelect}, concept) {
   if (!concept) { root.replaceChildren(h('p', {className: 'cmap-muted', text: '개념을 고르면 정의와 먼저 알아야 할 것이 여기에 보입니다.'})); return; }
   const direct = prerequisites(data, concept), chain = prerequisiteChain(data, concept), external = direct.filter(item => item.external);
   const lectures = conceptLectures(data, concept), readings = conceptResources(data, concept).filter(resource => !resource.lectureId);
   const counts = conceptCounts(data, concept, state, evidence);
-  const meta = [concept.field, concept.level && `수준 ${concept.level}`, concept.gap ? '커리큘럼에 없음' : `로드맵 v1 판정 ${concept.status}`].filter(Boolean).join(' · ');
+  const meta = [concept.field, concept.level && `수준 ${concept.level}`, concept.gap ? (concept.resources.length ? '이전 공백 · v4 자료 연결' : '커리큘럼에 없음') : `로드맵 v1 판정 ${concept.status}`].filter(Boolean).join(' · ');
   const row = (label, ...value) => [h('dt', {text: label}), h('dd', {}, ...value)];
   root.replaceChildren(
     h('h2', {id: 'cmap-inspector-title', text: concept.name}),
@@ -62,8 +62,10 @@ function renderInspector(root, {data, state, evidence, onOpenLecture, onSelect},
       row('먼저 알아야 할 것', chain.length ? `${concept.name} → ${chain.map(item => item.name).join(' → ')}` : '없음'),
       direct.some(item => item.id) ? row('바로 앞 개념', ...direct.filter(item => item.id).map(item => h('button', {type: 'button', className: 'cmap-link', onClick: () => onSelect(item.id)}, item.name))) : null,
       external.length ? row('지도 밖 선수', external.map(item => item.label).join(', ')) : null,
-      row('다루는 강의', ...(lectures.length ? lectures.map(resource => lectureButton(resource, onOpenLecture)) : [concept.gap ? '자료 없음' : '앱에서 재생되는 강의 없음'])),
-      readings.length ? row('읽기·실습', ...readings.map(resource => h('a', {href: resource.url, target: '_blank', rel: 'noreferrer', className: 'cmap-link'}, resource.title))) : null,
+      row('다루는 강의', ...(lectures.length ? lectures.map(resource => lectureButton(resource, onOpenLecture)) : ['앱에서 재생되는 강의 없음'])),
+      readings.length ? row('읽기·실습', ...readings.map(resource => resource.roadmapCard
+        ? h('button', {type: 'button', className: 'cmap-link', onClick: () => onOpenRoadmapCard?.(resource.id)}, resource.title)
+        : h('a', {href: resource.url, target: '_blank', rel: 'noreferrer', className: 'cmap-link'}, resource.title))) : null,
       row('내가 표시', counts.marked ? `${counts.marked.done} / ${counts.marked.total} 완료로 표시 (자기 표시)` : '-'),
       row('질문', formatQuestions(counts.questions)),
       row('확인 문제', formatChecks(counts.checks)),
@@ -80,7 +82,7 @@ function renderTable(root, {data, state, evidence, onOpenLecture, onSelect}) {
   const body = h('tbody');
   for (const group of conceptGroups(data)) {
     const toggle = h('button', {type: 'button', className: 'cmap-disclosure', 'aria-expanded': 'true'},
-      `${group.name} · ${group.concepts.length}개${group.gap ? ' · 커리큘럼에 없음' : ''}`);
+      `${group.name} · ${group.concepts.length}개${group.gap ? ' · 이전 공백' : ''}`);
     const groupRow = h('tr', {className: 'cmap-group'}, h('th', {colspan: 8, scope: 'colgroup'}, toggle));
     const members = group.concepts.map(concept => {
       const counts = conceptCounts(data, concept, state, evidence), lectures = conceptLectures(data, concept);
@@ -136,7 +138,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     edgesLayer.append(path); return {edge, path};
   });
   const bandLabels = layout.bands.map(band => h('h3', {className: 'cmap-band', style: `top:${band.y}px`},
-    `${band.field} · ${band.gap ? '커리큘럼에 없음 · 자료 없음' : `자료 있음 ${band.withMaterial}/${band.total}`}`));
+    `${band.field} · 자료 연결 ${band.withMaterial}/${band.total}`));
   // Tooltips (a name cut off by the ellipsis, a glyph-only control's name) show on hover or keyboard focus, one at a time.
   // Escape hides it from anywhere without moving focus or the pointer (WCAG 1.4.13); the next hover or focus shows it again.
   let tipOwner = null;
@@ -274,8 +276,8 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
  * Full 개념 지도 page: header (search, 그래프/표 toggle, evidence note), graph or table, and the inspector.
  * Returns {select(id), setView('graph'|'table'), search(query), view, selected}; the shell re-mounts with view and selected.
  */
-export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, focusConceptIds, view = 'graph', selected: initial = null} = {}) {
-  const total = data.concepts.length, gaps = data.concepts.filter(concept => concept.gap).length;
+export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, onOpenRoadmapCard, focusConceptIds, view = 'graph', selected: initial = null} = {}) {
+  const total = data.concepts.length, gaps = data.concepts.filter(concept => concept.gap && !concept.resources.length).length;
   const search = h('input', {type: 'search', className: 'cmap-search', placeholder: '개념 찾기', 'aria-label': '개념 찾기'});
   const status = h('p', {className: 'cmap-status', role: 'status'});
   const viewButtons = Object.fromEntries([['graph', '그래프'], ['table', '표']].map(([key, label]) => [key, h('button', {type: 'button', className: 'cmap-view', 'aria-pressed': 'false', onClick: () => setView(key)}, label)]));
@@ -289,7 +291,7 @@ export function renderConceptMap(root, {data, state = {}, evidence, onOpenLectur
   let current = null, selected = null, query = '';
   const select = id => {
     selected = id; current?.select(id);
-    renderInspector(inspector, {data, state, evidence, onOpenLecture, onSelect: select}, id ? conceptIndex(data).byId.get(id) : null);
+    renderInspector(inspector, {data, state, evidence, onOpenLecture, onOpenRoadmapCard, onSelect: select}, id ? conceptIndex(data).byId.get(id) : null);
   };
   function applySearch() {
     const ids = new Set(searchConcepts(data, query)), searching = !!query.trim();

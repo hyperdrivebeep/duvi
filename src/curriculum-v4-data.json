@@ -1,0 +1,1996 @@
+{
+  "phases": {
+    "learning-phase-2": [
+      {
+        "id": "v4-i-mit",
+        "kind": "study-card",
+        "title": "MIT 강의 번호 길찾기",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-2"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 66,
+            "group": "G2",
+            "label": "MIT 6.100L OCW course page (lectures 19-26)",
+            "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/",
+            "status": "http:200"
+          }
+        ],
+        "task": "책갈피 하나만 고른다. 21–23: 연산 수/시간, 24: 두 정렬, 25: 작은 그림, 26: dict 충돌 또는 시뮬레이션. 19–20 상속/OOP는 5단계 mit-17→mit-18을 마친 뒤에만, 15–16 재귀는 5단계 기존 mit-recursion에서만 선택한다. 사이트의 접근 기록이지 앱 강의 연결은 아니다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:432",
+        "inheritedResourceIds": [
+          "mit-17",
+          "mit-18",
+          "mit-recursion"
+        ],
+        "label": "I-MIT",
+        "level": "optional",
+        "reason": "막힌 Python 절을 찾는 보충이며 대학 강의 전체를 이수할 필요는 없다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g2-mit",
+        "title": "MIT 6.100L OCW course page (lectures 19-26)",
+        "url": "https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/",
+        "minutes": 25,
+        "prerequisite": [
+          "learning-phase-2"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:66; G/waves/resources.md:136–148",
+        "section": "MIT 19–26 중 막힌 한 절: 클래스·복잡도·정렬·그림·해싱. 전권·전 강의 아님; 17/18 선수 순서는 v3 그대로.",
+        "readingPrerequisites": [
+          {
+            "portion": "19–20강 상속/OOP",
+            "resourceIds": [
+              "mit-17",
+              "mit-18"
+            ],
+            "evidence": "V3:23–24,349–360; G/waves/resources.md:140–146"
+          }
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-3b": [
+      {
+        "id": "v4-i-stat",
+        "kind": "study-card",
+        "title": "한 장으로 읽는 판정 통계",
+        "minutes": 240,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 42,
+            "group": "G1",
+            "label": "Lakens book: Improving Your Statistical Inferences (home)",
+            "url": "https://lakens.github.io/statistical_inferences/",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 52,
+            "group": "G1",
+            "label": "scipy.stats.bootstrap (paired)",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "같은 사람의 전후 성적처럼, 같은 세계의 두 팔을 나란히 놓는다. EXP-072/073을 본뜬 모의표 두 장에 세계 짝·주가설 가족·허용폭을 표시하고 가린 세 번째 표를 설명한다. 아래 I-MULT~I-REG는 이 골격의 대체 카드이며 누적 배정하지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:417",
+        "family": "G1-statistics-take-one",
+        "label": "I-STAT",
+        "level": "required",
+        "reason": "처음 보는 결과표에서 효과·불확실성·판정의 근거를 읽는 출발점이다.",
+        "cardPrerequisites": []
+      },
+      {
+        "id": "v4-i-mult",
+        "kind": "study-card",
+        "title": "여러 번 확인할 때의 오경보",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 48,
+            "group": "G1",
+            "label": "statsmodels multipletests (Holm, BH)",
+            "url": "https://www.statsmodels.org/stable/generated/statsmodels.stats.multitest.multipletests.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 53,
+            "group": "G1",
+            "label": "scipy.stats.false_discovery_control (BH)",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.false_discovery_control.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "경보기 여섯 개를 동시에 울리면 우연한 경보도 늘어난다. p값 6개의 Holm/BH와 보정 전후 통과 수를 표로 비교한다. 고정 0.05/3 구간과 Holm 순차 문턱을 구별하고, 주 비교는 하나라도 오경보 날 위험(FWER), 보조 비교는 발견 중 거짓 비율(FDR)을 따로 적는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:418",
+        "family": "G1-statistics-take-one",
+        "label": "I-MULT",
+        "level": "recommended",
+        "reason": "지표나 가설이 여러 개인 비교에 필요하며 단일 사전 지표에는 심화다.",
+        "cardPrerequisites": [],
+        "concepts": [
+          "다중 비교 보정(Holm·BH)"
+        ]
+      },
+      {
+        "id": "v4-i-eq",
+        "kind": "study-card",
+        "title": "동등·비열등·우월·불충분",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 43,
+            "group": "G1",
+            "label": "Lakens ch. Equivalence testing and interval hypotheses",
+            "url": "https://lakens.github.io/statistical_inferences/09-equivalencetest.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 49,
+            "group": "G1",
+            "label": "statsmodels ttost_paired",
+            "url": "https://www.statsmodels.org/stable/generated/statsmodels.stats.weightstats.ttost_paired.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "두 저울의 눈금 차이가 실무 허용폭 안인지 먼저 정한다. 같은 세계의 양수 오차를 로그비로 짝지어 exp로 배수를 읽고, ±log(1.1)과 구간을 비교한다. 차이 미검출을 동등으로 쓰지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:419",
+        "family": "G1-statistics-take-one",
+        "label": "I-EQ",
+        "level": "required",
+        "reason": "비유의 결과를 동등성으로 오해하면 아키텍처 비교를 그르친다.",
+        "cardPrerequisites": [
+          "v4-i-stat"
+        ],
+        "concepts": [
+          "동등성 검정(TOST)"
+        ]
+      },
+      {
+        "id": "v4-i-pow",
+        "kind": "study-card",
+        "title": "알아볼 수 있는 최소 차이",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 44,
+            "group": "G1",
+            "label": "Lakens ch. Sample size justification",
+            "url": "https://lakens.github.io/statistical_inferences/08-samplesizejustification.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 47,
+            "group": "G1",
+            "label": "Lakens ch. Effect sizes",
+            "url": "https://lakens.github.io/statistical_inferences/06-effectsize.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "멀리서 작은 글씨를 놓치는 것처럼, 표본이 부족하면 차이를 못 볼 수 있다. 사전에 최소 검출 효과(MDE)를 정하고 표본 수·효과·변동 중 하나씩만 바꾼 모의표를 읽는다. 검정력 80% 미달과 효과 0을 구분한다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:420",
+        "family": "G1-statistics-take-one",
+        "label": "I-POW",
+        "level": "recommended",
+        "reason": "비교 설계에서 표본과 검출할 차이를 계산할 때 사용한다.",
+        "cardPrerequisites": [],
+        "concepts": [
+          "검정력·MDE"
+        ]
+      },
+      {
+        "id": "v4-i-wil",
+        "kind": "study-card",
+        "title": "Wilcoxon 짝 부호순위",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 50,
+            "group": "G1",
+            "label": "scipy.stats.wilcoxon",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 11,
+            "group": "G1",
+            "label": "2AqoK8itEFQ",
+            "url": "https://www.youtube.com/watch?v=2AqoK8itEFQ",
+            "status": "oembed:200"
+          }
+        ],
+        "task": "방향뿐 아니라 차이의 크기 순서도 본다. 12쌍에서 부호·크기·동률·0 처리와 대칭 전제를 비교한다. I-PAIR 뒤; 유의성을 효과 크기와 혼동하지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:421",
+        "cardPrerequisites": [
+          "v4-i-pair"
+        ],
+        "family": "G1-statistics-take-one",
+        "label": "I-WIL",
+        "level": "optional",
+        "reason": "짝 비교의 특정 검정으로 분포·대칭 조건에 따라 고른다.",
+        "concepts": [
+          "Wilcoxon·부호 순열"
+        ]
+      },
+      {
+        "id": "v4-i-perm",
+        "kind": "study-card",
+        "title": "짝 부호 뒤집기",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 51,
+            "group": "G1",
+            "label": "scipy.stats.permutation_test",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.permutation_test.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 12,
+            "group": "G1",
+            "label": "GmvpsJHGCxQ",
+            "url": "https://www.youtube.com/watch?v=GmvpsJHGCxQ",
+            "status": "oembed:200"
+          }
+        ],
+        "task": "동전을 뒤집듯 8쌍의 차이에 가능한 부호 2⁸개를 열거한다. I-PAIR 뒤; 어떤 조건에서 쌍 안의 라벨 교환이 허용되는지, 개별 데이터 행을 섞는 것과 왜 다른지 적는다. I-WIL과 택일.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:422",
+        "cardPrerequisites": [
+          "v4-i-pair"
+        ],
+        "family": "G1-statistics-take-one",
+        "label": "I-PERM",
+        "level": "recommended",
+        "reason": "짝을 보존한 대체 판정법이며 I-PAIR 이해 뒤 다룬다.",
+        "concepts": [
+          "Wilcoxon·부호 순열"
+        ]
+      },
+      {
+        "id": "v4-i-pair",
+        "kind": "study-card",
+        "title": "같은 세계를 한 쌍으로 재표집",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 52,
+            "group": "G1",
+            "label": "scipy.stats.bootstrap (paired)",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "신발을 한 켤레째 집듯 시드/세계 ID로 두 팔을 맞추고 쌍째 다시 뽑는다(paired bootstrap). 독립 재표집 표와 비교해 세 칸에서 누락·구간 변화 원인을 설명한다. 일반 부트스트랩 영상은 짝 설계의 대체 교재로 붙이지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:423",
+        "family": "G1-statistics-take-one",
+        "label": "I-PAIR",
+        "level": "required",
+        "reason": "같은 세계·시드끼리 비교해야 구성 변경의 차이를 올바르게 읽는다.",
+        "cardPrerequisites": [],
+        "concepts": [
+          "쌍 부트스트랩"
+        ]
+      },
+      {
+        "id": "v4-i-reg",
+        "kind": "study-card",
+        "title": "결과를 보기 전 약속과 편차 기록",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 46,
+            "group": "G1",
+            "label": "Lakens ch. Preregistration and transparency",
+            "url": "https://lakens.github.io/statistical_inferences/13-prereg.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 57,
+            "group": "G1",
+            "label": "COS Preregistration",
+            "url": "https://www.cos.io/initiatives/prereg",
+            "status": "http:200"
+          }
+        ],
+        "task": "시험 전에 채점표를 봉인하듯 점검/등록 시드·결측 처리·주/보조 비교를 고정하고 결과 미열람 체크섬을 남긴다. 중간 오류 한 건을 DEVIATIONS에 변경 전후·영향·정정으로 기록한다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:424",
+        "family": "G1-statistics-take-one",
+        "label": "I-REG",
+        "level": "required",
+        "reason": "비교 전 결정과 사후 발견을 나눠 연구 주장과 결과를 감사한다.",
+        "cardPrerequisites": [],
+        "concepts": [
+          "확증 vs 탐색",
+          "사전등록"
+        ]
+      },
+      {
+        "id": "v4-i-route",
+        "kind": "study-card",
+        "title": "라우터: 어디로 잘못 보냈고 비용은 얼마인가",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 74,
+            "group": "G4",
+            "label": "sklearn confusion matrix / metrics",
+            "url": "https://scikit-learn.org/stable/modules/model_evaluation.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 76,
+            "group": "G4",
+            "label": "sklearn StratifiedKFold",
+            "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "택배 분류표의 오배송 칸마다 손해가 다르다. 유형 빈도가 다른 3종 모의표에서 혼동행렬×손실, 균형 정확도, 층화 분할, 최선 단일 대비 정답 유형을 아는 가상 상한, τ/p*와 A0를 계산한다. 점검/시험 분리; 오식별 0이면 비용은 미측정. 예산/유보 해석은 5D 뒤 연결; 포트폴리오 심화 보류.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "S/waves/pr9-crosswalk.md:428",
+        "conclusion": "[가설 의존] Q-019: 라우터가 북극성의 선행 단계인지는 미정이다.",
+        "label": "I-ROUTE",
+        "level": "recommended",
+        "reason": "특정 라우터 사례에 비용과 오류 귀속을 적용하며 선행 가치는 미확정이다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g1-lakens",
+        "title": "Lakens book: Improving Your Statistical Inferences (home)",
+        "url": "https://lakens.github.io/statistical_inferences/",
+        "minutes": 25,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:42; G/waves/resources.md:35–51",
+        "section": "§2/8/9/13 중 막힌 한 절: 여러 번 확인할 때의 오경보, 충분한 표본, 미리 정한 허용 폭, 사전등록.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g1-paired",
+        "title": "scipy.stats.bootstrap (paired)",
+        "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:52; G/waves/resources.md:47–52",
+        "section": "`paired=True`만: 같은 신발로 왼발/오른발을 비교하듯 같은 세계의 두 팔을 한 쌍으로 유지.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g4-metrics",
+        "title": "sklearn confusion matrix / metrics",
+        "url": "https://scikit-learn.org/stable/modules/model_evaluation.html",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-3b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:74; G/waves/resources.md:84–96",
+        "section": "혼동 행렬: 실제 유형과 배정이 엇갈린 칸과 손해를 함께 읽기.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-4": [
+      {
+        "id": "v4-i-gies",
+        "kind": "study-card",
+        "title": "관찰 GES와 개입 GIES",
+        "minutes": 240,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 68,
+            "group": "G3",
+            "label": "Hauser & Buhlmann 2012 GIES (JMLR)",
+            "url": "https://jmlr.org/papers/v13/hauser12a.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 67,
+            "group": "G3",
+            "label": "Chickering 2002 GES (JMLR)",
+            "url": "https://www.jmlr.org/papers/v3/chickering02b.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "사진만 본 경우와 스위치를 직접 눌러 본 경우를 비교한다. 2B의 우도를 복습하고 BIC는 이 카드의 제공 예제로 처음 안내한 뒤, 3노드 모의 세계에서 관측 동치군에 한 노드 개입을 추가한 제공 표를 읽는다. 관측량/데이터 조건, 남는 방향·개입 표적·특이 행렬 실패를 따로 표시한다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "S/waves/pr9-crosswalk.md:426",
+        "conclusion": "[가설 의존] EXP-072 S6·EXP-073에서 관찰된 우위를 다른 세계로 일반화하지 않는다.",
+        "label": "I-GIES",
+        "level": "recommended",
+        "reason": "관찰·개입 뒤 구조 동치류를 탐구하는 한 방법이지 유일한 설계는 아니다.",
+        "cardPrerequisites": [],
+        "concepts": [
+          "구조적 인과 모형(SCM)",
+          "개입과 관찰의 구분",
+          "GIES"
+        ]
+      },
+      {
+        "id": "v4-i-map",
+        "kind": "study-card",
+        "title": "개념 표시·링크·직접 수행 구별",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 71,
+            "group": "G3",
+            "label": "Brady Neal Introduction to Causal Inference (course page)",
+            "url": "https://www.bradyneal.com/causal-inference-course",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 68,
+            "group": "G3",
+            "label": "Hauser & Buhlmann 2012 GIES (JMLR)",
+            "url": "https://jmlr.org/papers/v13/hauser12a.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "지도에서 지명, 찾아가는 길, 실제 도착은 다르다. 3B·4 뒤 Holm·SCM·GIES의 표지/연결/직접 수행을 3열로 분류하고, 보지 않은 사례에서 셋을 구별한다. 문서용 길찾기만; 앱 지도 생성 안 함.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:452",
+        "label": "I-MAP",
+        "level": "optional",
+        "reason": "학습 자가진단 도구이며 프로젝트 수행의 선수는 아니다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g3-neal",
+        "title": "Brady Neal Introduction to Causal Inference (course page)",
+        "url": "https://www.bradyneal.com/causal-inference-course",
+        "minutes": 25,
+        "prerequisite": [
+          "learning-phase-4"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:71; G/waves/resources.md:71–82",
+        "section": "기존 강의 사이트의 다른 절인 10–11장 도입: 관측/개입에서 허용되는 화살표의 범위.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g3-gies",
+        "title": "Hauser & Buhlmann 2012 GIES (JMLR)",
+        "url": "https://jmlr.org/papers/v13/hauser12a.html",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-4"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:68; G/waves/resources.md:71–82",
+        "section": "초록·방법 그림 또는 요약: 개입을 증거로 후보 그래프를 좁혀도 남는 동치류.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-5": [
+      {
+        "id": "v4-e01",
+        "title": "요청·반환과 로그 재생",
+        "stageId": "learning-phase-5",
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ],
+        "resourceIds": [
+          "v4-r1-hf",
+          "v4-r2-ins"
+        ],
+        "evidence": "S/waves/skeptic.md:126,128,209,263",
+        "analogy": "배달 주문표의 주문 번호를 영수증과 맞추고, 녹화 영상을 되감는 것과 같은 답안의 점수를 다시 매기는 것을 구별한다.",
+        "spec": "미리 제공한 작은 정수 격자 fixture(양수만 허용해 후보가 동치인 세계와 음수에서 판별 가능한 세계), 결정적 스텁, 두 도구 `measure(x)`/`submit(candidate)`, 숨은 답은 채점기만. JSONL(한 줄에 사건 하나)에 익명 run/world ID·seed·순번·call_id·실제 입력/반환·남은 턴/측정·종료·설정 및 상태 해시를 남긴다. 기본 상한 예시는 8턴·4회 측정, 측정 실패도 시도면 차감. 정상·실패 기록, 최초 이상/수리로 확인한 원인/최종 증상 표, 백본·학습 목표·실행 설정·과제 점수 4칸을 제출. 상한과 실소비를 구별한다.",
+        "successCheck": "정상·실패에서 요청↔반환 일대일, 일시 오류 재시도 ≤1회, 중복 성공 재실행·음수 예산·종료 후 호출 모두 0. 재생은 도구 0회·정규화 해시 동일, 재채점은 원 로그 해시 동일, 다른 행동은 `diverged` 또는 새 환경 반환만. 주입 한 건은 근거 행, 모호 한 건은 원인 불명. 구별 불가에서 정당한 보류와 구별 가능에서 불필요한 보류를 구별하고, 새 로그에서 변경/고정/한계를 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "conclusion": "[가설 의존] Q-018: 이 장난감 기록의 성공으로 실제 프론티어 모델이나 특정 루프의 우열·내부 추론은 알 수 없다.",
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r1-hf",
+              "v4-r2-ins"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E01",
+        "kind": "exercise",
+        "level": "required",
+        "reason": "도구·실행 설정·평가를 분리하고 같은 행동 기록을 검증하는 시스템 기초.",
+        "cardPrerequisites": [
+          "v4-i-stat",
+          "v4-i-pair",
+          "v4-i-reg"
+        ],
+        "estimate": "12–18시간부터 · 통과 기준에 닿을 때까지 연장",
+        "steps": [
+          "발췌 읽기·요청/반환 및 종료 계약 정리 (2–3시간)",
+          "결정적 스텁과 로거 구현, 정상·실패 로그 만들기 (3–5시간)",
+          "기록 재생과 원본을 바꾸지 않는 재채점 분리 (2–3시간)",
+          "첫 이상·수리로 확인한 원인·최종 증상 표 작성, 불명도 남기기 (2–3시간)",
+          "조건을 바꿔 재시험하고 처음 보는 로그 독립 설명 (3–4시간)"
+        ],
+        "repetitions": "두 번째 세트는 ID·예산·실패 유형을 바꾼다. 연속 두 세트에서 아래 이진 기준을 통과하고, 처음 보는 로그에서 바뀐 것·고정한 것·결론의 한계를 도움 없이 설명하면 완료한다. 누락된 검사가 있으면 해당 반례를 추가해 다시 시도한다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r1-hf",
+        "title": "Hugging Face Agents Course Unit 1",
+        "url": "https://huggingface.co/learn/agents-course/en/unit1/agent-steps-and-structure",
+        "additionalUrls": [
+          "https://huggingface.co/learn/agents-course/en/unit1/actions",
+          "https://huggingface.co/learn/agents-course/en/unit1/observations"
+        ],
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-5"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:244",
+        "section": "상태/행동/관측의 한 바퀴·도구/관측 두 예",
+        "role": "주자료",
+        "exerciseIds": [
+          "E01"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r2-ins",
+        "title": "UK AISI Inspect: Log Files / Scoring Workflow",
+        "url": "https://inspect.aisi.org.uk/eval-logs.html",
+        "additionalUrls": [
+          "https://inspect.aisi.org.uk/scoring-workflow.html",
+          "https://inspect.aisi.org.uk/setting-limits.html"
+        ],
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-1",
+          "learning-phase-3b",
+          "learning-phase-5"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:245",
+        "section": "로그 필드·생성 없는 채점만",
+        "role": "주자료",
+        "exerciseIds": [
+          "E01"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-5b": [
+      {
+        "id": "v4-e02",
+        "title": "순차 학습의 망각과 새 학습",
+        "stageId": "learning-phase-5b",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "resourceIds": [
+          "v4-r3-pisa",
+          "v4-r3-gem"
+        ],
+        "evidence": "S/waves/skeptic.md:130,224,264",
+        "analogy": "시험을 하나씩 공부할 때 예전 오답 노트를 다시 푸는 것과, 새 시험을 얼마나 빨리 배우는지 따로 기록한다.",
+        "spec": "제공 CPU 템플릿으로 순차 Naive 대 과거 표본 Replay, 두 과제 순서, Fresh 학습곡선. 초기화·새 표본 요청·업데이트·평가표를 고정하고 추가 과거 노출은 장부에 따로 쓴다. EWC·전체 순열 제외.",
+        "successCheck": "과제 열을 이름으로 재정렬, 두 비교 팔의 신규 요청·업데이트 수 일치 및 Replay 재노출 별도 기록. 예제 BWT −0.075, FWT₀ 0, 망각 0.10을 재산출하고 학습 전 FWT와 Fresh 대비 학습 속도를 구별하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "conclusion": "[가설 의존] Q-019/RQ3: 이전 가중치가 새 발견 과제로 유리하게 전이된다는 결론은 미확정. 순서 반전·손해·동률도 보존한다.",
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r3-pisa"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r3-gem"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r3-pisa",
+              "v4-r3-gem"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E02",
+        "kind": "exercise",
+        "level": "recommended",
+        "reason": "가중치형 경험과 망각의 심화; E03에서 구별을 먼저 확인할 수 있다.",
+        "cardPrerequisites": [
+          "v4-e01"
+        ],
+        "estimate": "약 4시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-e06",
+        "title": "단위 오류를 격리하고 복구",
+        "stageId": "learning-phase-5b",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "resourceIds": [
+          "v4-r6-mw",
+          "v4-r6-sre"
+        ],
+        "evidence": "S/waves/skeptic.md:136,214,268",
+        "analogy": "창고가 kg만 받기로 했는데 lb 상자가 오면 검수대로 빼고, 나쁜 작업 지시서는 마지막 정상판으로 되돌린다.",
+        "spec": "G2 로그/원자 저장 이후 직무 선택. 작은 합성 JSONL·단일 로컬 CLI·두 manifest(버전 목록)로 입력 이동과 단위 오류를 별도 주입. 동일 입력 재생으로 기준 출력 및 늦은 결과 라벨을 나눠 점검하고, 잘못 쓴 행은 별도 복구한다.",
+        "successCheck": "단위 위반 쓰기 0, 단순 분포 변화는 진단 경보만, 마지막 정상 manifest 복원 뒤 기준 출력 동일·중복 적재 0·기오염 행 격리/재처리를 모두 확인하면 PASS.",
+        "tags": [],
+        "conclusion": "로컬 복구만 판정하며 고객 인과효과나 실제 배포를 보고하지 않는다.",
+        "prerequisiteResources": [
+          "G2-LOG",
+          "G2-ATOMIC"
+        ],
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r6-mw"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r6-sre"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E06",
+        "kind": "exercise",
+        "level": "recommended",
+        "reason": "DEC-015의 운영 산출물에 유용하나 초기 모델 설계의 필수 선수는 아니다.",
+        "cardPrerequisites": [
+          "v4-e01"
+        ],
+        "estimate": "약 4시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-i-ops",
+        "kind": "study-card",
+        "title": "작업 중단·재개와 완료 검증",
+        "minutes": 240,
+        "prerequisite": [
+          "learning-phase-5b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 58,
+            "group": "G2",
+            "label": "Python docs concurrent.futures",
+            "url": "https://docs.python.org/3/library/concurrent.futures.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 63,
+            "group": "G2",
+            "label": "Python docs os.replace (atomic rename)",
+            "url": "https://docs.python.org/3/library/os.html#os.replace",
+            "status": "http:200"
+          }
+        ],
+        "task": "택배가 조용하다고 모두 배송된 것은 아니다. 합성 작업 12개의 로컬 골격에서 작업자 한 개가 중단된 로그를 넣어 같은 체크포인트 재개, 임시 파일→교체, 중복·잠금 및 PENDING/INFRA_ERROR/DONE을 점검한다. E06 골격의 별도 선택 경로이지 동시 추가가 아니다. OS 스케줄러/MPI는 실행하지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:429",
+        "label": "I-OPS",
+        "level": "recommended",
+        "reason": "긴 실험의 재현 가능한 중단·재개에 유용하며 초기 실습은 로컬에서도 가능하다.",
+        "cardPrerequisites": []
+      },
+      {
+        "id": "v4-i-hash",
+        "kind": "study-card",
+        "title": "표현을 고정한 뒤 해시 대조",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-5b"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 62,
+            "group": "G2",
+            "label": "Python docs hashlib",
+            "url": "https://docs.python.org/3/library/hashlib.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 63,
+            "group": "G2",
+            "label": "Python docs os.replace (atomic rename)",
+            "url": "https://docs.python.org/3/library/os.html#os.replace",
+            "status": "http:200"
+          }
+        ],
+        "task": "책의 지문을 찍기 전에 판본과 정렬 규칙을 정한다. 등가 순서/인코딩과 다른 내용을 섞은 payload에서 정규화 후 SHA-256을 대조해 PF-03 유형을 재현한다. 내용 동일성과 원자 저장은 별개; E01의 일부가 아닌 별도 메뉴.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:430",
+        "label": "I-HASH",
+        "level": "recommended",
+        "reason": "재생·재채점의 무결성에 유용한 후속 심화다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g2-log",
+        "title": "Python Logging HOWTO",
+        "url": "https://docs.python.org/3/howto/logging.html",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:61; G/waves/resources.md:55–68",
+        "section": "기록 수준·시간·작업 ID의 기본.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g2-atomic",
+        "title": "Python docs os.replace (atomic rename)",
+        "url": "https://docs.python.org/3/library/os.html#os.replace",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:63; G/waves/resources.md:55–68",
+        "section": "임시 파일을 완성한 뒤 갈아끼우는 `os.replace`; 같은 파일시스템 등 문서상 범위 확인.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g2-processes",
+        "title": "Python docs concurrent.futures",
+        "url": "https://docs.python.org/3/library/concurrent.futures.html",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:58; G/waves/resources.md:55–68",
+        "section": "막힐 때만: ProcessPoolExecutor와 작업 단위.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r3-pisa",
+        "title": "Pisa/ContinualAI #2·4 Slides PDF",
+        "url": "https://course.continualai.org/lectures/understanding-catastrophic-forgetting",
+        "additionalUrls": [
+          "https://course.continualai.org/lectures/evaluation-protocols-and-metrics"
+        ],
+        "minutes": 25,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:246",
+        "section": "#2 한 뉴런, #4 과거 과제 평가 슬라이드",
+        "role": "주자료",
+        "exerciseIds": [
+          "E02"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r3-gem",
+        "title": "GEM §2 (BWT/FWT)",
+        "url": "https://proceedings.neurips.cc/paper_files/paper/2017/file/f87522788a2be2d171666752f97ddebb-Paper.pdf#page=3",
+        "additionalUrls": [],
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:247",
+        "section": "p.3 §2 식 2–4만",
+        "role": "보충 또는 대체",
+        "exerciseIds": [
+          "E02"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r6-mw",
+        "title": "Made With ML: Data engineering / Monitoring",
+        "url": "https://madewithml.com/courses/mlops/data-engineering/",
+        "additionalUrls": [
+          "https://madewithml.com/courses/mlops/monitoring/"
+        ],
+        "minutes": 30,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:254",
+        "section": "데이터 검증/Monitoring의 입력 vs 결과 항목",
+        "role": "직무 주자료; G2 로그·원자 저장 선수",
+        "exerciseIds": [
+          "E06"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r6-sre",
+        "title": "Google SRE: Canarying Releases",
+        "url": "https://sre.google/workbook/canarying-releases/",
+        "additionalUrls": [],
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:255",
+        "section": "카나리 정의와 대조/중단",
+        "role": "MW 대체; G2 로그·원자 저장 선수",
+        "exerciseIds": [
+          "E06"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-5c": [
+      {
+        "id": "v4-e03",
+        "title": "외부 노트만 있는 비교",
+        "stageId": "learning-phase-5c",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "resourceIds": [
+          "v4-r3-knn",
+          "v4-r3-yor"
+        ],
+        "evidence": "S/waves/skeptic.md:131,211,224,265",
+        "analogy": "요리사의 조리법은 고정하고 옆에 둔 메모만 바꾼다. 관련 있어 보이는 잘못된 메모는 오히려 해가 될 수 있다.",
+        "spec": "FRESH(노트 없음) / RAW(과거 세계 노트)로만 비교. 관련·혼동 세계 모두 같은 관측 16개와 특성·규제·조회 예산을 고정한다. 현 세계의 ridge 계수는 다시 맞추고, 과거 노트로 사전 중심만 변경한다. 용량·사용 횟수와 두 코호트의 `RMSE_FRESH−RMSE_RAW`를 남긴다.",
+        "successCheck": "첫 세계 결과 일치, 짝 관측 해시 동일, 미래/시험 ID 검색 0, 관련·혼동 모두 부호 있는 차이·저장/조회 비용 보고 시 PASS. 0도 허용, 이 비교로 관측 선택이나 가중치 학습은 판정하지 않는다.",
+        "tags": [
+          "가설 의존"
+        ],
+        "conclusion": "[가설 의존] RQ3/Q-019: 예비 결과나 toy의 차이로 실제 발견에서 노트 전이가 이롭다고 단정하지 않는다.",
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r3-knn"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r3-yor"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E03",
+        "kind": "exercise",
+        "level": "required",
+        "reason": "문맥·외부 기억·가중치 변화와 음의 전이를 구별해야 경험 학습을 설계할 수 있다.",
+        "cardPrerequisites": [
+          "v4-e01"
+        ],
+        "estimate": "약 4시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-e04",
+        "title": "가린 값을 맞힐지, 요약을 맞힐지",
+        "stageId": "learning-phase-5c",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "resourceIds": [
+          "v4-r4-j1",
+          "v4-r4-mae"
+        ],
+        "evidence": "S/waves/skeptic.md:132,212,225,266",
+        "analogy": "가린 사진의 정확한 색을 맞히는 것과 무엇이 그려졌는지의 요약을 맞히는 것은 다른 시험이다.",
+        "spec": "제공 데이터/학습루프에서 가린 좌표 P와 같은 좌표의 고정 회전+tanh 표적 L-fixed만 비교한다. 각자의 학습된 백본을 동결한 뒤 같은 훈련 자료와 평가 기준의 작은 읽기 모델(probe)을 붙인다. 카드에 I-JEPA의 표적 인코더·기울기 차단·이동평균 갱신과 MAE의 픽셀 표적을 구분. L-fixed는 JEPA 재현이 아니다.",
+        "successCheck": "입력·마스크·초기화·업데이트 일치, probe 학습/최종 세계 분리, 상수·미훈련 기준 포함, 공통 평균제곱오차(MSE)와 표현 분산/랭크 보고 시 PASS. 서로 다른 공간의 훈련 오차로 승자를 선언하면 FAIL.",
+        "tags": [
+          "가설 의존"
+        ],
+        "conclusion": "[가설 의존] Q-018: 여기서 바꾼 표적이 실제 발견 시스템에 낫거나 새 부품이 필요하다는 결론은 미확정.",
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r4-j1",
+              "v4-r4-mae"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E04",
+        "kind": "exercise",
+        "level": "required",
+        "reason": "구조와 학습 목표를 구별하고 한 요소만 바꾼 비교를 실습한다.",
+        "cardPrerequisites": [
+          "v4-e01"
+        ],
+        "estimate": "약 4시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-i-lev",
+        "kind": "study-card",
+        "title": "삽입 차단 강의의 평가 대안",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5",
+          "learning-phase-5c"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 90,
+            "group": "G7",
+            "label": "Anthropic Developing tests / evals docs",
+            "url": "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 54,
+            "group": "G1",
+            "label": "Miller (Anthropic) 2024, Adding Error Bars to Evals",
+            "url": "https://arxiv.org/abs/2411.00640",
+            "status": "http:200"
+          }
+        ],
+        "task": "예쁜 답과 맞는 답을 별도 채점하는 표를 만든다. 3B·5 뒤 고정 응답 12개에서 교육적 유용성·실패 기준과 채점 일치를 적고, 오차 막대는 I-PAIR 뒤에 읽는다. 6 뒤 사후학습은 기존 Lambert 발췌; Stanford 401과 첫 2주 선택 오리엔테이션을 새 재생 과제로 내지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:441",
+        "label": "I-LEV",
+        "level": "optional",
+        "reason": "공식 읽기 대체 경로이며 삽입 차단 강의를 다시 추가하지 않는다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g7-llm",
+        "title": "Hugging Face LLM Course",
+        "url": "https://huggingface.co/learn/llm-course/chapter1/1",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:87; G/waves/resources.md:122–132",
+        "section": "언어 모델 전체 흐름의 도입만. 토크나이저는 문장을 계산 가능한 조각으로 자르는 규칙.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g7-eval",
+        "title": "Anthropic Developing tests / evals docs",
+        "url": "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:90; G/waves/resources.md:122–134",
+        "section": "성공 기준과 평가 예시: 출력이 그럴듯한 것과 과제가 성공한 것을 분리.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r3-knn",
+        "title": "kNN-LM",
+        "url": "https://arxiv.org/pdf/1911.00172",
+        "additionalUrls": [],
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:248",
+        "section": "Fig.1과 §2의 고정 표현·저장소·보간",
+        "role": "주자료",
+        "exerciseIds": [
+          "E03"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r3-yor",
+        "title": "Yoran: 무관한 검색",
+        "url": "https://proceedings.iclr.cc/paper_files/paper/2024/file/8011b23e1dc3f57e1b6211ccad498919-Paper-Conference.pdf",
+        "additionalUrls": [],
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:249",
+        "section": "Fig.1에서 검색 때문에 답이 바뀐 한 사례",
+        "role": "KNN 대체",
+        "exerciseIds": [
+          "E03"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r4-j1",
+        "title": "I-JEPA §3",
+        "url": "https://openaccess.thecvf.com/content/CVPR2023/papers/Assran_Self-Supervised_Learning_From_Images_With_a_Joint-Embedding_Predictive_Architecture_CVPR_2023_paper.pdf",
+        "additionalUrls": [],
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:250",
+        "section": "방법 그림에서 문맥/표적 인코더·기울기 화살표",
+        "role": "주자료",
+        "exerciseIds": [
+          "E04"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r4-mae",
+        "title": "MAE §3",
+        "url": "https://openaccess.thecvf.com/content/CVPR2022/papers/He_Masked_Autoencoders_Are_Scalable_Vision_Learners_CVPR_2022_paper.pdf",
+        "additionalUrls": [],
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-5b",
+          "learning-phase-5c"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:251",
+        "section": "같은 카드 뒷면에 §3의 마스크/픽셀 표적",
+        "role": "비교 자료",
+        "exerciseIds": [
+          "E04"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-5d": [
+      {
+        "id": "v4-i-gp",
+        "kind": "study-card",
+        "title": "GP 곡선의 길이 척도",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-5d"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 84,
+            "group": "G6",
+            "label": "sklearn Gaussian Processes user guide",
+            "url": "https://scikit-learn.org/stable/modules/gaussian_process.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 83,
+            "group": "G6",
+            "label": "GPML chapter 5 Model selection",
+            "url": "http://gaussianprocess.org/gpml/chapters/RW5.pdf",
+            "status": "http:200"
+          }
+        ],
+        "task": "자를 짧게 잡으면 가까운 점만 닮았다고 보는 셈이다. 2B 행렬·GPML 2장을 토대로 같은 1D 자료에 RBF 길이 두 값과 최적화 한 번을 비교한다. 잡음·경계를 고정하고 주변 가능도·보류 오차·구간 폭이 같은 판단인지 적는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:433",
+        "label": "I-GP",
+        "level": "optional",
+        "reason": "길이 척도는 사용하는 모델에 따라 깊이를 정한다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g6-gp",
+        "title": "sklearn Gaussian Processes user guide",
+        "url": "https://scikit-learn.org/stable/modules/gaussian_process.html",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-5d"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:84; G/waves/resources.md:112–120",
+        "section": "커널은 두 점의 닮은 정도를 정하는 자. 길이 척도와 주변 가능도 해당 절만.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-6": [
+      {
+        "id": "v4-i-rl",
+        "kind": "study-card",
+        "title": "기존 Silver 경로로 탐색 복습",
+        "minutes": 120,
+        "prerequisite": [
+          "learning-phase-6"
+        ],
+        "resources": [],
+        "task": "게임에서 한 번 이긴 것과 전략의 평균 보상을 나눈다. 기존 silver-course/Easy21의 동일 시드 모의표로 무작위와 ε-greedy 보상·탐색 횟수를 비교한다. Sutton PDF를 재배정하지 않는다. 새 확인 URL이 없는 기존 경로 안내다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:442",
+        "inheritedResourceIds": [
+          "silver-course"
+        ],
+        "inheritedEvidence": {
+          "kind": "inherited-retry",
+          "resourceId": "silver-course",
+          "url": "https://www.davidsilver.uk/teaching/",
+          "status": "http:200(retry)",
+          "reason": "verify.tsv 90행에 RL 입문 대체가 없어 새 링크를 넣지 않고 v3 기존 Silver를 상속한다.",
+          "evidence": "G/waves/coverage.csv:210; G/waves/coverage.md:171; V3:481; S/waves/pr9-crosswalk.md:442"
+        },
+        "label": "I-RL",
+        "level": "optional",
+        "reason": "기존 RL 본선이 있어 필요할 때 Silver로 복습한다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g7-post",
+        "title": "Lambert RLHF book",
+        "url": "https://rlhfbook.com/",
+        "minutes": 25,
+        "prerequisite": [
+          "learning-phase-6"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:88; G/waves/resources.md:122–134,162–165",
+        "section": "기초 모델에 추가 시범·선호를 반영하는 사후학습 흐름. RL 탐색 일반과 구별.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-7": [
+      {
+        "id": "v4-e05",
+        "title": "보이는 자료만으로 숨은 축을 정할 수 있는가",
+        "stageId": "learning-phase-7",
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-7"
+        ],
+        "resourceIds": [
+          "v4-r5-ica",
+          "v4-r5-st"
+        ],
+        "evidence": "S/waves/skeptic.md:134,212–213,226,267",
+        "analogy": "둥근 종이에 여러 방향으로 자를 대도 결과가 같지만, 한 축만 움직인 전후 사진이 있으면 자의 방향을 좁힐 수 있다.",
+        "spec": "제공된 회전·백색화 골격(좌표를 같은 척도로 맞춤)으로 가우스 관측의 역복원과 실제 개입쌍·셔플쌍·두 좌표 동시 등방 재표집을 분리해 평가한다. Stitch 대체는 제공 프로그램의 입력/정의/재작성 세 줄만 읽는 경로로, 별도 AST 개발이나 E05 수행으로 세지 않는다.",
+        "successCheck": "두 회전 역복원 오차가 사전 허용폭 이내, 학습에 참 축·보류쌍 사용 0, 세 조건의 표와 부호/순열 동치 및 보류 기록 시 PASS. 유한 표본에서 어느 팔이 이겨야 한다는 조건 없음.",
+        "tags": [
+          "가설 의존"
+        ],
+        "conclusion": "[가설 의존] RQ4/C9: 복원·압축 성공이 새 원리나 유일한 참 표현의 발명이라는 결론은 미확정.",
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r5-ica"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r5-st"
+            ],
+            "countsTowardExercise": false
+          }
+        ],
+        "label": "E05",
+        "kind": "exercise",
+        "level": "recommended",
+        "reason": "표현과 개입의 깊이를 더하되 핵심 식별·보류는 I-ID에서 요구한다.",
+        "estimate": "약 4시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-i-sym",
+        "kind": "study-card",
+        "title": "후보식의 길이와 오차",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-7"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 80,
+            "group": "G5",
+            "label": "PySR GitHub README (model_selection)",
+            "url": "https://github.com/MilesCranmer/PySR",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 78,
+            "group": "G5",
+            "label": "ESR docs",
+            "url": "https://esr.readthedocs.io/en/latest/",
+            "status": "http:200"
+          }
+        ],
+        "task": "짧은 레시피와 맛 점수는 다른 칸이다. 2B 최소제곱과 7단계 후보 문법 뒤 제공 후보식 6개의 길이·적합·보류 오차와 PySR 선택 규칙을 고정해 비교한다. 작은 CPU 열거 또는 스텁 후보만; 실제 ESR 대형 실행이나 LLM-SR 호출 없음.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "S/waves/pr9-crosswalk.md:434",
+        "conclusion": "[가설 의존] 이 설정의 방법 성능을 일반화하거나 새 원리를 발견했다고 하지 않는다.",
+        "label": "I-SYM",
+        "level": "recommended",
+        "reason": "후보 생성과 마지막 식 선택을 분리하는 도메인별 심화다.",
+        "cardPrerequisites": []
+      },
+      {
+        "id": "v4-i-id",
+        "kind": "study-card",
+        "title": "같이 보이는 식과 판단 보류",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 71,
+            "group": "G3",
+            "label": "Brady Neal Introduction to Causal Inference (course page)",
+            "url": "https://www.bradyneal.com/causal-inference-course",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 81,
+            "group": "G5",
+            "label": "SRBench",
+            "url": "https://cavalab.org/srbench/",
+            "status": "http:200"
+          }
+        ],
+        "task": "흐린 창에서 두 길이 같아 보여도 창을 넓혀 구별할 수 있는지 먼저 묻는다. 4·5D 이후 같은 측정 범위에서 일치하는 두 식, 범위 밖 잡음과 분포 이동을 대조한다. 인과 구조의 관측 동치와 특정 예측 범위의 동치를 구별한다. E01에는 배정하지 않는다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "S/waves/pr9-crosswalk.md:438",
+        "conclusion": "[가설 의존] 시험 밖 우월성이나 숨은 원리 회복은 미확정이다.",
+        "label": "I-ID",
+        "level": "required",
+        "reason": "관측 동치와 판단 보류는 과학적 발견 주장에 앞서 확인해야 한다.",
+        "cardPrerequisites": []
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g5-pysr",
+        "title": "PySR GitHub README (model_selection)",
+        "url": "https://github.com/MilesCranmer/PySR",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-7"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:80; G/waves/resources.md:98–110",
+        "section": "`model_selection`과 식 길이/오차 표: 같은 재료 목록 안에서 식 고르기.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g5-esr",
+        "title": "ESR docs",
+        "url": "https://esr.readthedocs.io/en/latest/",
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-7"
+        ],
+        "tags": [],
+        "evidence": "G/waves/data/resources/verify.tsv:78; G/waves/resources.md:98–110",
+        "section": "ESR 문서 도입: 후보 열거와 MDL(설명 길이) 기준만.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-g5-llm-sr",
+        "title": "Shojaee et al. 2024 LLM-SR",
+        "url": "https://arxiv.org/abs/2404.18400",
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-7"
+        ],
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "G/waves/data/resources/verify.tsv:79; G/waves/resources.md:98–110",
+        "section": "초록·방법 그림만: LLM이 후보를 제안하는 기준선; 이 장부에서 확인한 공개 원고로 성능 일반화 금지.",
+        "conclusion": "[가설 의존] 이 공개 원고의 설정에서 보고된 이득을 다른 세계나 새로운 원리 발견으로 일반화하지 않는다.",
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r5-ica",
+        "title": "Stanford ICA §1·PS3 6(a)",
+        "url": "https://cs229.stanford.edu/notes2021fall/cs229-notes11.pdf",
+        "additionalUrls": [
+          "https://cs229.stanford.edu/summer2020/ps3.pdf#page=13"
+        ],
+        "minutes": 30,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-7"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:252",
+        "section": "노트 §1, 문제 6(a)",
+        "role": "주자료",
+        "exerciseIds": [
+          "E05"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r5-st",
+        "title": "Stitch Basic Example",
+        "url": "https://stitch-bindings.readthedocs.io/en/stable/intro/tutorial.html",
+        "additionalUrls": [],
+        "minutes": 20,
+        "prerequisite": [
+          "learning-phase-2b",
+          "learning-phase-4",
+          "learning-phase-7"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:253",
+        "section": "Basic Example의 입력 프로그램·정의·재작성 세 줄만",
+        "role": "프로그램 어휘 대체; 읽기만",
+        "exerciseIds": [
+          "E05"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ],
+    "learning-phase-8": [
+      {
+        "id": "v4-e07",
+        "title": "같은 표, 두 독자용 비공개 초안",
+        "stageId": "learning-phase-8",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "resourceIds": [
+          "v4-r7-mit",
+          "v4-r7-n"
+        ],
+        "evidence": "S/waves/skeptic.md:138,215,269",
+        "analogy": "영수증 한 장을 회계 담당자와 친구에게 다르게 설명해도 합계나 환불 줄이 바뀌면 안 된다.",
+        "spec": "G1 및 앞선 E나 v3의 본인 합성 결과표, 원자료와 재실행 명령을 사용한다. 논문형과 기술 글형 두 초안. 불리한 행·도움 여부·환경·수치 허용 오차를 남긴다. 새 회귀나 외부 발행 없음.",
+        "successCheck": "같은 비교·부호와 불리한 행 유지, 주장 세 개 전부 표 행→원자료→명령 추적, 빈 출력 폴더에서 다시 같은 숫자, 자체 재실행과 독립 재현 구분 시 PASS.",
+        "tags": [],
+        "conclusion": "결과가 애매하다고 효과 없음·동등으로 바꾸지 않는다. 글은 비공개.",
+        "prerequisiteResources": [
+          "G1-LAKENS",
+          "G1-PAIRED"
+        ],
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r7-mit"
+            ],
+            "countsTowardExercise": true
+          },
+          {
+            "resourceIds": [
+              "v4-r7-n"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "label": "E07",
+        "kind": "exercise",
+        "level": "required",
+        "reason": "DEC-015에 따라 같은 증거를 해석 범위가 드러나는 비공개 기술 산출물로 만든다.",
+        "cardPrerequisites": [
+          "v4-i-cap"
+        ],
+        "estimate": "약 3.5시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-e08",
+        "title": "독자 지적: 정정과 다음 측정",
+        "stageId": "learning-phase-8",
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "resourceIds": [
+          "v4-r7-mit"
+        ],
+        "evidence": "S/waves/skeptic.md:139,215,270",
+        "analogy": "지도에 범례가 빠진 것은 글만 고치면 되지만, 표시 밖 길이 있는지는 다시 재야 한다.",
+        "spec": "G1과 기존 초안 하나(앞선 v3/E 또는 E07), 실제 검토가 없으면 모의 카드라고 표시. 새 실험은 하지 않고 좁은 구간·넓은 구간의 같은 예산/잡음 대비를 설계만 한다. E07 초안을 마친 뒤 별도 수정 단계로 진행한다.",
+        "successCheck": "지적 두 개를 문서 오류와 새 증거 요청으로 분리, v1→v2 위치·미확인 한 개·예산·보류 조건을 적고 증거 없이 주장 강화 또는 가짜 독립 검토가 없으면 PASS.",
+        "tags": [],
+        "conclusion": "측정 대비가 작은 것은 원리상 비식별과 다르다. 비공개 수정으로 종료.",
+        "prerequisiteResources": [
+          "G1-LAKENS",
+          "G1-PAIRED"
+        ],
+        "readingPaths": [
+          {
+            "resourceIds": [
+              "v4-r7-mit"
+            ],
+            "countsTowardExercise": true
+          }
+        ],
+        "notConcurrentWith": [
+          "E07"
+        ],
+        "label": "E08",
+        "kind": "exercise",
+        "level": "recommended",
+        "reason": "피드백에 따른 수정·다음 실험을 연습하되 기존 초안 또는 E07이 먼저다.",
+        "cardPrerequisites": [
+          "v4-e07"
+        ],
+        "estimate": "약 3시간부터 · 읽기·수정 포함, 필요하면 연장"
+      },
+      {
+        "id": "v4-i-rec",
+        "kind": "study-card",
+        "title": "식 회복: 같은 공간에서 양방향 검사",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-7",
+          "learning-phase-8"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 81,
+            "group": "G5",
+            "label": "SRBench",
+            "url": "https://cavalab.org/srbench/",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 80,
+            "group": "G5",
+            "label": "PySR GitHub README (model_selection)",
+            "url": "https://github.com/MilesCranmer/PySR",
+            "status": "http:200"
+          }
+        ],
+        "task": "두 지도를 같은 좌표계로 맞춘 뒤 양쪽으로 확인한다. 7단계 단위·범위 뒤 D-009/PF-02형 합성 후보를 같은 변수 공간으로 바꿔 양방향 일치·항 제거·허용폭을 별도 채점한다. 적합·회복·보류의 수가 다른 이유를 보지 않은 식으로 설명한다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:436",
+        "label": "I-REC",
+        "level": "recommended",
+        "reason": "식 회복 점검에 유용하지만 기호 회귀 비교를 하지 않을 때는 심화다.",
+        "cardPrerequisites": []
+      },
+      {
+        "id": "v4-i-cap",
+        "kind": "study-card",
+        "title": "권한 없이 보는 네 조건 결과표",
+        "minutes": 240,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-4",
+          "learning-phase-5d",
+          "learning-phase-7",
+          "learning-phase-8"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 52,
+            "group": "G1",
+            "label": "scipy.stats.bootstrap (paired)",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 54,
+            "group": "G1",
+            "label": "Miller (Anthropic) 2024, Adding Error Bars to Evals",
+            "url": "https://arxiv.org/abs/2411.00640",
+            "status": "http:200"
+          }
+        ],
+        "task": "창을 닦으면 보이는 경우, 새 창이 필요한 경우, 창이 없는 경우, 원래 설명이 맞는 경우를 비교한다. 3B·4·5D·7 뒤 아래 해설 예제의 고정 입력·예상 판정·오류·보류를 먼저 비교한다. 독립 판정은 예제를 가리는 방식이 아니라 별도의 처음 보는 중립 표로 한다. 내부 접근이 있으면 EXP-065–076 표로 대체 가능; EXP-077은 이 교재에서 설계 사례로만 쓰며 등록 성능 비교 결과로 쓰지 않는다. 링크는 점수 읽기용이고 원문 404의 복구가 아니다.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [
+          "가설 의존"
+        ],
+        "evidence": "S/waves/pr9-crosswalk.md:443",
+        "conclusion": "[가설 의존] Q-018/019: 어떤 프론티어 시스템이 못 하는지, 라우터가 선행인지 이 예에서 결정하지 않는다.",
+        "label": "I-CAP",
+        "level": "required",
+        "reason": "어떤 관측·설계 변경이 결론을 정당화하는지 네 상황에서 통합한다.",
+        "cardPrerequisites": [
+          "v4-i-stat",
+          "v4-i-eq",
+          "v4-i-pair",
+          "v4-i-reg",
+          "v4-i-id",
+          "v4-e01",
+          "v4-e03",
+          "v4-e04"
+        ]
+      },
+      {
+        "id": "v4-i-diag",
+        "kind": "study-card",
+        "title": "실패 색인에서 한 건만 진단",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 54,
+            "group": "G1",
+            "label": "Miller (Anthropic) 2024, Adding Error Bars to Evals",
+            "url": "https://arxiv.org/abs/2411.00640",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 52,
+            "group": "G1",
+            "label": "scipy.stats.bootstrap (paired)",
+            "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bootstrap.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "경보가 처음 울린 시점과 화재 원인을 구별한다. 아래 14건 중 연결 선수에 맞는 한 건만 선택한다. 권한이 없으면 합성 표/로그를 사용하고, 첫 이상·직접 원인(또는 불명)·남은 불확실성·확증/탐색 여부·최소 재발 검사를 적는다. 14개 일괄 배정 아님.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:444",
+        "label": "I-DIAG",
+        "level": "recommended",
+        "reason": "원인이 모호한 실제 사례를 하나 골라 E01의 귀속을 전이한다.",
+        "cardPrerequisites": [
+          "v4-e01"
+        ]
+      },
+      {
+        "id": "v4-i-write",
+        "kind": "study-card",
+        "title": "같은 표를 비공개 기술 글로",
+        "minutes": 180,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "resources": [
+          {
+            "role": "main",
+            "row": 54,
+            "group": "G1",
+            "label": "Miller (Anthropic) 2024, Adding Error Bars to Evals",
+            "url": "https://arxiv.org/abs/2411.00640",
+            "status": "http:200"
+          },
+          {
+            "role": "alternative",
+            "row": 46,
+            "group": "G1",
+            "label": "Lakens ch. Preregistration and transparency",
+            "url": "https://lakens.github.io/statistical_inferences/13-prereg.html",
+            "status": "http:200"
+          }
+        ],
+        "task": "영수증의 출처처럼 문장 세 개를 원자료→명령→표 행으로 되짚는다. I-PAIR와 E07 원자료 뒤 기존 접근 두 건의 차이·미확정 신규성, 모의 독자 지적의 정정/새 측정 구분을 기록한다. 실제 공개는 TECH.",
+        "successCheck": "처음 보는 표에서 바뀐 것·고정한 것·결론의 범위(반례나 보류)를 근거 칸과 함께 독립 설명하면 PASS.",
+        "tags": [],
+        "evidence": "S/waves/pr9-crosswalk.md:450",
+        "cardPrerequisites": [
+          "v4-i-pair",
+          "v4-e07"
+        ],
+        "label": "I-WRITE",
+        "level": "recommended",
+        "reason": "E07 초안을 비교 근거 중심으로 다듬는 연습이다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r7-mit",
+        "title": "MIT EECS CommKit Results / Discussion",
+        "url": "https://mitcommlab.mit.edu/eecs/commkit/journal-article-results/",
+        "additionalUrls": [
+          "https://mitcommlab.mit.edu/eecs/commkit/journal-article-discussion/"
+        ],
+        "minutes": 30,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:256",
+        "section": "Results의 표 설명과 Discussion의 한계",
+        "role": "주자료; G1 선수",
+        "exerciseIds": [
+          "E07",
+          "E08"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      },
+      {
+        "kind": "reading",
+        "id": "v4-r7-n",
+        "title": "NeurIPS Paper Checklist",
+        "url": "https://neurips.cc/public/guides/PaperChecklist",
+        "additionalUrls": [],
+        "minutes": 15,
+        "prerequisite": [
+          "learning-phase-3b",
+          "learning-phase-8"
+        ],
+        "tags": [],
+        "evidence": "S/waves/skeptic.md:257",
+        "section": "주장·한계·재현 항목만",
+        "role": "MIT 대체; G1 선수",
+        "exerciseIds": [
+          "E07"
+        ],
+        "level": "optional",
+        "reason": "해당 수행을 돕는 발췌 참고이며 전권 이수는 필요하지 않습니다."
+      }
+    ]
+  },
+  "hours": {
+    "learning-phase-1": [
+      46,
+      58
+    ],
+    "learning-phase-2": [
+      34,
+      46
+    ],
+    "learning-phase-2b": [
+      36,
+      48
+    ],
+    "learning-phase-3": [
+      34,
+      46
+    ],
+    "learning-phase-3b": [
+      48,
+      66
+    ],
+    "learning-phase-4": [
+      36,
+      48
+    ],
+    "learning-phase-5": [
+      49,
+      68
+    ],
+    "learning-phase-5b": [
+      38,
+      50
+    ],
+    "learning-phase-5c": [
+      49,
+      68
+    ],
+    "learning-phase-5d": [
+      38,
+      50
+    ],
+    "learning-phase-6": [
+      34,
+      46
+    ],
+    "learning-phase-7": [
+      42,
+      56
+    ],
+    "learning-phase-8": [
+      46,
+      64
+    ]
+  },
+  "workedExample": {
+    "status": "worked-example-not-for-promotion",
+    "basis": "임의로 만든 학습용 숫자와 기대 판정이며 프로젝트 결과가 아니다. 정답 및 판단 단서가 있는 해설 예제다. 답 열만 가려도 다른 열에 단서가 남으므로 독립 평가나 승격에 쓰지 않는다. 팔마다 후보 A/B, 허용 오차 0.10, 관측 슬롯 4회는 공통이다. 비용 칸은 실제로 쓴 슬롯이다. 비교 구간을 바꾼 행은 루프 효과가 아니다.",
+    "columns": [
+      "세계/조건",
+      "고정 입력 또는 관측 오차 A/B",
+      "바꿀 수 있는 것",
+      "비용·후보·정보 대조",
+      "예상 판정"
+    ],
+    "rows": [
+      [
+        "S1 원자료 단서",
+        "같은 4개 원자료, 기존 요약 A/B=0.12/0.12, 원자료 재분석 A/B=0.18/0.04",
+        "누락되지 않은 원자료를 재분석",
+        "정적 비교: 관측 4/4, 후보 A/B, 같은 원자료",
+        "재분석: 새 측정 없이 B만 허용 폭 안."
+      ],
+      [
+        "S2 범위 밖 차이",
+        "같은 초기 3개에서 A/B=0.05/0.06; 넓은 범위 추가 1개에서 0.40/0.06",
+        "측정 위치(범위 안/밖) 한 곳",
+        "두 비교 팔 모두 같은 초기 3개 + 1회, 후보 A/B, 같은 요청 가능 영역",
+        "새 측정: 여기서는 넓은 범위의 증거로 B를 구별."
+      ],
+      [
+        "S3 필요한 정보 없음",
+        "허용된 4점 모두에서 A/B=0.05/0.05; 판별점 접근 불가",
+        "허용 영역 안에서만 선택",
+        "4/4, 후보 A/B, 판별점은 어느 팔도 접근 못 함",
+        "보류: 후보가 같은 예측을 내면 정답 식은 특정할 수 없음."
+      ],
+      [
+        "S4 기존 이론+잡음",
+        "같은 4개에서 기존 A=0.06, 대안 B=0.05",
+        "잡음/오프셋 해석은 가능, 새 자료 없음",
+        "4/4, 후보 A/B, 같은 원자료·오차 허용 폭",
+        "유지: 이 예에서 기존 설명을 버릴 근거 없음."
+      ],
+      [
+        "오류 점검",
+        "S2와 같은 근거인데, 비교표 한쪽만 측정 5회 또는 정답 점을 미리 열람",
+        "위반을 찾고 결과 보고에서 분리",
+        "4회 계약 또는 같은 정보 조건 위반",
+        "비교 무효: 우월성 판정 금지."
+      ]
+    ],
+    "evidence": "S/waves/pr9-crosswalk.md:443"
+  },
+  "diagnosticIndex": [
+    {
+      "id": "CASE-02",
+      "label": "D-009 W1 채점 결함 — 다른 변수 공간의 목표 이름과 비교해 W1 문법 안 자유변수 채점의 A0/A1/A2/A6/A1Z 주장이 미회복 처리됐다. NEWTON·문법 밖 법칙이나 모든 공개 기준선까지 0이었다는 뜻은 아니다.",
+      "question": "변수 공간을 맞춘 뒤 회복 점수가 바뀌는가?"
+    },
+    {
+      "id": "CASE-03",
+      "label": "PF-01 PySR 선택 — 참 핵심을 찾고도 잡음 크기의 sin·cos 항을 덧붙인 식을 기본 선택이 고름 → 0/18",
+      "question": "후보가 없었나, 마지막 선택 규칙이 후보를 버렸나?"
+    },
+    {
+      "id": "CASE-04",
+      "label": "PF-02 한 방향 판정 — \"상수를 다시 맞추면 참값 재현\"만 봐서 덧붙인 항을 0으로 맞추면 통과 → 회복 부풀림",
+      "question": "양방향 확인을 하면 덧붙인 항을 검출하는가?"
+    },
+    {
+      "id": "CASE-05",
+      "label": "PF-03 해시 불일치 — 데이터는 같은데 해시한 표현(열 자르기)이 달라 동일성 검사 실패",
+      "question": "내용이 다른가, 직렬화와 열 표현만 다른가?"
+    },
+    {
+      "id": "CASE-06",
+      "label": "PF-04 juliacall 멈춤 — PySR(Julia)이 프로세스 풀 안·종료 시 멈춤 → 독립 순차 프로세스로",
+      "question": "계산 실패와 작업자/종료 멈춤을 같은 값으로 기록했는가?"
+    },
+    {
+      "id": "CASE-07",
+      "label": "PF-08 BMS 난수 — 같은 시드에서 재시도하자 오류 없이 끝남 → 표준 `random` 시드 고정 누락",
+      "question": "같은 작업에서 어느 난수 발생기의 상태가 빠졌는가?"
+    },
+    {
+      "id": "CASE-08",
+      "label": "D-001 ESR 부하 간섭 — 점검 시드 3세계에서 같은 식별 5초 상한을 써도 LLM-SR 부하 유무에 따라 남는 식과 순위가 달랐다. 같은 부하의 반복은 측정하지 않았다.",
+      "question": "같은 5초 상한에서 부하 유무에 따라 시간 초과로 남는 식·순위가 달랐는가? 같은 부하 반복은 확인했는가?"
+    },
+    {
+      "id": "CASE-09",
+      "label": "D-002 Windows 재시작 — 재부팅으로 ESR 116세계가 FAILED로 기록 → `INFRA_ERROR` 구분",
+      "question": "재부팅을 알고리즘 실패와 분리할 증거가 있는가?"
+    },
+    {
+      "id": "CASE-10",
+      "label": "D-004 이른 DONE — \"진행 없음\"을 \"할 일 없음\"으로 보고 DONE.json 작성 → 무결성 규칙",
+      "question": "진행이 없는 것과 미완료가 없는 것을 어떤 장부로 가르는가?"
+    },
+    {
+      "id": "CASE-11",
+      "label": "D-006 회선 장애 — API 오류가 재시작 한도를 소진",
+      "question": "회선 장애와 작업 자체 실패를 어느 로그가 구별하는가?"
+    },
+    {
+      "id": "CASE-14",
+      "label": "EXP-072 GIES 특이 행렬 — 점검에서 부분표본 적합은 실행당 평균 216번 중 68번(31%) 실패했다. 전체 실행의 합계가 아니다.",
+      "question": "실패한 적합을 분모에서 숨기지 않았는가?"
+    },
+    {
+      "id": "CASE-16",
+      "label": "EXP-062 대체 공식 주장 — 잡음 안에서 같은 예측을 내는 대체 공식을 정답으로 주장(H3 FAIL)",
+      "question": "예측 일치와 공식 회복을 구별할 정보가 있는가?"
+    },
+    {
+      "id": "CASE-17",
+      "label": "EXP-065 S3 주장 규칙 — 강건 EIG는 틀린 주장을 줄이지 못하고 주장 규칙이 줄임",
+      "question": "측정 정책을 바꿨는가, 주장 규칙을 바꿨는가?"
+    },
+    {
+      "id": "CASE-19",
+      "label": "EXP-072 S5/S6 — S5: GIES식 측정 선택 대 무작위의 로그 오차 차이 +0.25. 탐색적 S6: GIES 예측기 대 ANP의 평균 로그비 −0.95. 두 별개 비교이며 후속 EXP-073 등록 결과와 같은 근거 등급이 아니다.",
+      "question": "두 비교 각각 무엇을 바꿨나? 어느 쪽이 탐색적이고, 후속 등록 결과와 어떻게 구별되는가?"
+    }
+  ]
+}

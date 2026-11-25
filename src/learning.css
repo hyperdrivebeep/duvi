@@ -2,8 +2,8 @@
 .learning-meter{display:block;width:100%;height:var(--space-2);accent-color:var(--blue);margin:var(--space-2) 0;max-width:100%}
 .learning-phase-count{display:block;font-size:var(--text-small);color:var(--muted);font-weight:500}
 .learning-complete{min-height:44px;white-space:nowrap}
-.learning-complete[aria-pressed=true],.lecture-completed{color:var(--blue);font-weight:650}
-.learning-complete[aria-pressed=true]{background:var(--selected)}
+.learning-complete:is([aria-pressed=true],[data-completed=true]),.lecture-completed{color:var(--blue);font-weight:650}
+.learning-complete:is([aria-pressed=true],[data-completed=true]){background:var(--selected)}
 .learning-resource-controls{align-self:center;min-width:0}
 .learning-resource-controls .learning-complete{width:100%}
 .learning-completion-notice{font-size:var(--text-small);max-width:16em;line-height:1.5;white-space:normal}
@@ -44,6 +44,9 @@
 .learning-source{display:flex;gap:var(--space-3);flex-wrap:wrap;margin:var(--space-4) 0}
 .learning-source .muted{font-size:var(--text-small)}
 .learning-phase{border-top:1px solid var(--line);padding:var(--space-3) 0}
+.learning-v4-group,.learning-v4-card{border-top:1px solid var(--line);padding:var(--space-3) 0;margin-top:var(--space-3)}
+.learning-v4-group>summary,.learning-v4-card>summary{cursor:pointer;line-height:1.6;color:var(--ink);font-weight:650}
+.learning-v4-card{padding-inline-start:var(--space-3)}
 .learning-phase>summary{font-size:17px;font-weight:650;color:var(--ink);line-height:1.6}
 .learning-goal{max-width:var(--learning-reader)}
 .learning-resources{padding-left:var(--space-6);margin:var(--space-4) 0}

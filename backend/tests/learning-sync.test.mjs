@@ -36,6 +36,38 @@ async function pull(target, source) {
   return {plan, ...result};
 }
 
+test('v4 progress merges onto a v3-only device and survives its legacy edit and return sync', async t => {
+  const {a, b, tick} = await pcs(t);
+  const e01 = 'v4-e01', check = 'v4-check-learning-phase-5';
+  await a.store.setProgress({revision: 0, resourceId: e01, status: 'practicing', completed: false});
+  const aProgress = (await a.store.get()).progress;
+  assert.equal(aProgress[e01]?.status, 'practicing');
+  assert.equal(aProgress[e01]?.completed, false);
+  await a.sync.export();
+  // B starts with a local-only v4 key that A's export cannot restore if the merge drops it.
+  await b.store.setProgress({revision: 0, resourceId: check, status: 'explained', completed: true});
+  await b.store.setProgress({revision: 1, resourceId: 'mit-1', status: 'watching'});
+  const bProgress = (await b.store.get()).progress;
+  assert.equal(bProgress[check]?.completed, true);
+  assert.equal(aProgress[check], undefined);
+  const {state: merged} = await pull(b, a);
+  assert.deepEqual(merged.progress[e01], aProgress[e01]);
+  assert.deepEqual(merged.progress[check], bProgress[check]);
+  assert.equal(merged.progress['mit-1'].status, 'watching');
+
+  // A v3 UI only submits an edit for the legacy key; it never enumerates the v4 cards.
+  tick();
+  await b.store.setProgress({revision: merged.revision, resourceId: 'mit-1', status: 'explained', completed: true});
+  const saved = await new LearningStore({root: b.root}).get();
+  assert.equal(saved.progress['mit-1'].status, 'explained');
+  assert.equal(saved.progress['mit-1'].completed, true);
+  assert.deepEqual(saved.progress[e01], aProgress[e01]);
+  assert.deepEqual(saved.progress[check], bProgress[check]);
+  await b.sync.export();
+  const {state: returned} = await pull(a, b);
+  assert.deepEqual(returned.progress, saved.progress);
+});
+
 const source = {number: 1, cues: [{start: 0, end: 4, en: 'Hello.'}, {start: 4, end: 8, en: 'Goodbye.'}]};
 const stamp = '2026-11-01T00:00:00.000Z';
 const cache = {version: 1, lecture: 1, sourceHash: fingerprint(source), promptVersion: PROMPT_VERSION,

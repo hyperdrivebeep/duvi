@@ -1,4 +1,6 @@
 // Curated snapshot of the canonical plan, not a learner's completion record.
+import curriculumV4 from './curriculum-v4-data.json' with {type: 'json'};
+import curriculumV4Videos from './curriculum-v4-videos.json' with {type: 'json'};
 const commit = 'a42be23ebd99a511e8ddcfd6baac5c592cbe0aa4';
 const wiki = `https://github.com/hyperdrivebeep/glorious-purpose/blob/${commit}/PROJECT_WIKI`;
 const mit = 'https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/';
@@ -191,6 +193,9 @@ const videos = channel => videoGroups.find(([name]) => name === channel)[1].map(
   id: `video-${id}`, lectureId: `yt_${id}`, title, url: `https://www.youtube.com/watch?v=${id}`, kind: 'video', description,
 }));
 const reading = (id, title, url, description) => ({id, title, url, kind: 'reading', description});
+const accessRestricted = resource => ({
+  ...resource, unavailable: '공개 주소에서 404가 확인되었습니다. 원래 자료는 로컬 사본 또는 저장소 권한으로 확인하세요.',
+});
 const extra = id => {
   const [, title, , description, concepts] = extraVideos.find(row => row[0] === id);
   return {id: `video-${id}`, lectureId: `yt_${id}`, title, url: `https://www.youtube.com/watch?v=${id}`, kind: 'video', description, ...(concepts && {concepts})};
@@ -200,7 +205,8 @@ const stanford = {
 };
 
 export const ROADMAP = {
-  version: 3,
+  version: 4,
+  curriculumV4: {...curriculumV4, ...curriculumV4Videos},
   source: {
     url: `${wiki}/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md`, commit,
     document: 'PROJECT_WIKI/10_RESEARCH/DISCOVERY_LEARNING_ROADMAP.md', checkedAt: '2026-11-17',
@@ -503,9 +509,9 @@ export const ROADMAP = {
       id: 'learning-phase-8', title: '8. 네 조건 비교 실습', weeks: '50–53주',
       goal: '기존 설명 유지·재분석·새 측정·보류가 각각 적절한 상황을 구분한다.',
       resources: [
-        reading('discovery-limits', '데이터 한계와 발견 연구 노트', `${wiki}/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md`, '공개 URL은 404. 제공된 glorious-purpose-reference/PROJECT_WIKI/10_RESEARCH의 로컬 사본 또는 저장소 접근 권한이 필요하다. 연구 주장·관측·한계를 분리한다.'),
+        accessRestricted(reading('discovery-limits', '데이터 한계와 발견 연구 노트', `${wiki}/10_RESEARCH/DATA_AND_DISCOVERY_LIMITS.md`, '공개 URL은 404. 제공된 glorious-purpose-reference/PROJECT_WIKI/10_RESEARCH의 로컬 사본 또는 저장소 접근 권한이 필요하다. 연구 주장·관측·한계를 분리한다.')),
         ...['054', '055', '056'].flatMap(number => ['PLAN', 'RESULT'].map(type =>
-          reading(`exp-${number}-${type.toLowerCase()}`, `EXP-${number} ${type}`, `${wiki}/30_EXPERIMENTS/EXP-${number}/${type}.md`, `공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-${number}/${type}.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다.`))),
+          accessRestricted(reading(`exp-${number}-${type.toLowerCase()}`, `EXP-${number} ${type}`, `${wiki}/30_EXPERIMENTS/EXP-${number}/${type}.md`, `공개 URL은 404. 로컬 glorious-purpose-reference/PROJECT_WIKI/30_EXPERIMENTS/EXP-${number}/${type}.md 또는 저장소 접근 권한이 필요하다. 계획/결과와 교육용 재구성/재현을 구분한다.`)))),
       ],
       exercise: '① 원자료에 단서 있음 ② 관측 범위 밖에서만 후보 차이 ③ 필요한 정보 없음 ④ 기존 이론+잡음/오프셋의 네 조건을 만든다. 고정 trace 해석과 능동 실험 선택 비교를 분리한다.',
       check: '동일 예산·후보·관측 접근, 새 seed/세계군 평가, 실패·유지 사례를 보존한다. SHA/config/seed/의존성/체크포인트/실행 명령·비용이 없으면 원 EXP 재현으로 표시하지 않는다. 도움 없는 새 문제 수행과 수정 근거로만 진전을 판단한다.',
