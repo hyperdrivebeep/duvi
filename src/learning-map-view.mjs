@@ -57,7 +57,7 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
     section.append(list);
     if(phase.exercise)section.append(el('h4','','직접 해 보기'),el('p','learning-preserve',describe(phase.exercise)));
     if(phase.check)section.append(el('h4','','다음으로 가기 전 확인'),el('p','learning-preserve',describe(phase.check)));
-    renderV4Phase(section,roadmap,phase,updates,onComplete);
+    renderV4Phase(section,roadmap,phase,updates,onComplete,onOpen);
     root.append(section);
   }
   const practice=el('details','learning-phase');practice.append(el('summary','','첫 2주 · 2시간씩 10회 · 직접 해 볼 일'),el('p','muted','끝내지 못한 활동은 다음 회차로 넘깁니다. 3강 완강보다 조건문·반복문을 직접 쓰고 선택 규칙을 설명하는 것이 목표입니다.'));

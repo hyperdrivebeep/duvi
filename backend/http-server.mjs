@@ -117,6 +117,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/learning/sync/preview'){json(res,200,await learning.sync.preview(body));return;}
           if(pathname==='/api/learning/sync/import'){json(res,200,await learning.sync.commit(body));return;}
           if(pathname==='/api/learning/prepare'){const {prepareRoadmap}=await import('./learning-curriculum.mjs');json(res,200,await prepareRoadmap(library));return;}
+          if(pathname==='/api/learning/v4-video'){const {prepareV4Video}=await import('./learning-curriculum.mjs');json(res,200,await prepareV4Video(library,body.videoId));return;}
           if(['/api/auth/start','/api/auth/select'].includes(pathname)&&(translations.job?.status==='running'||translations.starting))throw new AppError('번역을 멈춘 뒤 계정을 변경하세요.','busy',409);
           if(pathname==='/api/auth/start'){
             const target=await auth.start(s.id,base+'/auth/callback',body.accountId||null);
