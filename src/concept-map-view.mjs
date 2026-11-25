@@ -137,20 +137,34 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   });
   const bandLabels = layout.bands.map(band => h('h3', {className: 'cmap-band', style: `top:${band.y}px`},
     `${band.field} · ${band.gap ? '커리큘럼에 없음 · 자료 없음' : `자료 있음 ${band.withMaterial}/${band.total}`}`));
+  // A name cut off by the ellipsis is shown in full by a tooltip on hover or keyboard focus. Escape hides it from anywhere
+  // without moving focus or the pointer (WCAG 1.4.13); the next hover or focus measures and shows it again.
+  let tipNode = null;
+  const hideTip = event => {
+    if (event.key !== 'Escape') return;
+    if (tipNode) setClass(tipNode, 'cmap-cut', false);
+    tipNode = null; document.removeEventListener('keydown', hideTip);
+  };
+  const showTip = (button, name) => {
+    const cut = name.scrollWidth > name.clientWidth;
+    setClass(button, 'cmap-cut', cut);
+    if (cut) { tipNode = button; document.addEventListener('keydown', hideTip); }
+  };
   const nodeEls = new Map(layout.nodes.map(node => {
     const concept = byId.get(node.id), material = materialLabel(data, concept), counts = conceptCounts(data, concept, state, evidence);
     const materialParts = [material, counts.marked && `내가 표시 ${counts.marked.done}/${counts.marked.total}`].filter(Boolean), records = evidenceParts(counts);
     // The visible lines give the name no break between them and the glyph is decoration, so the node is named by its phrases.
-    // No title: next to the aria-label a screen reader reads it again as the description. A name cut off by the ellipsis
-    // is shown in full by a CSS tooltip (data-name) on hover or focus instead, measured when it is needed.
+    // No title: next to the aria-label a screen reader reads it again as the description. The tooltip is aria-hidden
+    // for the same reason: the aria-label already carries the full name.
     const name = h('span', {className: 'cmap-node-name', text: concept.name});
-    const reveal = () => setClass(button, 'cmap-cut', name.scrollWidth > name.clientWidth);
-    const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'data-name': concept.name, 'aria-pressed': 'false',
+    const button = h('button', {type: 'button', className: 'cmap-node', 'data-id': node.id, 'aria-pressed': 'false',
       'aria-label': [concept.name, ...materialParts, ...records].join(', '),
-      style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id), onMouseenter: reveal, onFocus: reveal},
+      style: `left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px`, onClick: () => onSelect?.(node.id),
+      onMouseenter: () => showTip(button, name), onFocus: () => showTip(button, name)},
     name,
     h('span', {className: 'cmap-node-line', text: `${MATERIAL_GLYPH[material]} ${materialParts.join(' · ')}`}),
-    h('span', {className: 'cmap-node-line cmap-muted', text: records.join(' · ')}));
+    h('span', {className: 'cmap-node-line cmap-muted', text: records.join(' · ')}),
+    h('span', {className: 'cmap-node-tip', 'aria-hidden': 'true', text: concept.name}));
     return [node.id, button];
   }));
   const layer = h('div', {className: 'cmap-layer', style: `width:${layout.width}px;height:${layout.height}px`}, edgesLayer, ...bandLabels, ...nodeEls.values());
