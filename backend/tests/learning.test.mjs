@@ -25,7 +25,7 @@ async function fixture(t,options={}){const root=await mkdtemp(path.join(os.tmpdi
 const input={resourceId:'mit-01',lectureId:'1',question:'Why?',explanation:'Initial explanation',prediction:'Before',help:'none',anchor:{lectureId:'1',seconds:1,sourceText:'Hello.',translation:'안녕.',alignmentRevision:null,cueStart:0,cueEnd:3}};
 
 test('empty store and saved record survive reconstruction without caller aliases',async t=>{
-  const store=await fixture(t);assert.deepEqual(await store.get(),{schemaVersion:2,revision:0,records:[],progress:{},settings:{},chats:[]});
+  const store=await fixture(t);assert.deepEqual(await store.get(),{schemaVersion:3,revision:0,records:[],progress:{},settings:{},chats:[],attempts:[]});
   const result=await store.saveRecord({revision:0,record:input});assert.equal(result.records[0].schemaVersion,1);assert.equal(result.revision,1);
   result.records[0].question='mutated caller';assert.equal((await new LearningStore({root:store.root}).get()).records[0].question,'Why?');
 });
@@ -71,5 +71,5 @@ test('invalid bounds, paths, reserved IDs, non-finite anchors and unknown proper
 test('corrupt or unsupported persisted state fails closed without resetting data',async t=>{
   const store=await fixture(t);await mkdir(path.dirname(store.file),{recursive:true});await writeFile(store.file,'{broken');
   await assert.rejects(store.get(),SyntaxError);assert.equal(await readFile(store.file,'utf8'),'{broken');
-  await writeFile(store.file,JSON.stringify({schemaVersion:3,revision:0,records:[],progress:{},settings:{}}));await assert.rejects(store.get(),{code:'invalid_learning'});
+  await writeFile(store.file,JSON.stringify({schemaVersion:4,revision:0,records:[],progress:{},settings:{}}));await assert.rejects(store.get(),{code:'invalid_learning'});
 });

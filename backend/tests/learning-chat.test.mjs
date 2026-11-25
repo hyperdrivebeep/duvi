@@ -1,3 +1,4 @@
+import http from 'node:http';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,readFile} from 'node:fs/promises';
@@ -6,10 +7,11 @@ import path from 'node:path';
 import {LearningStore} from '../learning.mjs';
 import {LectureLibrary} from '../library.mjs';
 import {LearningChat,transcriptWindow,trimHistory,lecturePlace,CHAT_INSTRUCTIONS} from '../learning-chat.mjs';
-import {createMockChatProvider} from '../chat-mock.mjs';
+import {createMockChatProvider,createUpstreamStubProvider} from '../chat-mock.mjs';
 import {consumeResponse} from '../chatgpt-translate.mjs';
 import {createServer} from '../http-server.mjs';
 import {atomicJSON} from '../vault.mjs';
+import {isOpenQuestion,dueRecords} from '../../src/learning-model.mjs';
 
 const cues=Array.from({length:40},(_,i)=>({start:i*5,end:i*5+5,en:`Sentence ${i}.`}));
 const sse=events=>events.map(event=>`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join('');
@@ -125,17 +127,56 @@ test('stop ends the stream and saves what arrived as stopped',async t=>{
   const answer=(await store.get()).chats[0].messages[1];assert.deepEqual([answer.text,answer.status],['멈추기 전','stopped']);
   assert.deepEqual(chat.stop({threadId:answer.id}),{stopped:false});
 });
-test('a saved answer becomes one open learning record anchored at the question time',async t=>{
+test('sending a question records it at once as an open question; the complete answer fills its AI answer',async t=>{
   const {chat,store}=await fixture(t,{fetcher:()=>streamOf([sse([completed('AI 답변')])])});
-  const events=await ask(chat,{text:'왜 0부터 세나요?'}),thread=events.at(-1).data.thread,answer=thread.messages[1];
-  const {state,recordId}=await chat.saveRecord({threadId:thread.id,messageId:answer.id});
+  const events=await ask(chat,{text:'왜 0부터 세나요?',questionId:'q-first'});
+  const started=events[0].data.record;
+  assert.deepEqual([events[0].event,events[0].data.questionId],['start','q-first']);
+  assert.deepEqual([started.question,started.explanation,started.help,started.reviewDueAt,started.aiAnswer,started.resourceId,started.lectureId],['왜 0부터 세나요?','','none',null,undefined,'mit-1','1']);
+  assert.deepEqual(started.anchor,{lectureId:'1',seconds:102,sourceText:'Sentence 20.',translation:'문장 20.',alignmentRevision:null,cueStart:100,cueEnd:105});
+  const state=await store.get(),[record]=state.records,[question,answer]=state.chats[0].messages;
+  assert.equal(state.records.length,1);assert.deepEqual([question.id,question.recordId],['q-first',record.id]);assert.equal(answer.recordId,undefined);
+  assert.deepEqual([record.aiAnswer,record.revision,record.reviewDueAt],['AI 답변',1,null]);
+  assert.equal(events.at(-1).data.record.aiAnswer,'AI 답변');
+  // An open question that the learner has not explained yet: nothing is due for review.
+  assert.equal(isOpenQuestion(record),true);assert.deepEqual(dueRecords(state.records),[]);
+  // The older 기록으로 저장 route returns the same record instead of making a second one.
+  const again=await chat.saveRecord({threadId:state.chats[0].id,messageId:answer.id});
+  assert.equal(again.recordId,record.id);assert.equal(again.state.records.length,1);
+  await assert.rejects(chat.saveRecord({threadId:state.chats[0].id,messageId:question.id}),{code:'not_found'});
+});
+test('a failed or stopped answer keeps the question record with an empty AI answer',async t=>{
+  const failed=await fixture(t,{fetcher:()=>{throw new TypeError('fetch failed');}});
+  const events=await ask(failed.chat,{text:'연결이 끊긴 질문'});
+  assert.equal(events.at(-1).data.code,'network');
+  const [record]=(await failed.store.get()).records;
+  assert.deepEqual([record.question,record.aiAnswer,events.at(-1).data.record.id],['연결이 끊긴 질문',undefined,record.id]);
+  const partial=await fixture(t,{fetcher:()=>streamOf([sse([delta('반쯤 온 답')])])});
+  await ask(partial.chat,{text:'끊기는 질문'});
+  const state=await partial.store.get();
+  assert.equal(state.chats[0].messages[1].status,'interrupted');assert.equal(state.records.length,1);assert.equal(state.records[0].aiAnswer,undefined);
+});
+test('retrying a question id reuses the stored question and its record',async t=>{
+  let n=0;const {chat,store,calls}=await fixture(t,{fetcher:()=>{if(++n===1)throw new TypeError('fetch failed');return streamOf([sse([completed(`답 ${n}`)])]);}});
+  const first=await ask(chat,{text:'다시 물을 질문',questionId:'q-retry'}),threadId=first[0].data.thread.id;
+  // The learner presses 다시 묻기 at a later playback time: the question keeps its own time and text.
+  const second=await ask(chat,{threadId,text:'다시 물을 질문',questionId:'q-retry',seconds:300});
+  assert.equal(second.at(-1).event,'done');assert.deepEqual(calls[1].body.input.slice(1),[{role:'user',content:'다시 물을 질문'}]);
+  // A request whose start event never reached the browser is sent again without the thread id.
+  await ask(chat,{text:'다시 물을 질문',questionId:'q-retry'});
+  const state=await store.get(),questions=state.chats.flatMap(row=>row.messages).filter(row=>row.role==='user');
+  assert.equal(state.chats.length,1);assert.deepEqual(questions.map(row=>[row.id,row.seconds]),[['q-retry',102]]);
+  assert.equal(state.records.length,1);assert.equal(state.records[0].aiAnswer,'답 3');assert.equal(state.records[0].anchor.seconds,102);
+  await assert.rejects(ask(chat,{threadId,text:'답을 질문으로',questionId:state.chats[0].messages[1].id}),{code:'invalid_learning'});
+});
+test('a question asked before automatic records can still be saved with its answer through the old route',async t=>{
+  const {chat,store}=await fixture(t,{fetcher:()=>{throw new Error('never');}});
+  const at='2026-11-20T09:00:00.000Z';
+  const {thread}=await store.appendChat({threadId:null,lectureId:'1',messages:[{id:'old-q',role:'user',text:'예전 질문',at,seconds:102,model:'gpt-test'},{id:'old-a',role:'assistant',text:'예전 답',at,seconds:102,model:'gpt-test',status:'complete'}]});
+  const {state,recordId}=await chat.saveRecord({threadId:thread.id,messageId:'old-a'});
   const record=state.records.find(row=>row.id===recordId);
-  assert.deepEqual([record.question,record.explanation,record.aiAnswer,record.resourceId,record.lectureId,record.help],['왜 0부터 세나요?','','AI 답변','mit-1','1','full']);
-  assert.deepEqual(record.anchor,{lectureId:'1',seconds:102,sourceText:'Sentence 20.',translation:'문장 20.',alignmentRevision:null,cueStart:100,cueEnd:105});
-  assert.ok(Date.parse(record.reviewDueAt)>Date.now());
-  assert.equal(state.chats[0].messages[1].recordId,recordId);
-  const again=await chat.saveRecord({threadId:thread.id,messageId:answer.id});assert.equal(again.recordId,recordId);assert.equal(again.state.records.length,1);
-  await assert.rejects(chat.saveRecord({threadId:thread.id,messageId:thread.messages[0].id}),{code:'not_found'});
+  assert.deepEqual([record.question,record.aiAnswer,record.help,record.anchor.sourceText],['예전 질문','예전 답','full','Sentence 20.']);
+  assert.ok(Date.parse(record.reviewDueAt)>Date.now());assert.equal(state.chats[0].messages[1].recordId,recordId);
 });
 test('the chat route streams server-sent events with the explicit mock provider and refuses without a connection',async t=>{
   const {root,library}=await fixture(t,{fetcher:()=>{throw new Error('never');}});
@@ -154,4 +195,30 @@ test('the chat route streams server-sent events with the explicit mock provider 
   assert.equal(names[0],'start');assert.equal(names.at(-1),'done');assert.ok(names.includes('delta'));
   const saved=JSON.parse(await readFile(path.join(root,'learning/state.json'),'utf8'));
   assert.match(saved.chats[0].messages[1].text,/모의 답변 · 실제 ChatGPT 아님[\s\S]*\[00:03\]/);
+});
+
+test('the QA upstream stub is loopback only and never sends the learner token', async () => {
+  assert.throws(()=>createUpstreamStubProvider('https://api.openai.com/'),/loopback/);
+  assert.throws(()=>createUpstreamStubProvider('http://192.168.0.2:6160/'),/loopback/);
+  const calls=[];const real=globalThis.fetch;globalThis.fetch=async(url,init)=>{calls.push({url:String(url),init});return new Response('');};
+  try{
+    const {auth,fetcher}=createUpstreamStubProvider('http://127.0.0.1:6160/');
+    assert.equal(await auth.token(),'stub-token');
+    await fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:'Bearer stub-token'},body:'{}'});
+    assert.equal(calls[0].url,'http://127.0.0.1:6160/responses');
+    assert.equal(calls[0].init.headers['X-Duvi-Target'],'https://api.openai.com/v1/responses');
+  }finally{globalThis.fetch=real;}
+});
+
+test('the QA upstream stub never follows a redirect, so a 307/308 cannot resend the request body elsewhere', async () => {
+  const received=[];
+  const other=http.createServer((req,res)=>{let body='';req.on('data',chunk=>{body+=chunk;});req.on('end',()=>{received.push(body);res.end('{}');});});
+  await new Promise(resolve=>other.listen(0,'127.0.0.1',resolve));
+  const stub=http.createServer((req,res)=>{req.resume();req.on('end',()=>{res.writeHead(307,{Location:`http://127.0.0.1:${other.address().port}/elsewhere`});res.end();});});
+  await new Promise(resolve=>stub.listen(0,'127.0.0.1',resolve));
+  try{
+    const {fetcher}=createUpstreamStubProvider(`http://127.0.0.1:${stub.address().port}/`);
+    await assert.rejects(fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"input":"learner text"}',redirect:'follow'}));
+    assert.deepEqual(received,[],'the body was not resent to the redirect target');
+  }finally{await Promise.all([stub,other].map(server=>new Promise(resolve=>server.close(resolve))));}
 });

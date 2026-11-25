@@ -23,8 +23,8 @@
 - 튜터 화면 요청은 저장된 `recordId`, `mode`, 선택 `model`을 사용하도록 통합되었다.
   모드는 `hint/critique/explain`이다. 소스 계약 일치와 실제 계정 요청 성공은 다르므로
   저장→문맥 확인→명시 전송→응답·도움 정도 저장의 라이브 흐름은 별도 확인한다.
-- AI 응답 전문·요청 이력의 영속 보관은 아직 없다. 저장되는 도움 정도와 수정/복습 이력을
-  전체 AI 대화 이력으로 소개하지 않는다.
+- 기록 편집기의 AI 도움은 응답 전문을 저장하지 않고 도움 정도만 남긴다. 질문 탭의 대화와 완료된 답
+  (`aiAnswer`)은 강의별로 저장한다(2026-11-24 자동 기록 참고).
 - 아래 목표의 별도 EvidenceCard/RivalHypothesis/DiscriminatingTest/ExperimentLink 객체,
   원문 hash와 자동 재연결, 구조화된 연구 연결·자동 발행은 미구현이다. 현재는 선택 텍스트 필드다.
 - 실습 코드 실행·결과 자동 검산·새 문제 독립 수행 평가·숙달 자동 승격은 구현하지 않았다.
@@ -72,7 +72,8 @@ Stanford CS229 LLM 영상은 도입8분만 개관용으로 먼저 볼 수 있다
 
 ## 화면
 
-기존 오른쪽 패널의 대본/질문/학습 탭을 활용한다. 동시에 여러 패널을 쌓지 않는다.
+2026-11-24부터 앱 틀 A: 왼쪽 이동 레일, 가운데 강의, 오른쪽 패널(질문/개념/확인 문제/대본 탭)이다(아래 절 참고).
+동시에 여러 패널을 쌓지 않는다.
 영상과 영한 자막의 공간·간격을 지키고 전체화면/레이아웃 전환 시 media iframe을 재생성하지 않는다.
 “근거·가정 보기”는 펼침 기능으로 두며 기본 시청 화면에 연구 항목을 늘어놓지 않는다.
 매 문장 자동 일시정지/질문 팝업 대신 사용자가 고른 체크포인트만 제공한다.
@@ -190,3 +191,165 @@ UI 테스트는 모델/요청 계약/초안 보존 등을 검사하며 실제 �
 완료 상태는 이 PC의 학습 저장소와 학습 백업에 포함된다. 다른 PC에서는 최신 코드를
 받은 뒤 **학습 로드맵 → 백업·복원**으로 학습 백업을 옮긴다. GitHub push는 개인 학습
 진행률을 동기화하지 않는다.
+
+## 앱 틀 A와 질문 자동 기록 (2026-11-24)
+
+사용자 결정: 재설계 시안 A(이동 레일 + 강의 + 옆 패널)를 앱의 틀로 쓰고, 시안 C의 개념 지도와 진척 표를
+개념 지도 화면으로 쓴다. 질문은 보내는 순간 기록된다.
+
+- 화면: 모든 화면 왼쪽에 같은 이동 레일(강의, 개념 지도, 확인 문제, 돌아보기, 설정)이 있다. 내 강의 목록은
+  강의 머리줄의 **☰ 내 강의**로 여는 패널이다. 강의 화면의 오른쪽 패널(372px, 전체화면 380px)에는
+  질문 / 개념 / 확인 문제 / 대본 탭이 있다. 기록 탭과 학습 탭은 없앴고, 학습 탭에 있던 다음 할 일·
+  로드맵·내 기록·복습·백업·현재 시점 기록 남기기는 돌아보기 화면(아래 "확인 문제와 돌아보기 근거")의 아래 줄과
+  "다른 곳" 링크로 옮겼다.
+- 자동 기록: 질문을 보내면 서버가 그 질문과 학습 기록을 한 번에 저장한다. 기록의 시각은 입력을 시작한 때의
+  재생 시각이고, AI 답은 완료되었을 때만 `aiAnswer`로 붙는다(멈춤·끊김·실패면 비어 있다). 같은 질문 ID로
+  다시 보내면(다시 묻기, 응답을 못 받은 재전송) 질문과 기록을 새로 만들지 않는다.
+- 복습(사용자 확인, 2026-11-24): 자동으로 기록된 질문은 학습자가 내 설명을 쓰기 전까지 복습 날짜가 없다.
+  첫 내 설명을 저장하면 다음 날 복습이 잡힌다. 그래서 질문만 한 것은 "열린 질문"으로 남고 복습 목록을
+  늘리지 않는다.
+- 상세 편집: 근거·가정·대안·예측·결과·생각 수정, 최초 설명·수정 이력, Markdown, AI 도움은 질문 아래
+  **자세히**로 여는 대화상자에 그대로 있다.
+- 튜터에 보내는 "이 강의 내 노트"에는 채팅에서 자동 기록된 질문 중 내 설명이 있는 것만 들어간다. 질문 자체는
+  이미 대화로 전달되기 때문이다.
+- 데이터: 학습 상태 스키마는 바꾸지 않았다(v2는 이미 모든 메시지의 `recordId`를 허용). 백업·복원과 폴더
+  동기화는 그대로다.
+- 개념 지도(통합 2026-11-24): 레일 **개념 지도**가 `#view-map`에 개념 지도(그래프, 표 전환)를, 강의 패널 **개념** 탭이
+  그 강의의 개념을 보여 준다. 질문은 개념에 연결된 강의의 기록, 확인 문제는 문제에 적힌 개념(없으면 그 강의의 개념),
+  커밋·테스트는 커밋 제목이나 테스트 이름에 개념 ID나 이름이 그대로 들어 있을 때만 센다. 근거가 없으면 "아직 증거 없음".
+  확인 문제와 돌아보기는 아래 절의 화면이 앱에 붙어 있다. 개념 지도 자체는 DESIGN.md 15절.
+
+## 확인 문제와 돌아보기 근거 (2026-11-24)
+
+구현 범위는 백엔드와 화면 모듈이다(`backend/learning-quiz.mjs`, `backend/python-runner*.mjs`,
+`backend/learning-sources.mjs`, `backend/learning-evidence.mjs`, `src/quiz-view.mjs`, `src/review-view.mjs`).
+2026-11-24 통합에서 앱 셸에 붙였다(아래 "화면 모듈 연결"). 실제 ChatGPT 계정으로 만든 문제의 품질은 확인하지 않았다.
+
+- **만들기**: 학습자가 10분 구간을 고르고 **보낼 자료 확인**을 눌러 실제로 보낼 내용(영어·한국어 정렬 대본,
+  선택한 저장소·위키 발췌의 경로와 줄 범위, 개념 이름)을 본 뒤 **보내고 만들기**를 눌러야만 내 ChatGPT 연결로
+  보낸다. 미리보기 토큰은 10분 유효하고 실패하면 같은 입력으로 다시 시도할 수 있다. 결과는 번역처럼 생성 자산
+  `backend/quizzes/<강의>.json`(Git 제외)에 구간별 대본 hash·정렬 revision과 함께 저장하고, 자막이 바뀌면
+  "예전 대본 기준"으로 표시한다. `DUVI_CHAT_MOCK=1`의 모의 문제는 QA 전용이다.
+- **정답 근거**: `executed`(정답: 실제 실행 결과) · `source_quoted`(원문 인용 확인) · `learner_confirmed`(내가 확인)
+  · `ai_unverified`(AI 제안 · 정답 미검증) · `retired`(신고해 뺌). 인용은 대본 구간이나 인용한 파일 줄에
+  글자 그대로(공백 차이만 허용) 있어야 통과한다. AI만 정한 답은 검증으로 바꾸지 않는다.
+- **실행 경계**: 실행하는 것은 생성된 문제에 들어 있는 고정 Python 코드(`code`)뿐이고, 세트를 만들 때 한 번만
+  Pyodide(WebAssembly)로 실행한다. **학습자가 쓴 답·설명은 어떤 경우에도 실행하지 않는다**(실행되는 입력 칸이 없다).
+  문제 코드는 AI가 만들고, 그 AI 입력에는 제3자 자막과 저장소 발췌가 들어가므로 신뢰하지 않는 코드로 다룬다.
+  재현한 위험(Windows, Node 24.19):
+  - 1a0d7e7: `os.system`이 호스트 파일을 만들었고, Python 소켓이 127.0.0.1에 연결됐다.
+  - cd326e8: gc에 남은 `_pyodide_core` → `create_proxy(...).constructor.constructor('return globalThis')`로 JavaScript에 닿았고,
+    `new dgram.Socket` UDP 패킷과 `dns.Resolver` 질의가 나갔다.
+  - 2422180: JavaScript를 쥐었다고 가정하면 `node:sqlite`의 `DatabaseSync`가 fs 쓰기 권한 없이 호스트에 DB 파일을 만들었고
+    (같은 상태에서 `fs.writeFileSync`는 `ERR_ACCESS_DENIED`), `process._kill(pid, 0)`이 성공했다. **이 Node 버전의 권한 모델은
+    `node:sqlite`의 파일 쓰기를 막지 않는다.**
+  - df874f9: JavaScript를 쥐었다고 가정하면 `process.stderr._handle.constructor`(Node 내부 `Pipe` 클래스)로 부모 쪽 named
+    pipe(`\\.\pipe\…`와 UNC `\\127.0.0.1\pipe\…`)에 연결했고(연결 2건), 새 파이프를 bind+listen할 수 있었다(rc 0, 0).
+    UNC 형태는 SMB를 거쳐 다른 호스트로 나갈 수 있다(원격 호스트로는 시험하지 않았다).
+
+  **기본값은 실행하지 않음이다.** 독립 리뷰가 고칠 때마다 새 탈출 경로를 찾았다(셸, JavaScript 브리지, sqlite, 내부 핸들).
+  그래서 아래 격리는 여러 겹의 방어이지 보장이 아니다. 문제 코드 실행은 서버를 `DUVI_QUIZ_CODE_EXECUTION=1`로 시작했을
+  때만 켜진다. 꺼져 있으면 아무 프로세스도 띄우지 않고, 코드가 있는 문제는 AI 답을 그대로 둔 채 `ai_unverified`와
+  이유 "코드 실행 꺼짐"으로 남는다. 확인 문제 화면은 실행이 꺼져 있다는 것과 켜는 방법을 보여 준다.
+  기록된 결정(2026-11-25): 실행을 기본으로 켜거나 화면 스위치를 두려면 먼저 OS 수준 격리(별도 사용자나 컨테이너, 네트워크 없음)와
+  새 독립 리뷰가 필요하다. 실행이 켜져 있을 때 `executed`로 저장된 문제는 실행을 끈 뒤에도 `executed`로 남는다(스위치는 생성 때만 쓰인다).
+
+  지금의 겹과 그 성격은 다음과 같다. 생성된 코드가 이 프로세스의 JavaScript에 닿을 수 있다고 전제한다.
+  1. **Node 프로세스 플래그**: 문제마다 새 Node 프로세스(`backend/python-runner-worker.mjs`)를 `--permission
+     --allow-fs-read=<pyodide 패키지 폴더> --disallow-code-generation-from-strings --no-experimental-sqlite --no-addons`와
+     old-space 256MB로 띄운다. 쓰기·자식 프로세스·worker·addon·WASI·inspector 권한은 주지 않는다(Pyodide에 필요한 권한은
+     이 읽기 하나였다). 환경 변수는 물려주지 않고 결과는 IPC로 받는다. 불러온 뒤 3초가 지나거나 취소하면 프로세스를
+     죽이고, 끝난 뒤에야 결과를 돌려준다. 출력은 4,000자에서 자른다.
+     - 권한 모델이 막는 것을 측정한 범위: `fs` 쓰기(동기·스트림·promises), 바깥 읽기, `child_process`, worker, inspector,
+       WASI, `v8.writeHeapSnapshot`, `process.report.writeReport`, `trace_events`, `process.chdir`.
+     - `--no-experimental-sqlite`를 켜면 `node:sqlite`가 아예 없다(`getBuiltinModule`이 `undefined`). 이 상태에서도 Pyodide는
+       불러와지고 실행된다.
+     - `--disallow-code-generation-from-strings`도 Pyodide를 깨지 않는다. 이 플래그로 `Function('return globalThis')`는 `EvalError`가 된다.
+  2. **Pyodide를 불러온 뒤의 잠금(lockdown, 허용 목록)**: 네트워크와 프로세스 신호는 OS가 아니라 이 잠금이 막는다.
+     Node 24에는 네트워크 권한이 없기 때문이다.
+     - Node가 아는 내장 모듈(`builtinModules`, 그리고 `node:sea`·`node:test` 같은 `node:` 전용 모듈)을 모두 불러온다.
+       stdio·IPC 응답·타이머·오류 처리에 필요한 허용 목록(`buffer`, `events`, `stream`, `timers`, `util`, `path`, `url`,
+       `crypto`, `zlib` 등. 어느 것도 스스로 파일·소켓·프로세스를 열지 않는다)만 남긴다. 나머지는 모든 함수가 예외를
+       던지게 바꾸고 얼린다. 막는 모듈에는 `fs`, `module`, `net`, `dgram`, `dns`, `http(s)`, `http2`, `tls`, `child_process`,
+       `cluster`, `worker_threads`, `inspector`, `os`, `v8`, `vm`, `wasi`, `repl`, `readline`, `tty`, `trace_events`, `sea`,
+       `test`가 들어간다.
+     - 이미 인스턴스가 있을 수 있는 클래스는 prototype에서 막는다: `net.Socket.connect`, `net.Server.listen`, dgram·dns
+       Resolver, `Agent.createConnection`, `vm.Script`.
+     - 이 시점 뒤로는 `import()`·`require`·`createRequire`·`process.getBuiltinModule`로 어떤 모듈도 더 불러올 수 없다
+       (`module.registerHooks`의 resolve/load가 예외를 던진다).
+     - `process`도 허용 목록이다. exit와 IPC 응답, 스케줄링, 시계, 오류·경고 처리에 필요한 함수만 남긴다. `_kill`, `kill`,
+       `_debugProcess`, `execve`, `dlopen`, `binding`, `_linkedBinding`, `loadEnvFile`, `chdir`, `umask`, `abort`,
+       `_rawDebug`, `getBuiltinModule` 등은 모두 예외를 던지고 다시 쓸 수 없다. `process.report`도 얼린다.
+     - 전역 `fetch`·`WebSocket`·`EventSource`·`localStorage`·`navigator`도 막는다.
+     - stdio 핸들: runner는 stdin·stdout·stderr를 모두 `ignore`로 띄우고 IPC 채널만 파이프로 둔다. 측정하면 이 상태의 자식에는
+       활성 핸들이 없고, `process.channel`(`Control`)은 파이프를 비공개 필드에 둔다. 잠금은 그래도 남아 있는 활성 핸들의
+       내부 클래스 메서드(connect·bind·listen·open 등)를 모두 예외로 바꾸고 얼린다. 그 뒤 `process.stdin/stdout/stderr`는
+       쓰기를 버리는 메모리 스트림으로 바뀐다. 그래서 `_handle`로 닿는 내부 클래스가 없다.
+     - 잠금이 하나라도 적용되지 않으면 문제 코드를 실행하지 않는다.
+  3. **Python 층(우회할 수 있는 한 겹)**: JavaScript 연결 모듈과 `subprocess`·`ctypes`·`socket`·`ssl`·`multiprocessing`
+     import를 막고, `os`·`posix`의 프로세스 함수를 지우고, 실행 전에 gc에서 보이는 Pyodide 모듈 객체를 모두 비운다
+     (그 뒤 Pyodide의 `runPython`이 동작하지 않아 문제 코드는 미리 받아 둔 작은 `exec` 함수로 돌린다). 그러나 우회된다.
+     `_builtin_from_name('_pyodide_core')`로 모듈을 다시 만들면 JavaScript 객체에 닿는다(이때 `Function(string)`은
+     `EvalError`). `_builtin_from_name('posix')`나 `sys.meta_path`에서 차단기를 빼는 우회도 된다.
+  4. **실행 전 정적 거부(근거 품질 장치, 보안 경계 아님)**: 문제 코드에 `gc`, `importlib`, `_builtin_from_name`,
+     `meta_path`, `sys.modules`, `__subclasses__`, `_pyodide…`, `pyodide…`, `js`, `ctypes`가 단어로 들어 있으면 실행하지 않는다.
+     그 문제는 이유와 함께 `ai_unverified`로 남고, 인용이 맞더라도 검증으로 바꾸지 않는다. 이 단어를 출력만 하는 평범한
+     코드도 거부된다.
+
+  `backend/tests/learning-quiz.test.mjs`가 보장하는 것은 이것뿐이다.
+  - 권한 플래그만으로 파일 쓰기·바깥 읽기·자식 프로세스·worker가 `ERR_ACCESS_DENIED`다.
+  - 재리뷰의 탈출 경로는 gc로 가면 `StopIteration`, 모듈을 다시 만들어 가면 `EvalError`로 끝난다. 로컬 UDP 서버가 받는
+    패킷(DNS 질의 포함)과 TCP 연결은 0이다.
+  - Python 층을 끄고 `import js`로 globalThis를 쥔 상태에서, 모듈별 파일 쓰기 API 41가지가 모두 예외다(`fs`,
+    `fs/promises`, `createRequire`, `node:sqlite`, `v8` 힙 스냅샷, `process.report`, `trace_events`, compile cache, repl 기록,
+    inspector, WASI preopen, worker, `child_process`, `cluster`, `node:test`, `process.loadEnvFile`·`chdir`·`execve`·`dlopen`·`binding`).
+    다른 pid로 보내는 신호(`_kill`, `kill`, `_debugProcess`, `os.setPriority`)와 UDP·DNS·TCP·TLS·HTTP·HTTP2·fetch·WebSocket도
+    예외다. 실행 뒤 임시 폴더와 Pyodide 폴더의 파일 목록은 그대로이고, 신호를 받을 뻔한 프로세스는 살아 있으며, 패킷과
+    연결은 0이다. `builtinModules`의 어떤 모듈도 더 불러올 수 없다.
+  - 내부 접근 코드는 실행되지 않고 `ai_unverified`가 된다.
+  - Python 층 우회로도 프로세스나 호스트 파일이 생기지 않는다. Python `open()`은 메모리 안 파일 시스템에만 쓴다.
+  - JavaScript를 쥔 상태에서 stdio와 활성 핸들에서 닿는 모든 핸들 클래스로 부모 쪽 named pipe(로컬, UNC 127.0.0.1)에 연결하거나
+    새 파이프를 bind+listen하는 시도가 성공하지 않고, 부모 파이프 서버의 연결 수가 0이다(df874f9에서는 2건이라 실패한다).
+  - 실행 스위치가 꺼져 있으면(기본값) runner가 불리지 않고 코드 문제가 "코드 실행 꺼짐"으로 `ai_unverified`가 된다. 켜면
+    실행된다.
+
+  보장하지 않는 것:
+  - Node·V8·WebAssembly·Pyodide 자체의 취약점.
+  - 허용 목록에 남긴 모듈(`crypto`, `zlib`, `stream`, `perf_hooks`, `async_hooks` 등)과 Node 내부를 거쳐 열리는 경로.
+    파일·소켓을 직접 여는 함수는 찾지 못했지만 증명하지는 않았다.
+  - Node를 올렸을 때 새로 생기는 내장 모듈이나 권한 모델 밖 기능. 잠금은 실행 시점의 `builtinModules`를 따르지만,
+    측정은 Node 24.19에서만 했다.
+  - 생성된 코드가 IPC로 거짓 실행 결과를 보내는 것(결과는 "실행됨" 근거로 저장된다).
+  - CPU 사용(시간과 old-space만 제한).
+  - `process.channel` 등 Node 내부 객체가 비공개 필드나 심볼로 가진 핸들. JavaScript에서 닿는 경로를 찾지 못했지만
+    전수 조사는 아니다.
+  - 정적 거부와 Python 층은 우회된다(문자열 연결, `getattr`, 유니코드 정규화로 정적 거부를 넘는 것이 재리뷰에서 측정됐다).
+  - Windows 밖의 동작(모든 측정은 Windows, Node 24.19).
+
+  실제 출력이 AI 예상 답과 다르면 실제 출력을 정답으로 쓰고 불일치를 기록한다. 시간 초과, 취소, 정적 거부, 격리된
+  프로세스를 띄우지 못했거나 Pyodide를 불러오지 못한 경우는 실행 결과 없이 `ai_unverified`와 이유로 남는다. 격리 없이
+  실행하는 대체 경로는 없다. 생성 중 취소하면 실행 중인 프로세스를 죽이고 남은 문제는 실행하지 않으며 아무것도
+  저장하지 않는다.
+- **푼 기록**: 학습 상태 schema 3의 `attempts`. 문제 스냅샷, 예측, 확신(낮음/보통/높음), 결과, 채점 방식(보기 자동
+  /내가 채점), 내 설명, 근거 상태 스냅샷, 다음 복습. 틀림(확실했는데 틀림 포함) 1일, 맞았지만 확신 낮음·보통 3일,
+  확실히 맞음 7일. 백업·동기화는 기록처럼 ID 단위로 합치고 설명은 나중에 고친 쪽을 쓴다. schema 2 이하 파일은
+  빈 `attempts`로 올라가며, schema 2만 아는 PC는 새 파일을 읽지 못하므로 두 PC 모두 새 버전이 필요하다.
+- **읽기 전용 저장소**: 학습자 저장소(예: glorious-purpose 로컬 클론)는 이 PC의 `backend/learning/sources.json`
+  (Git 제외, 백업 제외) 또는 환경 변수 `DUVI_EVIDENCE_REPOS`(경로를 `;`로 구분, 예
+  `DUVI_EVIDENCE_REPOS=C:\Users\<사용자>\glorious-purpose`)로 정한다. 코드에 기본 경로는 없다. Duvi는 파일을
+  읽고 `git log`(고정 인자, 셸 없음, 5초 제한)와 JUnit XML 테스트 결과 파일을 읽기만 하며, 그 저장소에서
+  코드를 실행하거나 쓰거나 push하지 않는다. 저장소 밖으로 나가는 경로·심볼릭 링크와 `.git` 안은 읽지 않는다.
+- **돌아보기**: 왼쪽은 자기 완료 표시(이해나 숙달이 아님), 오른쪽은 기록이 보여 주는 근거 수(질문 기록 열린 질문/내
+  설명, 확인 문제 근거 상태별, 커밋·테스트, 오늘 복습). 근거가 없으면 0 대신 "아직 증거 없음", 저장소가 없으면
+  "설정된 저장소 없음"이라고 쓴다. 숫자는 변화 기록이지 점수가 아니다.
+- **화면 모듈 연결**: `createLearningViewApi(request,{open,lectureName})`로 api를 만들고
+  `renderQuizScreen(root,api,{lectureId,segmentId})`, `renderLectureQuizTab(root,api,{lectureId})`,
+  `renderReviewScreen(root,api)`를 부른다. 스타일은 `src/quiz-view.css`, `src/review-view.css`.
+  `node scripts/preview-views.mjs <폴더>`는 예시 데이터로 두 화면을 1536·1280 폭에서 찍는다.
+  앱에서는(통합, 2026-11-24) 레일 **확인 문제**가 지금 강의와 재생 시각이 든 10분 구간으로 `#view-quiz`를 열고
+  (위의 강의 선택으로 다른 강의, 강의가 없으면 선택만 보임), 레일 **돌아보기**가 `#view-review`를, 강의 패널의
+  **확인 문제** 탭이 `#lectureQuiz`를 그린다. 화면은 한 번 만들고 다시 보일 때 새로 불러온다. `open(target)`은
+  `src/app-routes.mjs`가 나눈다: 강의(불러오고 그 시각으로), 확인 문제(그 구간), 학습 로드맵·내 기록·복습·백업
+  (기존 학습 로드맵 대화상자의 그 탭), 설정, 저장소·저장소 파일(설정의 "읽기 전용 저장소": 목록, 전체 경로로
+  추가, 빼기, 파일 링크는 위치와 복사 — Duvi는 저장소 파일을 열지 않는다), 로드맵 자료, 현재 시점 기록 남기기.
+  모르는 종류는 아무것도 하지 않는다. 화면을 바꿔도 강의 영상 요소·재생 시각·질문 초안은 그대로다.

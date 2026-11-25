@@ -1,0 +1,109 @@
+/* 개념 지도 (graph + outline table). Duvi tokens from DESIGN.md §2; accent only for links, primary/selected and focus.
+   No left accent bars, no nested bordered boxes, no colored pills; status is text (with a glyph), 14px minimum. */
+.cmap, .cmap-graph, .cmap-lecture {
+  --cmap-ink: #111a2d; --cmap-muted: #617088; --cmap-line: #e5eaf1; --cmap-soft: #f2f5fa; --cmap-canvas: #f8fafd;
+  --cmap-selected: #eaf2ff; --cmap-accent: #1563d8; --cmap-focus: #3b7ddd; --cmap-edge: #7b8799;
+}
+.cmap {
+  display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 380px); grid-template-rows: auto minmax(0, 1fr);
+  height: 100%; min-height: 0; color: var(--cmap-ink); font: 15px/1.55 "Noto Sans KR Variable", "Noto Sans KR", Arial, sans-serif; background: #fff;
+}
+.cmap *, .cmap *::before, .cmap *::after { box-sizing: border-box; }
+/* Inside the app the global button rule (library.css) adds a 44px height, centred inline-flex, radius, hover fill and a
+   pressed shift; the map's buttons reset them here and their own classes style them. */
+:where(.cmap, .cmap-graph, .cmap-lecture) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  display: inline-block; min-height: 0; border-radius: 0; gap: 0; text-align: left; align-items: normal; justify-content: normal; }
+:where(.cmap, .cmap-graph, .cmap-lecture) button:hover { background: none; }
+:where(.cmap, .cmap-graph, .cmap-lecture) button:active { transform: none; }
+:where(.cmap, .cmap-graph, .cmap-lecture) :focus-visible { outline: 2px solid var(--cmap-focus); outline-offset: 2px; }
+.cmap-muted { color: var(--cmap-muted); font-size: 14px; }
+.cmap-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.cmap-head { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 16px 24px 12px; border-bottom: 1px solid var(--cmap-line); }
+.cmap-title { display: flex; align-items: baseline; gap: 12px; min-width: 0; flex-wrap: wrap; }
+.cmap-title h1 { margin: 0; font-size: 22px; line-height: 1.3; }
+.cmap-title p { margin: 0; }
+.cmap-toolbar { display: flex; align-items: center; gap: 12px; }
+.cmap-switch { display: flex; background: var(--cmap-soft); border-radius: 8px; padding: 2px; }
+.cmap-view { flex: none; white-space: nowrap; height: 36px; padding: 0 14px; border-radius: 6px; font-size: 14px; color: var(--cmap-muted); }
+.cmap-view[aria-pressed="true"] { background: #fff; color: var(--cmap-ink); font-weight: 700; box-shadow: 0 1px 2px rgb(17 26 45 / 12%); }
+.cmap-search { width: 240px; height: 40px; padding: 0 12px; border: 1px solid var(--cmap-line); border-radius: 8px; font: inherit; font-size: 15px; color: inherit; background: #fff; }
+.cmap-note { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--cmap-muted); }
+.cmap-status { grid-column: 1 / -1; margin: 0; font-size: 14px; }
+.cmap-status:empty { display: none; }
+
+.cmap-main { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.cmap-main-table { overflow: auto; }
+.cmap-link { color: var(--cmap-accent); text-align: left; text-decoration: none; }
+.cmap-link:hover { text-decoration: underline; }
+
+/* Outline progress table (alternative C) */
+.cmap-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; }
+.cmap-table th, .cmap-table td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--cmap-line); overflow-wrap: anywhere; word-break: keep-all; }
+.cmap-table thead th { position: sticky; top: 0; z-index: 1; background: #fff; color: var(--cmap-muted); font-weight: 600; }
+.cmap-group th { background: var(--cmap-soft); padding: 0; }
+.cmap-disclosure { width: 100%; min-height: 40px; padding: 0 10px; text-align: left; font-weight: 700; font-size: 15px; }
+.cmap-disclosure::before { content: "▾"; display: inline-block; width: 18px; color: var(--cmap-muted); }
+.cmap-disclosure[aria-expanded="false"]::before { content: "▸"; }
+.cmap-concept { text-align: left; font-weight: 600; font-size: 15px; padding-left: 18px; }
+.cmap-table tbody th { font-weight: 400; }
+.cmap-table tr[aria-selected="true"] > * { background: var(--cmap-selected); }
+.cmap-table tr[aria-selected="true"] .cmap-concept { color: var(--cmap-accent); }
+.cmap-num { font-variant-numeric: tabular-nums; }
+
+/* Graph */
+/* user-select: dragging to pan must not select node text. */
+.cmap-graph { user-select: none; position: absolute; inset: 0; overflow: hidden; background: var(--cmap-canvas); cursor: grab; touch-action: none; }
+.cmap-graph.cmap-dragging { cursor: grabbing; }
+.cmap-layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.cmap-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.cmap-edge { fill: none; stroke: var(--cmap-edge); stroke-width: 1.5; }
+.cmap-edge.cmap-dashed { stroke-dasharray: 6 5; }
+.cmap-edge.cmap-on { stroke: var(--cmap-ink); stroke-width: 2.5; }
+.cmap-edge.cmap-faint { opacity: .28; }
+/* Edges between fields cross the bands: faint at rest, full strength when one of their ends is selected. */
+.cmap-edge.cmap-cross { opacity: .18; }
+.cmap-edge.cmap-cross.cmap-on { opacity: 1; }
+.cmap-legend-line.cmap-cross { opacity: .35; }
+.cmap-band { position: absolute; left: 0; margin: 0; font-size: 15px; font-weight: 700; white-space: nowrap; line-height: 28px; }
+.cmap-node { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 8px 12px; text-align: left;
+  background: #fff; border: 1px solid var(--cmap-line); border-radius: 8px; cursor: pointer; }
+.cmap-node:hover { border-color: var(--cmap-edge); background: #fff; }
+.cmap-node[aria-pressed="true"] { border: 2px solid var(--cmap-accent); background: var(--cmap-selected); padding: 7px 11px; }
+.cmap-node.cmap-dim { opacity: .35; }
+.cmap-node-name { font-size: 15px; font-weight: 700; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmap-node-line { font-size: 14px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmap-controls { position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--cmap-line); border-radius: 10px; padding: 4px; box-shadow: 0 2px 8px rgb(17 26 45 / 8%); cursor: default; }
+.cmap-control { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; }
+.cmap-control > span[aria-hidden] { width: 18px; text-align: center; font-size: 18px; }
+.cmap-control:hover:not(:disabled) { background: var(--cmap-soft); }
+.cmap-control:disabled { color: var(--cmap-muted); cursor: not-allowed; }
+.cmap-legend { position: absolute; left: 16px; bottom: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; max-width: calc(100% - 260px); padding: 6px 10px; background: rgb(255 255 255 / 92%); border-radius: 8px; font-size: 14px; cursor: default; }
+.cmap-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.cmap-legend-line { display: inline-block; width: 28px; border-top: 2px solid var(--cmap-edge); }
+.cmap-legend-line.cmap-dashed { border-top-style: dashed; }
+.cmap-fit-note { position: absolute; left: 0; top: 0; right: 0; min-height: 40px; margin: 0; padding: 9px 16px; font-size: 14px; line-height: 22px; color: var(--cmap-ink);
+  background: var(--cmap-canvas); border-bottom: 1px solid var(--cmap-line); pointer-events: none; }
+/* The note line is reserved even when empty; fits start content below it (64px), so a note never covers a heading or node. */
+
+/* Inspector */
+.cmap-inspector { min-height: 0; overflow: auto; padding: 20px 24px; border-left: 1px solid var(--cmap-line); }
+.cmap-inspector h2 { margin: 0 0 4px; font-size: 18px; line-height: 1.4; }
+.cmap-inspector > p { margin: 0 0 8px; }
+.cmap-definition { font-size: 15px; }
+.cmap-facts { margin: 16px 0 0; display: grid; grid-template-columns: 1fr; gap: 2px; }
+.cmap-facts dt { margin-top: 12px; font-size: 14px; color: var(--cmap-muted); }
+.cmap-facts dd { margin: 0; font-size: 15px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; overflow-wrap: anywhere; }
+
+/* Lecture panel tab */
+.cmap-lecture h2 { margin: 0 0 8px; font-size: 16px; }
+.cmap-lecture ul { margin: 0; padding: 0; list-style: none; }
+.cmap-lecture li { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid var(--cmap-line); font-size: 15px; }
+.cmap-lecture .cmap-muted { color: var(--cmap-muted); }
+/* Fullscreen puts the lecture panel on #141922: light-on-dark colours there. */
+.study-focus .cmap-lecture { --cmap-ink: #ffffff; --cmap-muted: #bfcada; --cmap-line: #ffffff26; --cmap-accent: #9cc3ff; }
+
+@media (max-width: 1100px) {
+  .cmap { grid-template-columns: minmax(0, 1fr) 300px; }
+  .cmap-search { width: 180px; }
+}

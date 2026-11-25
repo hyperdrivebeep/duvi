@@ -8,8 +8,8 @@ function iconButton(name,label,action){const node=element('button','icon-button'
 function paintIcons(){createIcons({icons:{Folder,FolderPlus,ListVideo,ChevronRight,ChevronDown,Ellipsis,FolderInput,Plus},attrs:{'aria-hidden':'true'}});}
 
 export class LibraryUI{
-  constructor({api,load,openDialog,closeDialog,playPositions,format}){
-    Object.assign(this,{api,load,openDialog,closeDialog,playPositions,format});
+  constructor({api,load,openDialog,closeDialog,closeLibrary=()=>{},playPositions,format}){
+    Object.assign(this,{api,load,openDialog,closeDialog,closeLibrary,playPositions,format});
     this.rows=[];this.folders=[];this.mode='video';this.busy=false;this.refreshVersion=0;
     try{this.collapsed=new Set(JSON.parse(localStorage.getItem('duvi-collapsed-folders')||'[]'));}catch{this.collapsed=new Set();}
     $('librarySearch').oninput=()=>this.render();
@@ -43,7 +43,7 @@ export class LibraryUI{
     if(section)list.scrollTop+=section.getBoundingClientRect().top-list.getBoundingClientRect().top;
   }
   async select(key){
-    this.closeDialog('mobileLibrary');$('lecture').value=String(key);this.render();
+    this.closeLibrary();$('lecture').value=String(key);this.render();
     try{await this.load(key);}catch(error){$('status').textContent=error.message;}
   }
   render(){

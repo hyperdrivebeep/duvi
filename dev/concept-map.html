@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Dev-only preview of the 개념 지도 modules with fixture state (not part of the Vite build: only index.html is an entry).
+     Run `npx vite` and open /dev/concept-map.html?view=graph|table&select=<개념 이름>&zoom=<배율>. -->
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duvi 개념 지도 (dev)</title>
+  <link rel="stylesheet" href="../src/concept-map.css">
+  <style>html, body { margin: 0; height: 100%; overflow: hidden; } #root { height: 100%; }</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import data from '../src/concept-map-data.json';
+    import {renderConceptMap} from '../src/concept-map-view.mjs';
+    import {fixtureState, fixtureEvidence, fixtureLectureId} from './concept-map-fixture.mjs';
+    import {lectureConcepts} from '../src/concept-map-model.mjs';
+
+    const params = new URLSearchParams(location.search);
+    const map = renderConceptMap(document.getElementById('root'), {
+      data, state: fixtureState(data), evidence: fixtureEvidence(data), view: params.get('view') || 'graph',
+      focusConceptIds: lectureConcepts(data, fixtureLectureId(data)).map(concept => concept.id),
+      onOpenLecture: resource => console.info('open lecture', resource.lectureId),
+    });
+    const selected = params.get('select') && data.concepts.find(concept => concept.name === params.get('select'));
+    if (selected) map.select(selected.id);
+    if (params.get('search')) map.search(params.get('search'));
+    window.conceptMap = map;
+    requestAnimationFrame(() => {
+      const graph = document.querySelector('.cmap-graph');
+      if (graph && params.get('zoom')) graph.dispatchEvent(new KeyboardEvent('keydown', {key: '0'}));
+      if (graph && params.get('zoom') && selected) {
+        // Zoom in step by step, then put the selected node in the middle.
+        for (let i = 0; i < Number(params.get('zoom')); i++) graph.dispatchEvent(new KeyboardEvent('keydown', {key: '+'}));
+        map.select(selected.id);
+      }
+      const overflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      document.title = `overflow:${overflow}`;
+    });
+  </script>
+</body>
+</html>

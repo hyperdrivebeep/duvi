@@ -7,17 +7,29 @@ export function hideControls(stage,toolbar,handle){
   if(toolbar.contains(document.activeElement))stage.focus({preventScroll:true});
   stage.classList.add('controls-hidden');handle.setAttribute('aria-expanded','false');
 }
-export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpen=()=>{},onLearningOpen=()=>{}}){
+/**
+ * The lecture stage: one media instance, captions, the side panel (질문 / 개념 / 확인 문제 / 대본) and fullscreen.
+ * The panel is always beside the lecture in the normal view; only fullscreen can close it.
+ */
+export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()=>{},onConceptsOpen=()=>{}}){
   const $=id=>document.getElementById(id),stage=$('stage'),toolbar=$('studyToolbar');
   let opener=$('fullscreen'),hideTimer,entered=false;
   const outside=[];
   const captionRows=[...stage.querySelectorAll('.captions .caption-row')];
-  // Docked captions keep the tallest height seen in the current layout, so the video does not jump between sentences.
+  // Docked captions (fullscreen dock and the normal desktop view) keep the tallest height seen in the current layout, so
+  // the video does not jump between sentences. In the normal view a sentence taller than the reserved caption space
+  // would scroll the page; the video yields that height instead (--media-fit caps the video, at most 160px shorter).
+  const desktop=matchMedia('(min-width:1101px)'),slot=stage.querySelector('.media-slot');
+  let fullHeight=0;
   function holdCaptions(){
-    if(!entered||stage.dataset.captionPlacement!=='dock')return;
+    if(entered?stage.dataset.captionPlacement!=='dock':!desktop.matches)return;
     for(const row of captionRows){const height=row.getBoundingClientRect().height;if(height>parseFloat(row.style.minHeight||'0'))row.style.minHeight=`${height}px`;}
+    if(entered)return;
+    const over=document.documentElement.scrollHeight-innerHeight,height=slot.getBoundingClientRect().height;
+    if(!stage.style.getPropertyValue('--media-fit'))fullHeight=height;
+    if(over>0)stage.style.setProperty('--media-fit',`${Math.max(fullHeight-160,height-over)}px`);
   }
-  function resetCaptions(){for(const row of captionRows)row.style.minHeight='';requestAnimationFrame(holdCaptions);}
+  function resetCaptions(){for(const row of captionRows)row.style.minHeight='';stage.style.removeProperty('--media-fit');requestAnimationFrame(holdCaptions);}
   new MutationObserver(holdCaptions).observe(stage.querySelector('.captions'),{childList:true,characterData:true,subtree:true});
   addEventListener('resize',resetCaptions);
   function isolate(active){
@@ -37,19 +49,21 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
     clearTimeout(hideTimer);stage.classList.remove('controls-hidden');
     $('showStudyControls').setAttribute('aria-expanded','true');
     if(entered)hideTimer=setTimeout(()=>{
-      if((toolbar.contains(document.activeElement)&&holdsControls(document.activeElement))||toolbar.matches(':hover'))return;
+      if((toolbar.contains(document.activeElement)&&holdsControls(document.activeElement))||toolbar.matches(':hover')||!settings.hidden)return;
       hideControls(stage,toolbar,$('showStudyControls'));
     },2500);
   }
   function setActive(active){
     if(active===entered)return;
+    // The ⚙ popover holds different settings in each mode; leaving or entering fullscreen (also by the browser's own Escape) closes it.
+    setSettings(false);
     isolate(active);
     entered=active;stage.classList.toggle('study-focus',active);
     document.body.classList.toggle('study-focused',active);
     $('exitFullscreen').hidden=!active;
     $('fullscreen').setAttribute('aria-label',active?'전체화면 종료':'자막 포함 전체화면');
     if(active){stage.focus({preventScroll:true});showControls();}
-    else{clearTimeout(hideTimer);stage.classList.remove('controls-hidden');opener.focus({preventScroll:true});}
+    else{clearTimeout(hideTimer);stage.classList.remove('controls-hidden');showPanel(true);opener.focus({preventScroll:true});}
     resetCaptions();
   }
   async function exit(){
@@ -79,7 +93,21 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
   toolbar.addEventListener('focusin',showControls);
   toolbar.addEventListener('focusout',showControls);
   toolbar.addEventListener('pointerleave',showControls);
-  $('showStudyControls').onclick=()=>{showControls();$('captionPlacement').focus();};
+  // ⚙ holds the settings that do not need to be on screen while watching (speed, auto pause, caption place and size,
+  // and in fullscreen 강의 완료), so the controls stay one row above the video.
+  const settings=$('studySettingsPanel'),settingsButton=$('studySettings');
+  function setSettings(open,{focus=false}={}){
+    settings.hidden=!open;settingsButton.setAttribute('aria-expanded',String(open));
+    if(open&&focus)$('speed').focus();
+    if(!open&&settings.contains(document.activeElement))settingsButton.focus({preventScroll:true});
+  }
+  settingsButton.onclick=()=>setSettings(settings.hidden);
+  // Escape closes it from the ⚙ button or inside it. (In native fullscreen the browser's own Escape also leaves fullscreen.)
+  settings.parentElement.addEventListener('keydown',event=>{if(event.key==='Escape'&&!settings.hidden){event.preventDefault();event.stopPropagation();setSettings(false);}});
+  document.addEventListener('pointerdown',event=>{if(!settings.hidden&&!settings.parentElement.contains(event.target))setSettings(false);});
+  const speedLabel=()=>{$('studySettingsLabel').textContent=$('speed').selectedOptions[0]?.textContent||'';};
+  $('speed').addEventListener('change',speedLabel);speedLabel();
+  $('showStudyControls').onclick=()=>{showControls();setSettings(true,{focus:true});};
   const size=stored('duvi-fullscreen-caption-size',22);
   $('captionSize').value=String([18,22,26,30].includes(size)?size:22);
   const updateSize=()=>{stage.style.setProperty('--fullscreen-caption-size',$('captionSize').value+'px');persist('duvi-fullscreen-caption-size',Number($('captionSize').value));resetCaptions();};
@@ -88,24 +116,24 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuestionOpe
   $('captionPlacement').value=['dock','bottom','top'].includes(placement)?placement:'dock';
   const updatePlacement=()=>{stage.dataset.captionPlacement=$('captionPlacement').value;persist('duvi-caption-placement',$('captionPlacement').value);resetCaptions();};
   $('captionPlacement').onchange=updatePlacement;updatePlacement();
-  function transcript(open){
+  function showPanel(open){
     $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);resetCaptions();
-    for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded',String(open));
-    if(open)selectTab('transcript');
+    $('studyTranscript').setAttribute('aria-expanded',String(open));
   }
-  function selectTab(name){
+  /** focus:false selects a tab without moving the keyboard into it (the first paint, a click on the tab itself). */
+  function selectTab(name,{focus=true}={}){
     for(const tab of document.querySelectorAll('[data-stage-tab]')){const selected=tab.dataset.stageTab===name;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;}
     for(const panel of document.querySelectorAll('[data-stage-panel]'))panel.hidden=panel.dataset.stagePanel!==name;
     if(name==='transcript')onTranscriptOpen();
-    if(name==='chat')onChatOpen();
-    if(name==='question')onQuestionOpen();
-    if(name==='learning')onLearningOpen();
+    if(name==='chat')onChatOpen(focus);
+    if(name==='quiz')onQuizOpen();
+    if(name==='concepts')onConceptsOpen();
   }
-  function openPanel(name){$('transcriptPanel').hidden=false;stage.classList.add('has-transcript');resetCaptions();for(const id of ['toggleTranscript','studyTranscript'])$(id).setAttribute('aria-expanded','true');selectTab(name);}
+  function openPanel(name,options){showPanel(true);selectTab(name,options);}
   const tabs=[...document.querySelectorAll('[data-stage-tab]')];
-  tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab);tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab);tabs[target].focus();}};});
+  tabs.forEach((tab,index)=>{tab.onclick=()=>{selectTab(tab.dataset.stageTab,{focus:false});tab.focus();};tab.onkeydown=event=>{const target=event.key==='ArrowRight'?(index+1)%tabs.length:event.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:event.key==='Home'?0:event.key==='End'?tabs.length-1:null;if(target!==null){event.preventDefault();selectTab(tabs[target].dataset.stageTab,{focus:false});tabs[target].focus();}};});
   $('openQuestion').onclick=()=>openPanel('chat');
-  for(const id of ['toggleTranscript','studyTranscript'])$(id).onclick=()=>transcript($('transcriptPanel').hidden);
-  $('closeTranscript').onclick=()=>{transcript(false);showControls();$(entered?'studyTranscript':'toggleTranscript').focus();};
-  return {openPanel,exit};
+  $('studyTranscript').onclick=()=>{if($('transcriptPanel').hidden)openPanel('transcript');else showPanel(false);};
+  $('closeTranscript').onclick=()=>{showPanel(false);showControls();$('studyTranscript').focus();};
+  return {openPanel,exit,selectedTab:()=>document.querySelector('[data-stage-tab][aria-selected=true]')?.dataset.stageTab};
 }

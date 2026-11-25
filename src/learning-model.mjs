@@ -22,6 +22,11 @@ export function nextResource(roadmap,progress={}){
 export function resourceProgressId(roadmap,resource){return resource.lectureId?orderedResources(roadmap).find(r=>String(r.lectureId)===String(resource.lectureId))?.id||resource.id:resource.id;}
 export function resourceCompleted(roadmap,progress,resource){return progress?.[resourceProgressId(roadmap,resource)]?.completed===true;}
 export function completionSummary(roadmap,progress,resources=orderedResources(roadmap)){const total=resources.length,done=resources.filter(r=>resourceCompleted(roadmap,progress,r)).length;return {total,done,percent:total?Math.round(done/total*100):0};}
+/** Where a lecture sits in the roadmap, for the lecture header ("1. Python과 자료 생성 · 1/16"); empty outside it. */
+export function curriculumPlace(roadmap,lectureId){
+  for(const phase of roadmap?.phases||[]){const index=(phase.resources||[]).findIndex(r=>String(r.lectureId)===String(lectureId));if(index>=0)return `${phase.title} · ${index+1}/${phase.resources.length}`;}
+  return '';
+}
 export function lectureResource(roadmap,lectureId,title='현재 강의'){return orderedResources(roadmap).find(r=>String(r.lectureId)===String(lectureId))||{id:`lecture-${lectureId}`,lectureId:String(lectureId),title};}
 export function firstLecture(roadmap){return orderedResources(roadmap).find(r=>String(r.lectureId)==='1')||orderedResources(roadmap).find(r=>/mit/i.test(r.id+' '+r.title)&&/1(?:\D|$)/.test(r.title))||orderedResources(roadmap)[0];}
 export function dueRecords(records,now=Date.now()){return records.filter(r=>r.reviewDueAt&&Number.isFinite(Date.parse(r.reviewDueAt))&&Date.parse(r.reviewDueAt)<=now);}

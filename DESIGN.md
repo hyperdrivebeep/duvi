@@ -288,6 +288,7 @@ textarea up to 160px, 보내기 / 멈추기 in the same slot); one line naming w
 Messages: learner turns right-aligned on the selected surface, tutor turns labelled
 "AI 튜터 · 제안" on the soft surface with the model name, a stopped/interrupted tag
 in the existing notice colour, and 복사 / 기록으로 저장 (or ✓ 기록에 저장됨 · 열린 질문 보기).
+(2026-11-24: the save button and the 기록 tab were removed; see §13.)
 Each turn shows its playback time as a chip; [mm:ss] inside an answer becomes a chip
 too, and every chip seeks the video. The empty state offers three starter questions.
 Dark fullscreen variants reuse #090b10/#141922/#203652/#232e40 and focus #75a6f0.
@@ -303,10 +304,147 @@ text, time, playback seconds, model, stop status and linked record). Version 1 f
 migrate to an empty list; backup counts and merges threads; folder sync merges a
 thread as the union of both PCs' messages. A saved answer becomes a record with the
 learner's question, an empty own explanation, `aiAnswer` kept apart from the
-learner fields, help level "full", and a review the next day.
+learner fields, help level "full", and a review the next day. Since §13 this path
+only serves questions asked before automatic records.
 
 Evidence: isolated server with the explicit `DUVI_CHAT_MOCK=1` test provider, the
 micrograd lecture, headed Chrome with a temporary profile, true fullscreen through a
 real click at 1280, 1536 and 1920. Captures are local files in
 `../fs-qa-shots/side-chat/` and are not committed. Real ChatGPT answers, their
 quality and latency were not observed.
+
+## 13. App shell A and automatic question records (2026-11-24)
+
+User decision: alternative A of `docs/design/2026-11-24-app-redesign` (rail + lecture +
+side panel) is the app structure; alternative C's concept map with its progress table
+becomes the 개념 지도 screen (built separately). Questions are recorded when they are sent.
+
+Shell: a 76px rail (`--rail-width`) on every screen, top to bottom Duvi, ▶ 강의,
+◇ 개념 지도, ◆ 확인 문제, ≡ 돌아보기, then ⚙ 설정 at the bottom. Each item is a glyph over
+a 14px label; the current item has the neutral `--fill` (#eef1f5) background and bold
+weight, never an accent bar. 개념 지도, 확인 문제 and 돌아보기 are views at the stable mount
+points `#view-map`, `#view-quiz`, `#view-review`; 개념 지도 is §15, 확인 문제 and 돌아보기 are the
+screens of §14. Switching views hides the lecture view without rebuilding the media
+element and pauses playback, so returning finds the same time (`src/app-shell.mjs`).
+
+내 강의: the former sidebar is a panel (fixed, left of the main area, 300–380px wide,
+one shadow) opened by **☰ 내 강의** in the lecture header; × or Escape closes it and
+choosing a lecture closes it. Folders, import, playlist and move dialogs are unchanged.
+
+Lecture screen, top to bottom in the left column: a 56px header (☰ 내 강의, title with
+ellipsis, curriculum place such as "1. Python과 자료 생성 · 1/16" or the course when the
+lecture is outside the roadmap, **○ 강의 완료로 표시** / **✓ 강의 완료 · 취소**); the video
+at full column width; the time strip and both caption lines on the dark band
+(`--stage` #0b0d11, English 19px #dce3ee, Korean 22px #fff, centred, each line at most
+three lines before it scrolls); then the sentence toolbar and the status rows. Both
+caption lines are inside the first viewport at 1280×800 and 1536×864. The right panel
+is 372px (`--panel-width`), full height and sticky, with tabs 질문 · 개념 · 확인 문제 ·
+대본; the selected tab is bold ink with a 2px underline. 개념 (`#lectureConcepts`) lists the
+lecture's concepts (§15); 확인 문제 (`#lectureQuiz`) is the checkpoint list of §14. The panel is always
+present in the normal view; only fullscreen can close it (its × and 대본 toggle).
+Fullscreen keeps §8/§12: 380px panel, hidden header and status rows, captions docked.
+
+질문 tab: one time-ordered list separated by 1px lines, no bubbles. A question shows
+its time link, 나 and **자동 기록됨**; the answer shows its time link and **AI 제안**.
+Under each question: 내 설명 쓰기 / 고치기 (the explanation stays apart from the AI
+answer), **자세히** (opens the full record editor — evidence fields, history, Markdown,
+AI 도움 — as `#recordDialog`), and **다시 묻기** when no complete answer arrived. Time
+links are plain accent text, not pills. The composer and its settings are as in §14.
+
+Record contract: sending creates the user message and its record in one server write
+(`LearningStore.askQuestion`); the message carries `recordId`. The record has the
+question, an empty explanation, help `none`, the cue at the typing-start time as its
+anchor and `reviewDueAt: null`, so it is an open question and not yet due. A complete
+answer fills `aiAnswer` without a new record revision; a stopped, cut-off or failed
+answer leaves it empty. The browser sends a `questionId`; sending the same id again
+(다시 묻기, or a resend after a lost start event) reuses the question and its record.
+The first explanation sets the review for the next day. No schema change: v2 already
+allowed `recordId` on any message, so backup and folder sync are unchanged. Questions
+from before this change keep the old route (`/api/learning/chat/record`) when the
+learner writes an explanation under them.
+
+Evidence: `npm test` (backend and UI model tests) and a browser run against an
+isolated copy of the data with `DUVI_CHAT_MOCK=1` at 1280×800 and 1536×864, including
+true fullscreen through a real click. Real ChatGPT answers were not observed.
+
+## 14. Integration: 확인 문제, 돌아보기 and lecture polish (2026-11-24)
+
+The shell of §13 now mounts the quiz and evidence modules of docs/LEARNING_DESIGN.md
+(`src/quiz-view.mjs`, `src/review-view.mjs`, styles in `quiz-view.css` / `review-view.css`).
+
+Screens: rail **확인 문제** shows `renderQuizScreen` in `#view-quiz` for the current lecture and
+the ten-minute segment that holds the playback time (`segmentIdAt`, `s<start>`); a 강의 select
+in its title row (`lecturePicker`) switches lectures, and with no lecture it shows only that select and one line. Rail
+**돌아보기** shows `renderReviewScreen` in `#view-review`. Both fill the height beside the rail,
+scroll their own page above a 60px bottom bar, and are mounted once and reloaded when shown
+again. The lecture panel's 확인 문제 tab shows `renderLectureQuizTab` (one checkpoint per
+segment, 풀기/만들기). The old 돌아보기 list (`#learningStudy`) is gone: its next task, roadmap,
+records, review and backup entries are the review module's bottom bar and "다른 곳" links, and
+현재 시점 기록 남기기 is one more link there.
+
+Links (`open(target)`, `src/app-routes.mjs`): lecture → load and seek; quiz → the quiz screen
+at that lecture and segment; roadmap / records / review / backup → the existing 학습 로드맵
+dialog at that tab; settings → 설정; sources and repo → 설정's 읽기 전용 저장소 section
+(`src/sources-settings.mjs`: list with ✓/✕, add a folder by full path, remove, and for a repo
+link the location with 위치 복사, since Duvi does not open repository files); resource → the
+roadmap resource; note → 현재 시점 기록 남기기. An unknown kind does nothing. Quiz, settings,
+sources and repo leave fullscreen first. None of this rebuilds the lecture stage: the media
+element, playback time and composer draft survive every switch.
+
+Sentence toolbar (normal view): one row, ⏮ 이전 · ↻ 다시 · ⏭ 다음 on the left (full names in
+aria-label and title), then 질문하기, **⚙ <speed>** and ⛶. ⚙ opens a popover above the button
+with 속도 and 문장 끝 자동 멈춤; in fullscreen it opens below and adds 자막 위치, 자막 크기 and
+**강의 완료로 표시** (fullscreen hides the header button; both stay in sync). ⚙ again, Escape
+(in native fullscreen the browser's Escape also leaves fullscreen) or a click outside closes it, and the
+fullscreen controls do not auto-hide while it is open. The status row
+holds the translation summary and 재생·자막 정보 on one line; the separate 전체 대본 button is gone
+(대본 is a panel tab). At 1536×864 the video yields up to 60px (pillarboxed,
+`max-height: calc(100dvh - 312px)`) so the lecture screen does not scroll at 1280×800 or 1536×864.
+
+Fullscreen top controls: one row left of the panel — 이전 · 다시 · 다음, then 질문하기, 대본,
+⚙, 나가기. The corner ⚙ handle shows only while the controls are hidden; it reveals them and
+opens the popover.
+
+질문 tab: the head is 이 강의 · 시간순 with 전체 n / 열린 질문 n (no 대본 filter). Under the composer
+there are two lines only: "보내면 이 시각의 질문으로 자동 기록 · AI 답은 제안" (full sentence in its
+title) and the **⋯ 보낼 설정** disclosure, closed by default, whose summary states what the next
+question carries (`sendSettingsSummary`, e.g. "대본 ±1분 · 노트 포함 · 보내면 멈춤"). Inside: model,
+보낼 때 멈추기, 새 대화, the 보낼 자료 checks and the keyboard hint. Tabs show counts when known:
+**질문 n** (items in this lecture's stream) and **확인 문제 n** (items in this lecture's sets, not
+counting reported ones); no number when zero.
+
+## 15. Concept map and progress table (2026-11-24)
+Modules: `src/concept-map-model.mjs` (pure), `src/concept-map-view.mjs`, `src/concept-map.css`, data
+`src/concept-map-data.json` from `npm run data:concept-map` (R-019 sections 2-9 = 160 concepts, plus two gap
+groups from the 2026-11-23 curriculum review with no material). The app shell mounts it; nothing here edits it.
+- Default view is a graph; a 그래프/표 switch shows the outline progress table (design alternative C), the
+  accessible equivalent. Both share one inspector: definition, why, prerequisite chain, 지도 밖 선수 as text,
+  lecture buttons, reading links and the four evidence rows.
+- Graph: deterministic layout. Columns are the longest resolved prerequisite path; fields are horizontal bands
+  headed `분야 · 자료 있음 n/N`. An edge exists only when a 선수 entry resolves to a concept id; dashed when the
+  target has no material, explained in the legend. Light canvas `#f8fafd`, white 8px-radius node cards, gray
+  edges; the selected node gets the accent border and its edges turn ink and thicker. Pan by drag or wheel,
+  ctrl/pinch zooms around the cursor, keys + − 0 and arrows, Tab through nodes. Bottom-right cluster:
+  화면 맞춤, 지금 강의 개념으로, +, −. Fit never goes below 0.8x (14px text stays at least about 11px); below
+  that it fits the selected field and says so in a status line.
+- Table: group rows are disclosure buttons with aria-expanded; columns 개념 | 먼저 알아야 할 것 | 다루는 강의 |
+  자료 | 내가 표시 | 질문 | 확인 문제 | 커밋·테스트. The header note says 내가 표시 is self-marked and the
+  right three columns are evidence from records. Missing evidence reads `아직 증거 없음`, never 0.
+- 자료 wording: 자료 있음 = an app-playable lecture is linked, 일부 = reading or exercise only, 자료 없음 = nothing.
+- Rules kept: no left accent bars, no nested bordered boxes, no colored pills; status is text with a glyph
+  (● ◐ ○); accent only for links, the pressed view, the selection and focus; 14px minimum.
+- Preview without the app: `npx vite`, then `/dev/concept-map.html?view=graph|table&select=<개념>&zoom=<n>`
+  (fixture state, not learner data; `dev/` is not a build entry).
+- In the app (2026-11-24 integration): rail **개념 지도** mounts `renderConceptMap` in `#view-map` each time it is shown,
+  with the learning state's progress and records, quiz attempts and repository evidence, keeping the chosen view and
+  selection. Attempts (`attemptsByConcept`) count for the concepts their question names, else for their lecture's
+  concepts (the rule questions use). Commits and test cases (`evidenceByConcept`) count for a concept only when the
+  subject or test name contains its id or full name; with no repository configured the column reads 아직 증거 없음.
+  `focusConceptIds` are the current lecture's concepts; a lecture link only switches back to the lecture view, so
+  the media element and time are kept. The lecture panel's 개념 tab (개념 n) mounts `renderLectureConcepts`; a
+  concept there opens the map with it selected (leaving fullscreen first).
+- Edges between two fields cross the bands, so at rest they are drawn faint (opacity .18, legend "흐린 선") and at
+  full strength when one of their ends is selected; every resolved edge is still drawn.
+- Inside the app: positions and sizes are set through the CSSOM (`el.style`), never a style attribute, because the
+  server's Content-Security-Policy is `style-src 'self'`; `concept-map.css` is imported after the app CSS and resets the
+  global button rule (height, centring, radius, hover fill) for the map's own buttons.
