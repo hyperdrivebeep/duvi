@@ -25,7 +25,7 @@ const cues=[
 const translations={0:{ko:'오늘은 계산이 무엇인지 이야기하겠습니다.'},1:{ko:'컴퓨터는 두 가지를 합니다.'}};
 const segment={id:'s0',start:0,end:600};
 async function dir(t,prefix){const value=await mkdtemp(path.join(os.tmpdir(),prefix));t.after(()=>rm(value,{recursive:true,force:true,maxRetries:5,retryDelay:100}));return value;}
-async function fixture(t,{connected=true,fetcher,run}={}){
+async function fixture(t,{connected=true,fetcher,run,codeExecution=true}={}){
   const root=await dir(t,'duvi-quiz-'),repo=await dir(t,'duvi-quiz-repo-');
   await mkdir(path.join(repo,'src'),{recursive:true});await mkdir(path.join(repo,'PROJECT_WIKI'),{recursive:true});
   await writeFile(path.join(repo,'src','model.py'),'import math\n\ndef clamp_log_variance(value):\n    return max(-10.0, min(10.0, value))\n');
@@ -33,7 +33,7 @@ async function fixture(t,{connected=true,fetcher,run}={}){
   const store=new LearningStore({root}),sources=new LearningSources({root});await sources.set({repos:[{path:repo}]});
   const source={lecture:{number:1,title:'Lecture 1'},cues:structuredClone(cues),translations:structuredClone(translations),alignmentRevision:'align-1'};
   const provider=createMockChatProvider({delayMs:0});
-  const quiz=new LearningQuiz({root,store,sources,auth:connected?provider.auth:{state:{activeId:null}},fetcher:fetcher||provider.fetcher,source:async()=>source,mock:true,...(run&&{run})});
+  const quiz=new LearningQuiz({root,store,sources,auth:connected?provider.auth:{state:{activeId:null}},fetcher:fetcher||provider.fetcher,source:async()=>source,mock:true,codeExecution,...(run&&{run})});
   return {root,repo,store,sources,quiz,source,label:path.basename(repo)};
 }
 
@@ -100,6 +100,19 @@ test('failure keeps the preview token for a retry; no connection is reported as 
   assert.equal(quiz.tokens.has(failing.token),true);assert.equal(quiz.active.size,0);
   const offline=await fixture(t,{connected:false}),preview=await offline.quiz.preview({lectureId:'1',segmentId:'s0'});
   assert.equal(preview.connected,false);await assert.rejects(offline.quiz.generate({token:preview.token,model:'x'}),{code:'not_connected'});
+});
+
+test('code execution is off by default: nothing runs and coded questions stay unverified with the reason',async t=>{
+  const runs=[],root=await dir(t,'duvi-quiz-off-'),provider=createMockChatProvider({delayMs:0});
+  const store=new LearningStore({root}),sources=new LearningSources({root});
+  const source={lecture:{number:1,title:'Lecture 1'},cues:structuredClone(cues),translations:structuredClone(translations),alignmentRevision:'align-1'};
+  const quiz=new LearningQuiz({root,store,sources,auth:provider.auth,fetcher:provider.fetcher,source:async()=>source,mock:true,run:async code=>{runs.push(code);return {status:'executed',output:'3.5\n3\n',error:null,truncated:false};}});
+  const status=await quiz.generate({token:(await quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'}),coded=status.segments[0].set.items[3];
+  assert.equal(status.codeExecution,false);assert.deepEqual(runs,[],'nothing is spawned');
+  assert.deepEqual([coded.evidence,coded.execution,coded.answer],['ai_unverified',{status:'disabled',reason:'코드 실행 꺼짐'},'3.5\n3.5']);
+  const on=await fixture(t,{run:async code=>{runs.push(code);return {status:'executed',output:'3.5\n3\n',error:null,truncated:false};}});
+  const onStatus=await on.quiz.generate({token:(await on.quiz.preview({lectureId:'1',segmentId:'s0'})).token,model:'duvi-mock-tutor'});
+  assert.equal(onStatus.codeExecution,true);assert.deepEqual(runs,['print(7 / 2)\nprint(7 // 2)']);assert.equal(onStatus.segments[0].set.items[3].evidence,'executed');
 });
 
 test('cancel aborts an in-flight generation and the input stays usable',async t=>{

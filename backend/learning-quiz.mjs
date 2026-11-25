@@ -107,7 +107,7 @@ export function parseQuiz(text){
 }
 function execution(value){
   v.keys(value,['status','output','aiAnswer','mismatch','truncated','optionsDropped','reason']);
-  const result={status:v.choice(value.status,['executed','timeout','unavailable','refused'])};
+  const result={status:v.choice(value.status,['executed','timeout','unavailable','refused','disabled'])};
   for(const key of ['output','aiAnswer','reason'])if(value[key]!==undefined)result[key]=v.text(value[key],v.ATTEMPT_LIMITS.answer);
   for(const key of ['mismatch','truncated','optionsDropped'])if(value[key]!==undefined)result[key]=v.choice(value[key],[true,false]);
   return result;
@@ -145,8 +145,13 @@ function quizError(error){
 
 export class LearningQuiz{
   /** source(lectureId) → {lecture,cues,translations,alignmentRevision}: the displayed transcript, shared with the chat. */
-  constructor({root,store,auth,source,sources,fetcher=fetch,now=()=>Date.now(),writer=atomicJSON,mock=false,run=runPython}){
-    Object.assign(this,{store,auth,source,sources,fetcher,now,writer,mock,run});this.directory=path.join(path.resolve(root),'quizzes');
+  /**
+   * codeExecution: run the fixed problem code in the isolated runner. Off by default (opt-in, DUVI_QUIZ_CODE_EXECUTION=1 in
+   * server.mjs): independent reviews kept finding escape paths, so the isolation is defence in depth, not a guarantee.
+   * When off nothing is spawned and coded questions stay unverified.
+   */
+  constructor({root,store,auth,source,sources,fetcher=fetch,now=()=>Date.now(),writer=atomicJSON,mock=false,run=runPython,codeExecution=false}){
+    Object.assign(this,{store,auth,source,sources,fetcher,now,writer,mock,run,codeExecution});this.directory=path.join(path.resolve(root),'quizzes');
     this.tokens=new Map();this.active=new Map();this.queues=new Map();
   }
   file(lectureId){return path.join(this.directory,`${v.lectureId(lectureId)}.json`);}
@@ -174,7 +179,7 @@ export class LearningQuiz{
       return {...segment,cueCount:rows.length,set:saved&&{generatedAt:saved.generatedAt,model:saved.model,mock:saved.mock,dropped:saved.dropped,items:saved.items,counts:evidenceCounts(saved.items),
         stale:saved.sourceHash!==windowHash(rows)||saved.alignmentRevision!==(current.alignmentRevision??null)}};
     });
-    return {lectureId,title:current.lecture.title,duration:current.cues.at(-1)?.end||0,connected:this.connected(),mock:this.mock,generating:this.active.has(lectureId),repos:repos.map(row=>row.label),segments};
+    return {lectureId,title:current.lecture.title,duration:current.cues.at(-1)?.end||0,connected:this.connected(),mock:this.mock,codeExecution:this.codeExecution,generating:this.active.has(lectureId),repos:repos.map(row=>row.label),segments};
   }
   async list(){
     let names=[];try{names=await readdir(this.directory);}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -235,10 +240,11 @@ export class LearningQuiz{
         // Cancel stops the loop and kills a running snippet; nothing of a cancelled generation is saved.
         if(controller.signal.aborted)throw cancelled();
         // Only the generated question's own code runs, once, here; attempts never reach the runner.
-        const {item,execution}=generated.code?await executeItem(generated,this.run,controller.signal):{item:generated};
+        const {item,execution}=!generated.code?{item:generated}:this.codeExecution?await executeItem(generated,this.run,controller.signal)
+          :{item:generated,execution:{status:'disabled',reason:'코드 실행 꺼짐'}};
         if(controller.signal.aborted)throw cancelled();
         // Refused code makes the whole question suspect, so a quote it carries does not verify it either.
-        const evidence=execution?.status==='executed'?'executed':execution?.status==='refused'?'ai_unverified':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
+        const evidence=execution?.status==='executed'?'executed':['refused','disabled'].includes(execution?.status)?'ai_unverified':await verifyItem(item,{rows,segment,excerpts:entry.excerpts,sources:this.sources});
         verified.push({id:randomUUID(),...item,evidence,...(execution&&{execution})});
       }
       if(controller.signal.aborted)throw cancelled();

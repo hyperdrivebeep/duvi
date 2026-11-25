@@ -196,6 +196,7 @@ export function renderQuizScreen(root,api,{lectureId,segmentId,lecturePicker}={}
     if(!view.status.segments.length){page.append(el('p','quiz-state','○ 이 강의에는 아직 영어 자막이 없습니다. 자막을 준비하면 10분 구간마다 확인 문제를 만들 수 있습니다.'));return;}
     page.append(picker());
     const current=segment(),set=current?.set,list=items();
+    if(view.status.codeExecution===false)page.append(el('p','quiz-muted','문제 코드 실행이 꺼져 있습니다(기본값). 코드가 있는 문제의 정답은 "AI 제안 · 정답 미검증"으로 남습니다. 켜려면 DUVI_QUIZ_CODE_EXECUTION=1로 서버를 시작하세요.'));
     if(view.status.mock)page.append(el('p','quiz-muted','QA 전용 모의 연결입니다. 실제 ChatGPT 문제 품질이 아닙니다.'));
     if(set?.stale){const stale=el('div','quiz-stale');stale.append(el('p','quiz-state','△ 이 문제는 예전 대본 기준입니다. 자막이 바뀌었습니다.'),button('다시 만들기',()=>{view.gen.state='idle';view.gen.preview=null;view.regenerate=true;render();},'quiz-button'));page.append(stale);}
     if(!set||view.regenerate||['generating','failed','preview','previewing'].includes(view.gen.state))page.append(generator());

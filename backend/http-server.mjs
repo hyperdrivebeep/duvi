@@ -30,9 +30,9 @@ async function streamChat(req,res,chat,body){
   catch(error){if(!res.headersSent)throw error;send('error',{message:error instanceof AppError?error.message:'답변을 저장하지 못했습니다. 다시 질문해 주세요.',code:error.code||'internal'});}
   res.end();
 }
-export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider}){
+export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider,codeExecution=false}){
   const base=`http://127.0.0.1:${port}`,sessions=new Map();
-  const learning=new LearningService({root,auth,translations,library,chatProvider});
+  const learning=new LearningService({root,auth,translations,library,chatProvider,codeExecution});
   const cookieName=`mit_session_${port}`;
   function session(req,res,create=false){
     let sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);
