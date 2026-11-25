@@ -68,7 +68,9 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     text(item, '예상 분량: ', card.estimate || (card.minutes ? `${card.minutes}분 · 필요하면 연장` : ''));
     text(item, '범위: ', card.section);
     if (card.kind === 'exercise') {
-      text(item, '', 'Duvi에 실습 입력 파일(fixture), 실행기, 자동 채점기는 없습니다. 앱 밖에서 직접 준비하거나 튜터에게 별도의 입력·비공개 판정 기준을 요청하세요.');
+      text(item, '', card.id === 'v4-e01'
+        ? 'E01 실습 입력·실행기·자동 채점기는 저장소의 exercises/e01에 있습니다. README를 따라 앱 밖에서 Python으로 실행하고, 새 로그의 독립 설명은 튜터에게 확인받으세요.'
+        : 'Duvi에 실습 입력 파일(fixture), 실행기, 자동 채점기는 없습니다. 앱 밖에서 직접 준비하거나 튜터에게 별도의 입력·비공개 판정 기준을 요청하세요.');
       text(item, '비유: ', card.analogy);
     }
     if (card.steps) {
