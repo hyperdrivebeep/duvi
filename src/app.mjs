@@ -2,7 +2,7 @@ import {cueAt} from './core.mjs';
 import {MediaPlayer} from './media.mjs';
 import {LibraryUI} from './library-ui.mjs';
 import {setupStudyView} from './study-view.mjs';
-import {setupShell,installLectureKeys,setupWelcome} from './app-shell.mjs';
+import {setupShell,installLectureKeys,setupWelcome,accountStatusText} from './app-shell.mjs';
 import {LearningUI} from './learning-ui.mjs';
 import {makeAnchor,anchorState} from './learning-model.mjs';
 import {LearningPlaybackState} from './learning-playback-state.mjs';
@@ -170,7 +170,7 @@ function renderAI(){
   if(job){$('aiProgress').max=Math.max(1,job.total);$('aiProgress').value=job.done;}
   const connectionMessage=connectError||session?.authMessage||'';
   $('aiStatus').textContent=aiNotice||(job?`${job.title||job.number} · ${job.message}${job.error?.code?' ('+job.error.code+')':''}`:connectionMessage);
-  const accountMessage=connectionMessage||(active?.planEnabled?'ChatGPT 구독 사용 중':active?.connected?'구독 사용 동의가 필요합니다.':'로그인하면 ChatGPT 구독으로 번역할 수 있습니다.');
+  const accountMessage=accountStatusText(active,session,connectError);
   if($('accountStatus').textContent!==accountMessage)$('accountStatus').textContent=accountMessage;
   learningUI.chat.setConnectionNotice(connectError||(session?.authConnectFailed?connectionMessage:''));
   $('chromeHelp').hidden=!chromeMode();progress();

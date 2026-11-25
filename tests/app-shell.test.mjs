@@ -1,5 +1,12 @@
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
+test('settings displays the active subscription instead of a successful callback message',async()=>{
+  const {accountStatusText}=await import('../src/app-shell.mjs');
+  const active={connected:true,planEnabled:true};
+  assert.equal(accountStatusText(active,{authMessage:'ChatGPT 연결이 완료되었습니다.'}),'ChatGPT 구독 사용 중');
+  assert.equal(accountStatusText(active,{authConnectFailed:true,authMessage:'다시 연결하세요.'}),'다시 연결하세요.');
+  assert.equal(accountStatusText(active,{},'연결 요청 실패'),'연결 요청 실패');
+});
 import {installDom,createRoot} from './fake-dom.mjs';
 
 test('Escape and confirmation persist the welcome dismissal without reopening on a stale poll',async()=>{
