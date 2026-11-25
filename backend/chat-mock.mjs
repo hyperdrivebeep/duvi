@@ -66,5 +66,6 @@ export function createUpstreamStubProvider(base){
   const url=new URL(base);
   if(url.protocol!=='http:'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname))throw new Error('DUVI_UPSTREAM_URL must be a loopback http URL.');
   const auth={state:{activeId:'duvi-upstream-stub'},models:async()=>[{id:'duvi-upstream-stub',name:'QA 스텁 · 실제 ChatGPT 아님'}],token:async()=>'stub-token'};
-  return {auth,fetcher:(target,init)=>fetch(new URL('responses',url),{...init,headers:{...init.headers,'X-Duvi-Target':String(target)}})};
+  // redirect:'error': a 307/308 from the stub port must not resend the learner's request body outside the loopback.
+  return {auth,fetcher:(target,init)=>fetch(new URL('responses',url),{...init,headers:{...init.headers,'X-Duvi-Target':String(target)},redirect:'error'})};
 }

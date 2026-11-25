@@ -1,3 +1,4 @@
+import http from 'node:http';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,readFile} from 'node:fs/promises';
@@ -207,4 +208,17 @@ test('the QA upstream stub is loopback only and never sends the learner token', 
     assert.equal(calls[0].url,'http://127.0.0.1:6160/responses');
     assert.equal(calls[0].init.headers['X-Duvi-Target'],'https://api.openai.com/v1/responses');
   }finally{globalThis.fetch=real;}
+});
+
+test('the QA upstream stub never follows a redirect, so a 307/308 cannot resend the request body elsewhere', async () => {
+  const received=[];
+  const other=http.createServer((req,res)=>{let body='';req.on('data',chunk=>{body+=chunk;});req.on('end',()=>{received.push(body);res.end('{}');});});
+  await new Promise(resolve=>other.listen(0,'127.0.0.1',resolve));
+  const stub=http.createServer((req,res)=>{req.resume();req.on('end',()=>{res.writeHead(307,{Location:`http://127.0.0.1:${other.address().port}/elsewhere`});res.end();});});
+  await new Promise(resolve=>stub.listen(0,'127.0.0.1',resolve));
+  try{
+    const {fetcher}=createUpstreamStubProvider(`http://127.0.0.1:${stub.address().port}/`);
+    await assert.rejects(fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"input":"learner text"}',redirect:'follow'}));
+    assert.deepEqual(received,[],'the body was not resent to the redirect target');
+  }finally{await Promise.all([stub,other].map(server=>new Promise(resolve=>server.close(resolve))));}
 });
