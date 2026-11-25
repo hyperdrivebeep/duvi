@@ -40,12 +40,19 @@ test('v4 progress merges onto a v3-only device and survives its legacy edit and 
   const {a, b, tick} = await pcs(t);
   const e01 = 'v4-e01', check = 'v4-check-learning-phase-5';
   await a.store.setProgress({revision: 0, resourceId: e01, status: 'practicing', completed: false});
-  const v4 = await a.store.setProgress({revision: 1, resourceId: check, status: 'explained', completed: true});
-  await b.store.setProgress({revision: 0, resourceId: 'mit-1', status: 'watching'});
+  const aProgress = (await a.store.get()).progress;
+  assert.equal(aProgress[e01]?.status, 'practicing');
+  assert.equal(aProgress[e01]?.completed, false);
   await a.sync.export();
+  // B starts with a local-only v4 key that A's export cannot restore if the merge drops it.
+  await b.store.setProgress({revision: 0, resourceId: check, status: 'explained', completed: true});
+  await b.store.setProgress({revision: 1, resourceId: 'mit-1', status: 'watching'});
+  const bProgress = (await b.store.get()).progress;
+  assert.equal(bProgress[check]?.completed, true);
+  assert.equal(aProgress[check], undefined);
   const {state: merged} = await pull(b, a);
-  assert.deepEqual(merged.progress[e01], v4.progress[e01]);
-  assert.deepEqual(merged.progress[check], v4.progress[check]);
+  assert.deepEqual(merged.progress[e01], aProgress[e01]);
+  assert.deepEqual(merged.progress[check], bProgress[check]);
   assert.equal(merged.progress['mit-1'].status, 'watching');
 
   // A v3 UI only submits an edit for the legacy key; it never enumerates the v4 cards.
@@ -54,8 +61,8 @@ test('v4 progress merges onto a v3-only device and survives its legacy edit and 
   const saved = await new LearningStore({root: b.root}).get();
   assert.equal(saved.progress['mit-1'].status, 'explained');
   assert.equal(saved.progress['mit-1'].completed, true);
-  assert.deepEqual(saved.progress[e01], v4.progress[e01]);
-  assert.deepEqual(saved.progress[check], v4.progress[check]);
+  assert.deepEqual(saved.progress[e01], aProgress[e01]);
+  assert.deepEqual(saved.progress[check], bProgress[check]);
   await b.sync.export();
   const {state: returned} = await pull(a, b);
   assert.deepEqual(returned.progress, saved.progress);

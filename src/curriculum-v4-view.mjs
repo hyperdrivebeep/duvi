@@ -1,6 +1,6 @@
 import {el, button, link} from './learning-dom.mjs';
 import {resourceCompleted} from './learning-model.mjs';
-import {stageCheck, studyCards, missingPrerequisites, requiredStudy} from './curriculum-v4-model.mjs';
+import {stageCheck, studyCards, missingPrerequisites, requiredPhaseCards} from './curriculum-v4-model.mjs';
 
 const labels = {required: '필수', recommended: '권장', optional: '선택'};
 const text = (root, label, value) => { if (value) root.append(el('p', 'learning-preserve', `${label}${value}`)); };
@@ -23,26 +23,12 @@ function appendRelatedSections(root, ref) {
 }
 
 export function focusV4Card(root, id) {
-  const card = [...root.querySelectorAll('[data-v4-card]')].find(node => node.dataset.v4Card === id);
+  const card = [...root.querySelectorAll('[data-v4-card],[data-v4-check]')].find(node => (node.dataset.v4Card || node.dataset.v4Check) === id);
   if (!card) return;
   card.closest('[data-phase-id]').open = true;
-  card.parentElement.open = true;
-  card.open = true;
-  card.querySelector('summary').focus();
-}
-
-export function renderV4Summary(root, roadmap, updates) {
-  if (!roadmap.curriculumV4) return;
-  const banner = el('section', 'learning-start');
-  const status = el('p', 'learning-eyebrow'), detail = el('p', 'muted');
-  banner.append(status, detail);
-  root.append(banner);
-  updates.push(({progress}) => {
-    const {done, total, next, waiting} = requiredStudy(roadmap, progress);
-    status.textContent = `v4 추가 필수 · ${done}/${total}개 자기 확인`;
-    detail.replaceChildren(next ? '시작할 수 있는 추가 필수: ' : waiting ? '선수 확인 후 열리는 필수: ' : 'v4 추가 필수 카드 확인을 마쳤습니다. 자기 표시는 숙달 인증이 아닙니다.');
-    if (next || waiting) detail.append(button((next || waiting).title, () => focusV4Card(root, (next || waiting).id)));
-  });
+  if (card.parentElement.tagName === 'DETAILS') card.parentElement.open = true;
+  if (card.tagName === 'DETAILS') card.open = true;
+  (card.querySelector('summary') || card.querySelector('button'))?.focus();
 }
 
 export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
@@ -52,16 +38,23 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
   const referenced = studyCards(roadmap).some(card => card.prerequisite?.includes(phase.id))
     || Object.values(v4.topics || {}).flat().some(video => video.prerequisite?.includes(phase.id));
   if (!cards.length && !referenced && !v4.topics?.[phase.id]?.length) return;
+  const required = requiredPhaseCards(roadmap, phase);
+  const optional = cards.filter(card => card.level !== 'required');
+  const core = el('section', 'learning-v4-group');
+  if (required.length) core.append(el('h4', '', '다음 단계 전 · 필수 v4'));
   const group = el('details', 'learning-v4-group');
-  group.append(el('summary', '', `v4 학습 · 직접 수행 확인${cards.length ? ` 및 카드 ${cards.length}개` : ''}`));
+  group.append(el('summary', '', `권장·선택 자료${optional.length ? ` · 카드 ${optional.length}개` : ''}`));
   if (referenced) {
     const check = stageCheck(phase);
-    text(group, '', '위 단계의 직접 과제를 도움 없이 해 보고 설명할 수 있을 때 확인하세요. 영상 이수와 별도로 기록됩니다.');
-    group.append(toggle(check, '단계 직접 수행 확인', updates, roadmap, onComplete));
+    const checkpoint = el('div');
+    checkpoint.dataset.v4Check = check.id;
+    text(checkpoint, '', '위 단계의 직접 과제를 도움 없이 해 보고 설명할 수 있을 때 확인하세요. 영상 이수와 별도로 기록됩니다.');
+    checkpoint.append(toggle(check, '단계 직접 수행 확인', updates, roadmap, onComplete));
+    core.append(checkpoint);
   }
   renderVideos(group, roadmap, phase.id, updates);
   const byId = new Map(studyCards(roadmap).map(card => [card.id, card]));
-  for (const card of cards) {
+  for (const card of [...required, ...optional]) {
     const item = el('details', 'learning-v4-card');
     item.dataset.v4Card = card.id;
     const heading = el('summary', '', `${labels[card.level]} · ${card.label ? `${card.label} · ` : ''}${card.title}`);
@@ -135,9 +128,10 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     if (sources.childElementCount) item.append(sources);
     renderVideos(item, roadmap, card.id, updates, card);
     item.append(toggle(card, '완료로 표시', updates, roadmap, onComplete));
-    group.append(item);
+    (card.level === 'required' ? core : group).append(item);
   }
-  section.append(group);
+  if (core.childElementCount) section.append(core);
+  if (optional.length || v4.topics?.[phase.id]?.length) section.append(group);
 }
 
 function renderVideos(root, roadmap, topic, updates, card) {

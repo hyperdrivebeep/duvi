@@ -1,13 +1,28 @@
-import {PROGRESS,FIRST_TWO_WEEKS,progressStatus,orderedResources,nextResource,completionSummary,resourceCompleted,resourceProgressId} from './learning-model.mjs';
+import {PROGRESS,FIRST_TWO_WEEKS,progressStatus,orderedResources,completionSummary,resourceCompleted,resourceProgressId} from './learning-model.mjs';
 import {el,button,link,field,describe} from './learning-dom.mjs';
-import {renderV4Summary,renderV4Phase} from './curriculum-v4-view.mjs';
+import {focusV4Card,renderV4Phase} from './curriculum-v4-view.mjs';
+import {nextStudyStep,requiredStudy} from './curriculum-v4-model.mjs';
 export function resourceAction(resource,label,onOpen,className=''){return resource.unavailable?el('span','muted',resource.unavailable):resource.lectureId?button(label,()=>onOpen(resource),className):link(label,resource.url);}
+export function requiredProgressText(roadmap,progress,phase){
+  const {done,total}=requiredStudy(roadmap,progress,phase);
+  return total ? ` · 필수 v4 ${done}/${total}` : '';
+}
 export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,onComplete}){
   root.replaceChildren();
   const updates=[],hero=el('section','learning-start');root.append(hero);
-  updates.push(current=>{const next=nextResource(roadmap,current.progress),summary=completionSummary(roadmap,current.progress);hero.replaceChildren(el('p','learning-eyebrow',`전체 학습 · ${summary.done}/${summary.total}개 완료 · ${summary.percent}%`));
-    hero.append(progressMeter(summary,'전체 학습 진행률'));
-    if(next){const phase=roadmap.phases.find(p=>p.resources.includes(next));hero.append(el('p','muted',`${phase?.title||''} · 다음 할 일`),el('h3','',next.title),el('p','muted',summary.done===0&&next.id==='mit-1'?'오늘은 print(2 + 3)을 직접 실행해 보세요. 숫자를 바꾸기 전에 결과를 예상하고, 실제 결과와 비교하세요.':next.description||'자료를 공부한 뒤 완료 표시를 남기세요.'));hero.append(resourceAction(next,next.lectureId?'이 강의 이어서 공부하기':'읽기·실습 자료 열기 ↗',onOpen,'primary'));}
+  updates.push(current=>{const step=nextStudyStep(roadmap,current.progress),summary=completionSummary(roadmap,current.progress);hero.replaceChildren(el('p','learning-eyebrow',`전체 학습 · 기존 자료 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%${requiredProgressText(roadmap,current.progress)}`));
+    hero.append(progressMeter(summary,'기존 자료 전체 진행률'));
+    if(step){
+      const {phase,item,kind,forCard}=step;
+      hero.append(el('p','muted',`${phase.title} · 다음 할 일`),el('h3','',item.title));
+      if(kind==='resource'){
+        hero.append(el('p','muted',summary.done===0&&item.id==='mit-1'?'오늘은 print(2 + 3)을 직접 실행해 보세요. 숫자를 바꾸기 전에 결과를 예상하고, 실제 결과와 비교하세요.':item.description||'자료를 공부한 뒤 완료 표시를 남기세요.'));
+        hero.append(resourceAction(item,item.lectureId?'이 강의 이어서 공부하기':'읽기·실습 자료 열기 ↗',onOpen,'primary'));
+      }else{
+        hero.append(el('p','muted',kind==='check'?`${forCard.label} ${forCard.title}에 앞서 필요한 직접 수행 확인입니다.`:`필수 v4 · ${item.label} · ${item.reason}`));
+        hero.append(button(kind==='check'?'직접 수행 확인으로 이동':`${item.label} 필수 카드 열기`,()=>focusV4Card(root,item.id),'primary'));
+      }
+    }
     else hero.append(el('h3','','계획한 자료를 모두 완료했습니다'),el('p','muted','내 기록과 복습에서 새 문제에 다시 적용해 보세요. 완료 표시는 숙달 판정이 아닙니다.'));
     hero.append(button('강의 폴더 준비',onPrepare));
   });
@@ -19,13 +34,12 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
   const origin=checked?`${roadmap.curriculumV4?'v3 기준 원문':'원문'} 확인일 ${checked}`:source?.commit||source?.sha||(typeof source==='string'&&source)||'원문 확인 필요';
   sourceLine.append(el('span','muted',`로드맵 버전 ${roadmap.version||'미기록'} · ${origin}`));
   if(source?.url)sourceLine.append(link('로드맵 원문',source.url));root.append(sourceLine);
-  renderV4Summary(root,roadmap,updates);
   for(const [index,phase] of (roadmap.phases||[]).entries()){
     const section=el('details','learning-phase');section.open=index===0;section.dataset.phaseId=phase.id;
     const hours=roadmap.curriculumV4?.hours[phase.id];
     const heading=el('summary'),title=el('span','',`${phase.title} · ${describe(phase.weeks)}${hours ? ` (기존 안내) · 추정 ${hours.join('–')}시간` : ''}`),count=el('span','learning-phase-count');heading.append(title,count);section.append(heading);
     const meter=progressMeter(completionSummary(roadmap,state.progress,phase.resources),`${phase.title} 진행률`);section.append(meter);
-    updates.push(current=>{const summary=completionSummary(roadmap,current.progress,phase.resources);count.textContent=`${summary.total&&summary.done===summary.total?'✓ ':''}${summary.done}/${summary.total}개 완료 · ${summary.percent}%`;meter.value=summary.done;});
+    updates.push(current=>{const summary=completionSummary(roadmap,current.progress,phase.resources);const required=requiredStudy(roadmap,current.progress,phase);count.textContent=`${summary.total&&summary.done===summary.total&&required.done===required.total?'✓ ':''}기존 자료 ${summary.done}/${summary.total}개 완료 · ${summary.percent}%${requiredProgressText(roadmap,current.progress,phase)}`;meter.value=summary.done;});
     section.append(el('p','learning-goal',phase.goal));
     const list=el('ol','learning-resources');
     for(const resource of phase.resources||[]){
