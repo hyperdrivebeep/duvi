@@ -1,5 +1,15 @@
 import test from 'node:test';
 import {readFile} from 'node:fs/promises';
+import {measureTabCycle} from './browser/tab-cycle.mjs';
+test('keyboard probe measures one complete tab cycle regardless of its starting stop',async()=>{
+  for(const order of [['skip','library','video','video','body'],['skip','library','video','chat','body']]){
+    let at=2;
+    const focus=async()=>order[at],tab=async()=>{at=(at+1)%order.length;};
+    assert.deepEqual(await measureTabCycle({tab,focus,anchor:stop=>stop==='skip'}),order);
+    assert.equal(await focus(),'skip');
+    await assert.rejects(measureTabCycle({tab,focus,anchor:()=>false,limit:5}),/starting landmark/);
+  }
+});
 test('settings displays the active subscription instead of a successful callback message',async()=>{
   const {accountStatusText}=await import('../src/app-shell.mjs');
   const active={connected:true,planEnabled:true};
