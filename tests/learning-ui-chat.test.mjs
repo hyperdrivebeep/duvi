@@ -67,6 +67,35 @@ test('saving a same-question draft only clears the exact draft this editor last 
   }finally{restore();Object.assign(globalThis,{localStorage:savedStorage,Option:savedOption});}
 });
 
+test('saving a reloaded explanation without typing clears its old revision',async()=>{
+  const restore=installDom(),keep={localStorage:globalThis.localStorage,Option:globalThis.Option};
+  const values=new Map(),key='duvi-explanation-drafts-v1';
+  const revisions=[];
+  let record={revision:3,explanation:''};
+  try{
+    globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};
+    globalThis.Option=function(){return document.createElement('option');};
+    class Panel extends ChatPanel{build(){} render(){} focusMine(){}}
+    function reopen(){
+      const panel=new Panel(createRoot(),{saveExplanation:async(_item,text,_help,revision)=>{
+        revisions.push(revision);
+        if(record.revision!==revision)throw Object.assign(new Error('stale revision'),{status:409});
+        record={revision:revision+1,explanation:text};
+      }});
+      panel.notice={};panel.editing.add('q');
+      const form=byTag(panel.mine({key:'q',seconds:22,record}),'form')[0];
+      return {form,text:byTag(form,'textarea')[0]};
+    }
+    const first=reopen();first.text.value='persisted draft';first.text.dispatch('input');
+    const reloaded=reopen();assert.equal(reloaded.text.value,'persisted draft');
+    reloaded.form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(record.revision,4);
+    const remaining=JSON.parse(values.get(key)).q;
+    reopen().form.dispatch('submit');await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual({remaining,revisions},{remaining:undefined,revisions:[3,4]});
+  }finally{restore();Object.assign(globalThis,keep);}
+});
+
 test('switching lectures isolates the draft and typing time, including a failure arriving after the switch',async()=>{
   let lectureId='1',reject;
   const panel=Object.assign(Object.create(ChatPanel.prototype),{questions:new Map(),input:{value:''},capture:()=>({lectureId}),getState:()=>({chats:[]}),time:()=>300,editing:new Set(),notice:{},fit(){},render(){},reveal(){},hideCite(){},liveNode(){},autoPause:{checked:false},modelSelect:{value:'m'},sendTranscript:{input:{checked:true}},sendNotes:{input:{checked:false}},stream:()=>new Promise((_resolve,no)=>{reject=no;})});

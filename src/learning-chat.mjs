@@ -19,7 +19,6 @@ export class ChatPanel{
     // Unsent questions per lecture survive a reload (like explanation drafts), with their time and id.
     try{for(const [id,draft] of Object.entries(JSON.parse(localStorage.getItem(QUESTIONS_KEY)||'{}')||{}))this.questions.set(id,draft);}catch{}
     this.drafts={};
-    this.writtenDrafts=new Map();
     this.build();
   }
   build(){
@@ -215,10 +214,11 @@ export class ChatPanel{
     const draft=this.readDrafts()[item.key],text=el('textarea');text.id=id;text.rows=3;text.maxLength=12000;text.value=(typeof draft==='string'?draft:draft?.text)??record?.explanation??'';text.placeholder='내 말로 한두 문장';
     let base=record,revision=draft===undefined||typeof draft==='string'?record?.revision:draft.revision;
     const help=el('select');help.setAttribute('aria-label','이 설명의 AI 도움 정도');for(const [value,name] of Object.entries(HELP))help.append(new Option(name,value));help.value=draft?.help||(record?.explanation?record.help:item.answers?.length?'full':record?.help||'none');
-    let expected=JSON.stringify(draft),lastWritten=this.writtenDrafts.get(item.key);
+    // This is the draft the form currently represents, whether restored or typed here.
+    let expected=JSON.stringify(draft);
     const stash=()=>{
       const next={text:text.value,help:help.value,revision:revision??1};
-      if(this.saveDraft(item.key,next,expected))expected=lastWritten=JSON.stringify(next);
+      if(this.saveDraft(item.key,next,expected))expected=JSON.stringify(next);
     };
     text.addEventListener('input',stash);help.addEventListener('change',stash);
     const notice=el('p','notice chat-mine-notice');notice.setAttribute('role','status');
@@ -226,7 +226,7 @@ export class ChatPanel{
     row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
     form.append(label,text,row,notice);
     form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
-      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);if(lastWritten!==undefined&&lastWritten===expected)this.saveDraft(item.key,undefined,lastWritten);this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
+      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);if(expected!==undefined)this.saveDraft(item.key,undefined,expected);this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
         catch(error){notice.textContent=apiErrorMessage(error);
           if(error.status===409){const compare=button('최신 저장본 확인',async()=>{try{
             const latest=await this.latestExplanation(item.key);if(!latest)throw new Error('기록을 찾을 수 없습니다. 초안은 유지했습니다.');
@@ -245,7 +245,6 @@ export class ChatPanel{
     if(draft===undefined)delete drafts[key];else drafts[key]=draft;
     this.drafts=drafts;
     try{localStorage.setItem(DRAFTS_KEY,JSON.stringify(drafts));}catch{}
-    if(draft===undefined)this.writtenDrafts.delete(key);else this.writtenDrafts.set(key,JSON.stringify(draft));
     return true;
   }
   /** Stores every lecture's unsent question, the open lecture's from the box. */
