@@ -140,7 +140,8 @@ test('HTTP rejects cross-origin writes, DNS rebinding, private files; exposes no
   }finally{await new Promise(r=>server.close(r));}
 });
 test('selecting a different connected account clears the callback failure in that session',async()=>{
-  const port=6198,base=`http://127.0.0.1:${port}`;
+  // A distinct origin avoids reusing fetch's idle socket from the preceding HTTP test.
+  const port=6187,base=`http://127.0.0.1:${port}`;
   let activeId='first';
   const auth={
     publicState:()=>({activeId,accounts:[{id:'first'},{id:'second',connected:true,planEnabled:true}]}),
