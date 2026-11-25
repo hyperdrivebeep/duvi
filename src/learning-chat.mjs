@@ -199,6 +199,7 @@ export class ChatPanel{
         const fix=button('고치기',()=>this.edit(item),'chat-link');fix.setAttribute('aria-label',`내 설명 고치기 · ${at} 질문`);links.append(fix);
       }
       if(record){const details=button('자세히',()=>this.openDetails(record),'chat-link');details.setAttribute('aria-label',`자세히 · ${at} 질문 기록 (근거·이력·Markdown)`);links.append(details);}
+      if(record?.history?.some(entry=>{const previous=(entry.record||entry).explanation;return previous&&previous!==record.explanation;}))links.append(button('이전 설명 복원…',()=>this.openDetails(record,true),'chat-link'));
       if(unanswered(item)){const retry=button('다시 묻기',()=>void this.send(item.question.text,{id:item.question.id,threadId:item.threadId,seconds:item.seconds}),'chat-link');retry.setAttribute('aria-label',`다시 묻기 · ${at} 질문`);links.append(retry);}
       node.append(links);return node;
     }

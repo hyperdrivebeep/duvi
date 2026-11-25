@@ -55,7 +55,16 @@ export class LearningEditor{
   }
   showHistory(record){this.historyBody.replaceChildren(el('h4','','최초 내 설명'),el('p','learning-preserve',(record.originalExplanation??record.initialExplanation??record.explanation)||'최초 저장에는 설명이 없습니다.'));
     this.historyBody.append(el('h4','','현재 저장된 설명'),el('p','learning-preserve',record.explanation||'질문만 저장됨'),el('p','muted',HELP[record.help]||'도움 미기록'));
-    for(const [name,list] of [['수정',record.history],['복습',record.reviews]])if(list?.length){this.historyBody.append(el('h4','',name));for(const entry of list){const snapshot=entry.record||entry,detail=el('details'),date=entry.at?new Date(entry.at).toLocaleString('ko-KR'):'';detail.append(el('summary','',`${name} · ${date} · ${HELP[snapshot.help]||'도움 미기록'}${entry.device?` · 다른 PC(${entry.device}) 수정본`:''}`));for(const key of [...RECORD_FIELDS,'reflection'])if(snapshot[key])detail.append(el('h4','',labels[key]||'회상·전이 복습'),el('p','learning-preserve',snapshot[key]));const source=snapshot.anchor||record.anchor;if(source){detail.append(el('p','muted',`강의 ${source.lectureId} · ${formatTime(source.seconds)}의 원문`),button('이때 원문으로 이동',async()=>{try{const result=await this.onJump(source);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}));}this.historyBody.append(detail);}}}
+    for(const [name,list] of [['수정',record.history],['복습',record.reviews]])if(list?.length){this.historyBody.append(el('h4','',name));for(const entry of list){const snapshot=entry.record||entry,detail=el('details'),date=entry.at?new Date(entry.at).toLocaleString('ko-KR'):'';detail.append(el('summary','',`${name} · ${date} · ${HELP[snapshot.help]||'도움 미기록'}${entry.device?` · 다른 PC(${entry.device}) 수정본`:''}`));for(const key of [...RECORD_FIELDS,'reflection'])if(snapshot[key])detail.append(el('h4','',labels[key]||'회상·전이 복습'),el('p','learning-preserve',snapshot[key]));
+      if(name==='수정'&&snapshot.explanation&&snapshot.explanation!==record.explanation)detail.append(button('이 설명 복원 (저장 전 확인)',()=>{
+        if(this.fields.disabled)return;
+        this.inputs.explanation.value=snapshot.explanation;
+        if(HELP[snapshot.help])this.inputs.help.value=snapshot.help;
+        this.stash();this.tutorSend.hidden=true;
+        this.notice.textContent='이전 설명을 편집란에 불러왔습니다. 확인 후 저장하면 새 수정 이력으로 남습니다.';
+        this.inputs.explanation.focus();
+      }));
+      const source=snapshot.anchor||record.anchor;if(source){detail.append(el('p','muted',`강의 ${source.lectureId} · ${formatTime(source.seconds)}의 원문`),button('이때 원문으로 이동',async()=>{try{const result=await this.onJump(source);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}));}this.historyBody.append(detail);}}}
   async jump(){try{const result=await this.onJump(this.record.anchor);this.notice.textContent=result.message;}catch(error){this.notice.textContent=error.message;}}
   async save(){const record=this.value(),error=validateRecord(record);if(error){this.notice.textContent=error;return;}this.stash();if(this.draftConflict){this.notice.textContent='서버 기록이 바뀌었습니다. 초안을 유지한 채 최신 저장본을 먼저 확인하세요.';this.conflictButton.hidden=false;return;}this.fields.disabled=true;
     try{const saved=await this.onSave(record);delete this.drafts[this.key];this.key=saved.id;this.acceptSaved(saved);try{localStorage.setItem('duvi-learning-drafts-v1',JSON.stringify(this.drafts));}catch{}this.showHistory(saved);this.notice.textContent='저장했습니다. 강의를 이어가거나 나중에 복습하세요.';this.conflictButton.hidden=true;}

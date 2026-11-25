@@ -4,6 +4,21 @@ import {makeAnchor,anchorState,markdownEscape,recordMarkdown,PROGRESS,HELP,nextR
 import {browserKey,captureBrowser,parseBackup} from '../src/learning-backup-ui.mjs';
 import {recordInput,LearningUI,returnFocusTarget} from '../src/learning-ui.mjs';
 import {LearningEditor} from '../src/learning-editor.mjs';
+import {installDom,createRoot,byText} from './fake-dom.mjs';
+
+test('history restores explanation and help into the editor without saving or rebasing',()=>{
+  const restore=installDom(),editor=editorHarness({...record,id:'saved',revision:7,explanation:'B',help:'full'});
+  try{
+    editor.historyBody=createRoot();editor.stash=()=>{editor.stashed=editor.value();};
+    editor.inputs.explanation.focus=()=>{editor.focused=true;};
+    LearningEditor.prototype.showHistory.call(editor,{...editor.record,history:[{record:{explanation:'A',help:'none'}}]});
+    const restoreButton=byText(editor.historyBody,/이 설명 복원/,'button');assert.ok(restoreButton);
+    restoreButton.click();
+    assert.equal(editor.stashed.explanation,'A');assert.equal(editor.stashed.help,'none');
+    assert.equal(editor.stashed.revision,7);assert.equal(editor.record.explanation,'B');
+    assert.equal(editor.focused,true);
+  }finally{restore();}
+});
 const cue={start:10,end:20,en:'A source <script>text</script>'};
 const lecture={number:1,alignmentRevision:'r1',cues:[cue]};
 const anchor=makeAnchor({lecture,seconds:12,cue,translation:'원문 번역'});
