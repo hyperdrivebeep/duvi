@@ -1,6 +1,7 @@
 import {PROGRESS,FIRST_TWO_WEEKS,progressStatus,orderedResources,nextResource,completionSummary,resourceCompleted,resourceProgressId} from './learning-model.mjs';
 import {el,button,link,field,describe} from './learning-dom.mjs';
-export function resourceAction(resource,label,onOpen,className=''){return resource.lectureId?button(label,()=>onOpen(resource),className):link(label,resource.url);}
+import {renderV4Summary,renderV4Phase} from './curriculum-v4-view.mjs';
+export function resourceAction(resource,label,onOpen,className=''){return resource.unavailable?el('span','muted',resource.unavailable):resource.lectureId?button(label,()=>onOpen(resource),className):link(label,resource.url);}
 export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,onComplete}){
   root.replaceChildren();
   const updates=[],hero=el('section','learning-start');root.append(hero);
@@ -16,9 +17,11 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
   const source=roadmap.source,sourceLine=el('div','learning-source');
   sourceLine.append(el('span','muted',`로드맵 버전 ${roadmap.version||'미기록'} · ${typeof source==='object'?(source.checkedAt||source.verifiedAt||source.commit||source.sha||'원문 기준'):source||'원문 확인 필요'}`));
   if(source?.url)sourceLine.append(link('로드맵 원문',source.url));root.append(sourceLine);
+  renderV4Summary(root,roadmap,updates);
   for(const [index,phase] of (roadmap.phases||[]).entries()){
     const section=el('details','learning-phase');section.open=index===0;section.dataset.phaseId=phase.id;
-    const heading=el('summary'),title=el('span','',`${phase.title} · ${describe(phase.weeks)}`),count=el('span','learning-phase-count');heading.append(title,count);section.append(heading);
+    const hours=roadmap.curriculumV4?.hours[phase.id];
+    const heading=el('summary'),title=el('span','',`${phase.title} · ${describe(phase.weeks)}${hours ? ` (기존 안내) · 추정 ${hours.join('–')}시간` : ''}`),count=el('span','learning-phase-count');heading.append(title,count);section.append(heading);
     const meter=progressMeter(completionSummary(roadmap,state.progress,phase.resources),`${phase.title} 진행률`);section.append(meter);
     updates.push(current=>{const summary=completionSummary(roadmap,current.progress,phase.resources);count.textContent=`${summary.total&&summary.done===summary.total?'✓ ':''}${summary.done}/${summary.total}개 완료 · ${summary.percent}%`;meter.value=summary.done;});
     section.append(el('p','learning-goal',phase.goal));
@@ -27,7 +30,7 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
       const row=el('li','learning-resource'),body=el('div','learning-resource-body');body.append(el('h4','',resource.title));if(resource.description)body.append(el('p','muted',resource.description));
       if(resource.concepts?.length)body.append(el('p','muted learning-concepts',`신규 해설 영상 · 채우는 개념: ${resource.concepts.join(' · ')}`));
       if(resource.start!==undefined||resource.end!==undefined)body.append(el('p','muted',`선택 구간: ${resource.start??0}–${resource.end??'끝'}초`));
-      const actions=el('div','learning-resource-actions');if(resource.lectureId)actions.append(button('강의 열기',()=>onOpen(resource)));actions.append(link('원문 자료 ↗',resource.url));
+      const actions=el('div','learning-resource-actions');if(resource.unavailable)actions.append(el('p','muted',resource.unavailable));else{if(resource.lectureId)actions.append(button('강의 열기',()=>onOpen(resource)));actions.append(link('원문 자료 ↗',resource.url));}
       const resourceId=resourceProgressId(roadmap,resource),controls=el('div','learning-resource-controls');
       const status=field('학습 활동','status',{value:progressStatus(state.progress?.[resourceId]),options:PROGRESS});status.input.setAttribute('aria-label',`${resource.title} 학습 활동`);status.wrap.classList.add('learning-progress-field');
       status.input.addEventListener('change',async()=>{const previous=progressStatus(state.progress?.[resourceId]);status.input.disabled=true;try{await onProgress(resourceId,status.input.value);}catch{status.input.value=previous;}finally{status.input.disabled=false;}});
@@ -38,6 +41,7 @@ export function renderRoadmap(root,{roadmap,state,onOpen,onProgress,onPrepare,on
     section.append(list);
     if(phase.exercise)section.append(el('h4','','직접 해 보기'),el('p','learning-preserve',describe(phase.exercise)));
     if(phase.check)section.append(el('h4','','다음으로 가기 전 확인'),el('p','learning-preserve',describe(phase.check)));
+    renderV4Phase(section,roadmap,phase,updates,onComplete);
     root.append(section);
   }
   const practice=el('details','learning-phase');practice.append(el('summary','','첫 2주 · 2시간씩 10회 · 직접 해 볼 일'),el('p','muted','끝내지 못한 활동은 다음 회차로 넘깁니다. 3강 완강보다 조건문·반복문을 직접 쓰고 선택 규칙을 설명하는 것이 목표입니다.'));

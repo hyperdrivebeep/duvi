@@ -44,6 +44,9 @@
 .learning-source{display:flex;gap:var(--space-3);flex-wrap:wrap;margin:var(--space-4) 0}
 .learning-source .muted{font-size:var(--text-small)}
 .learning-phase{border-top:1px solid var(--line);padding:var(--space-3) 0}
+.learning-v4-group,.learning-v4-card{border-top:1px solid var(--line);padding:var(--space-3) 0;margin-top:var(--space-3)}
+.learning-v4-group>summary,.learning-v4-card>summary{cursor:pointer;line-height:1.6;color:var(--ink);font-weight:650}
+.learning-v4-card{padding-inline-start:var(--space-3)}
 .learning-phase>summary{font-size:17px;font-weight:650;color:var(--ink);line-height:1.6}
 .learning-goal{max-width:var(--learning-reader)}
 .learning-resources{padding-left:var(--space-6);margin:var(--space-4) 0}
