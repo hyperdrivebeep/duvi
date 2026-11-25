@@ -214,7 +214,7 @@ export class ChatPanel{
     row.append(help,el('span','muted',record?.reviewDueAt?`복습 ${dayText(record.reviewDueAt)}`:'저장하면 내일 복습에 나와요'),button('닫기',()=>{this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);}),save);
     form.append(label,text,row,notice);
     form.addEventListener('submit',event=>{event.preventDefault();if(!text.value.trim()){notice.textContent='한 문장이라도 내 말로 적어 주세요.';return;}
-      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.renderLog();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
+      void busy(save,async()=>{text.readOnly=true;help.disabled=true;try{await this.saveExplanation({...item,record:base},text.value,help.value,revision);delete this.drafts[item.key];this.saveDrafts();this.editing.delete(item.key);this.render();this.focusMine(item.key);this.notice.textContent='내 설명을 저장했습니다. AI 답과 따로 보관하고 복습에 나옵니다.';}
         catch(error){notice.textContent=apiErrorMessage(error);
           if(error.status===409){const compare=button('최신 저장본 확인',async()=>{try{
             const latest=await this.latestExplanation(item.key);if(!latest)throw new Error('기록을 찾을 수 없습니다. 초안은 유지했습니다.');
