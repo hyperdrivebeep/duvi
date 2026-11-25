@@ -46,6 +46,7 @@ export class ChatPanel{
     this.log.addEventListener('scroll',()=>this.hideCite(),{passive:true});
     this.cite=el('div','cite-preview');this.cite.id='chatCitePreview';this.cite.setAttribute('role','tooltip');this.cite.hidden=true;
     this.notice=el('p','notice chat-notice');this.notice.setAttribute('role','status');
+    this.connectionNotice=el('p','notice chat-connection-notice');this.connectionNotice.setAttribute('role','status');
     this.form=el('form','chat-composer');
     this.anchorChip=el('div','chat-anchor');this.anchorTime=el('strong');
     const detach=button('×',()=>{this.anchor='detached';this.renderComposer();this.input.focus();},'chat-anchor-detach');detach.setAttribute('aria-label','질문 시각 떼기 · 보낼 때의 재생 시점으로 보냄');detach.title='시각 떼기';
@@ -64,7 +65,12 @@ export class ChatPanel{
     const full='보내면 이 시각의 질문 기록으로 자동 저장됩니다. AI 답은 제안이며 내 ChatGPT 연결로 받습니다.';
     const hint=el('p','muted chat-context','보내면 이 시각의 질문으로 자동 기록 · AI 답은 제안');hint.title=full;
     this.settings.append(settingsSummary,options,sendContext,el('p','muted chat-keys','Enter 보내기 · Shift+Enter 줄바꿈 · AI 답은 내 ChatGPT 연결로 받습니다.'));
-    root.append(head,this.log,this.cite,this.notice,this.form,hint,this.settings);
+    root.append(head,this.log,this.cite,this.connectionNotice,this.notice,this.form,hint,this.settings);
+  }
+  setConnectionNotice(message){
+    if(this.connectionMessage===message)return;
+    this.connectionMessage=message;
+    this.connectionNotice.replaceChildren(...(message?[message,' ',button('연결 설정 열기',()=>this.openSettings())]:[]));
   }
   fit(){this.input.style.height='auto';this.input.style.height=`${Math.min(this.input.scrollHeight+2,160)}px`;}
   saveContextChoice(){try{localStorage.setItem(CHAT_CONTEXT_KEY,JSON.stringify({transcript:this.sendTranscript.input.checked,notes:this.sendNotes.input.checked}));}catch{}this.renderComposer();}

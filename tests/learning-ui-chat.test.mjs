@@ -4,7 +4,21 @@ import {parseEvents,textSegments,parseClock,composerAction,lectureThreads,withTh
 import {recordInput} from '../src/learning-ui.mjs';
 import {recordMarkdown} from '../src/learning-model.mjs';
 import {ChatPanel} from '../src/learning-chat.mjs';
-import {installDom,createRoot,byTag} from './fake-dom.mjs';
+import {installDom,createRoot,byTag,byText} from './fake-dom.mjs';
+
+test('a connection error is shown with a settings action without replacing the question status',()=>{
+  const restore=installDom(),notice=createRoot(),connectionNotice=createRoot();
+  try{
+    const panel=Object.assign(Object.create(ChatPanel.prototype),{notice,connectionNotice,openSettings:()=>opened++});
+    let opened=0;
+    notice.textContent='질문 초안은 유지했습니다.';
+    panel.setConnectionNotice('ChatGPT 연결 동의가 완료되지 않았습니다.');
+    assert.match(connectionNotice.textContent,/동의가 완료되지/);
+    byText(connectionNotice,'연결 설정 열기','button').click();
+    assert.equal(opened,1);assert.equal(notice.textContent,'질문 초안은 유지했습니다.');
+    panel.setConnectionNotice('');assert.equal(connectionNotice.textContent,'');
+  }finally{restore();}
+});
 
 test('explanation draft edits and deletion leave other windows’ question drafts intact',async()=>{
   const restore=installDom(),savedStorage=globalThis.localStorage,savedOption=globalThis.Option;

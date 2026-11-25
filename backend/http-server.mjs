@@ -60,8 +60,8 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
         if(!s)throw new AppError('로그인을 시작한 브라우저에서 다시 연결하세요.','missing_session');
         try{
           if(translations.job?.status==='running'||translations.starting)throw new AppError('번역을 멈춘 뒤 다시 연결하세요.','busy',409);
-          const enabled=await auth.callback(s.id,url.searchParams);s.authMessage=enabled?'ChatGPT 연결이 완료되었습니다. 모델을 선택하고 번역을 시작하세요.':'로그인되었지만 구독 사용 동의가 필요합니다. 다시 연결하세요.';
-        }catch(error){s.authMessage=error instanceof AppError?error.message:'ChatGPT 연결을 완료하지 못했습니다. 다시 시도하세요.';}
+          const enabled=await auth.callback(s.id,url.searchParams);s.authConnectFailed=!enabled;s.authMessage=enabled?'ChatGPT 연결이 완료되었습니다. 모델을 선택하고 번역을 시작하세요.':'로그인되었지만 구독 사용 동의가 필요합니다. 다시 연결하세요.';
+        }catch(error){s.authConnectFailed=true;s.authMessage=error instanceof AppError?error.message:'ChatGPT 연결을 완료하지 못했습니다. 다시 시도하세요.';}
         res.setHeader('Referrer-Policy','no-referrer');res.writeHead(303,{Location:'/?auth=returned'});res.end();return;
       }
       if(pathname.startsWith('/auth/launch/')&&req.method==='GET'){
@@ -75,7 +75,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(req.headers.origin!==base||req.headers['x-csrf-token']!==s.csrf)throw new AppError('요청을 확인할 수 없습니다. 플레이어를 새로고침하세요.','csrf',403);
           body=await readJSON(req,pathname==='/api/learning/import/preview'?16*1024*1024+1024:2300000);
         }
-        if(req.method==='GET'&&pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||''});return;}
+        if(req.method==='GET'&&pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||'',authConnectFailed:!!s.authConnectFailed});return;}
         if(req.method==='GET'&&pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
         if(req.method==='GET'&&pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
         if(req.method==='POST'&&pathname==='/api/learning/tutor'){await learning.withAssets(()=>undefined);json(res,200,await learning.tutor.ask(body));return;}
@@ -120,7 +120,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(['/api/auth/start','/api/auth/select'].includes(pathname)&&(translations.job?.status==='running'||translations.starting))throw new AppError('번역을 멈춘 뒤 계정을 변경하세요.','busy',409);
           if(pathname==='/api/auth/start'){
             const target=await auth.start(s.id,base+'/auth/callback',body.accountId||null);
-            const launchPath='/auth/launch/'+fresh();s.launch={path:launchPath,url:target,expires:Date.now()+60000};s.authMessage='';json(res,200,{path:launchPath});return;
+            const launchPath='/auth/launch/'+fresh();s.launch={path:launchPath,url:target,expires:Date.now()+60000};s.authMessage='';s.authConnectFailed=false;json(res,200,{path:launchPath});return;
           }
           if(pathname==='/api/auth/select'){await auth.select(body.accountId);json(res,200,auth.publicState());return;}
           if(pathname==='/api/auth/ack'){await auth.acknowledge();json(res,200,{ok:true});return;}
