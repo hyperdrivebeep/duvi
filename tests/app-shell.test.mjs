@@ -1,4 +1,28 @@
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
+import {installDom,createRoot} from './fake-dom.mjs';
+
+test('Escape and confirmation persist the welcome dismissal without reopening on a stale poll',async()=>{
+  const {setupWelcome}=await import('../src/app-shell.mjs');
+  const undo=installDom();
+  try{
+    const dialog=createRoot(),confirm=createRoot(),error=createRoot(),acks=[];
+    dialog.open=false;dialog.showModal=()=>{dialog.open=true;};dialog.close=()=>{dialog.open=false;};
+    const welcome=setupWelcome({dialog,confirm,error,acknowledge:async()=>{acks.push(true);}});
+    const a={id:'a',needsWelcome:true};
+    welcome.update(a);
+    assert.equal(dialog.dispatch('cancel').defaultPrevented,true);
+    await Promise.resolve();
+    welcome.update(a);assert.equal(dialog.open,false);assert.equal(acks.length,1);
+    welcome.update({id:'b',needsWelcome:true});assert.equal(dialog.open,true);
+    confirm.click();await Promise.resolve();assert.equal(dialog.open,false);assert.equal(acks.length,2);
+  }finally{undo();}
+});
+test('welcome information is repeated in the ChatGPT settings section',async()=>{
+  const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+  const copy=html.match(/id="welcome"[^>]*><h2[^>]*>[^<]+<\/h2><p>([^<]+)<\/p>/)?.[1];
+  assert.ok(copy);assert.ok(html.split('<h3>ChatGPT 연결</h3>')[1].split('<hr>')[0].includes(copy));
+});
 import assert from 'node:assert/strict';
 import {VIEWS,viewElementId,nextView,installLectureKeys} from '../src/app-shell.mjs';
 import {lectureStream,unanswered} from '../src/learning-stream-model.mjs';

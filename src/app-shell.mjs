@@ -6,6 +6,26 @@ export function viewElementId(view){return view==='lecture'?'study':`view-${view
 /** Unknown names keep the current view, so a stale link cannot hide every screen. */
 export function nextView(current,requested){return VIEWS.includes(requested)?requested:current;}
 
+export function setupWelcome({dialog,confirm,error,acknowledge}){
+  let accountId,pending=false;
+  const dismissed=new Set();
+  async function dismiss(){
+    if(pending)return;
+    const id=accountId;
+    pending=true;confirm.disabled=true;error.textContent='';
+    try{await acknowledge();dismissed.add(id);dialog.close();}
+    catch(e){error.textContent=e.message;}
+    finally{pending=false;confirm.disabled=false;}
+  }
+  confirm.addEventListener('click',dismiss);
+  dialog.addEventListener('cancel',event=>{event.preventDefault();void dismiss();});
+  return {update(active){
+    if(active?.needsWelcome&&!dismissed.has(active.id)&&!dialog.open&&!pending){
+      accountId=active.id;error.textContent='';dialog.showModal();
+    }
+  }};
+}
+
 export function setupShell({onShow=()=>{}}={}){
   const $=id=>document.getElementById(id),items=[...document.querySelectorAll('.rail [data-view]')],library=$('libraryPanel'),toggle=$('openLibrary');
   let current='lecture';
