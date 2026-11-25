@@ -1,11 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import {LectureLibrary,youtubePlaylistId,PLAYLIST_LIMIT} from '../library.mjs';
 import {createServer} from '../http-server.mjs';
 import {TranslationService} from '../chatgpt-translate.mjs';
+import {atomicJSON} from '../vault.mjs';
 
 const ids=['VMj-3S1tku0','PaCmpygFfXo','TCH_1BHY58I'];
 const url='https://www.youtube.com/playlist?list=PLtestPlaylist123';
@@ -19,6 +22,31 @@ async function fixture(t,options={}){
   const library=new LectureLibrary({root,playlistMetadata:async()=>playlist(),fetcher:async()=>Response.json({title:'Imported title'}),...options});
   return {root,library};
 }
+
+test('concurrent JSON writers in separate processes do not share temp files',async t=>{
+  const {root}=await fixture(t),dir=path.join(root,'library'),file=path.join(dir,'lecture.json');
+  const vault=new URL('../vault.mjs',import.meta.url).href,run=promisify(execFile);
+  const worker=`
+    import {atomicJSON} from ${JSON.stringify(vault)};
+    const [file,writer]=process.argv.slice(1);
+    await Promise.all(Array.from({length:12},(_,index)=>
+      atomicJSON(file,{writer,index,body:writer.repeat(256*1024)})));
+  `;
+  const results=await Promise.allSettled(['a','b'].map(writer=>
+    run(process.execPath,['--input-type=module','--eval',worker,file,writer],{timeout:10000})));
+  for(const result of results)if(result.status==='rejected')throw result.reason;
+  const {writer,index,body}=JSON.parse(await readFile(file,'utf8'));
+  assert.ok(['a','b'].includes(writer)&&Number.isInteger(index)&&index>=0&&index<12);
+  assert.equal(body,writer.repeat(256*1024));
+  assert.deepEqual(await readdir(dir),['lecture.json']);
+});
+
+test('a failed JSON replacement removes its temporary file',async t=>{
+  const {root}=await fixture(t),file=path.join(root,'lecture.json');
+  await mkdir(file);
+  await assert.rejects(atomicJSON(file,{ready:true}));
+  assert.deepEqual((await readdir(root)).sort(),['data','lecture.json']);
+});
 
 test('playlist URL parser restricts protocol/host/credentials and accepts shared video links',()=>{
   assert.equal(youtubePlaylistId(url),'PLtestPlaylist123');

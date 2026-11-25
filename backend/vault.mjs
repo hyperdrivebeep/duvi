@@ -1,12 +1,27 @@
-import {readFile,writeFile,rename,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,rename,mkdir,open,rm} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
+import {setTimeout as delay} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 export async function atomicJSON(file,value){
   await mkdir(path.dirname(file),{recursive:true});
-  const temp=file+'.tmp';
-  await writeFile(temp,JSON.stringify(value,null,2),{mode:0o600});
-  await rename(temp,file);
+  const json=JSON.stringify(value,null,2),temp=`${file}.${process.pid}.${randomUUID()}.tmp`;
+  const handle=await open(temp,'wx',0o600);
+  try{
+    try{await handle.writeFile(json);}finally{await handle.close();}
+    // A concurrent reader on Windows can briefly block replacing the destination.
+    for(let attempt=0;;attempt++){
+      try{await rename(temp,file);return;}
+      catch(error){
+        if(process.platform!=='win32'||!['EPERM','EBUSY'].includes(error.code)||attempt>=4)throw error;
+        await delay(10 * 2**attempt);
+      }
+    }
+  }catch(error){
+    await rm(temp,{force:true}).catch(()=>{});
+    throw error;
+  }
 }
 function dpapi(mode,text){
   return new Promise((resolve,reject)=>{
