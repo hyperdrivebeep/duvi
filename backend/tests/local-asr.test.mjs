@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
 import {once} from 'node:events';
 import net from 'node:net';
+import http from 'node:http';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {setTimeout as wait} from 'node:timers/promises';
@@ -26,8 +27,9 @@ async function fixture(t,transcribe=async()=>cues,options={}){
   const portProbe=net.createServer();portProbe.listen(0,'127.0.0.1');await once(portProbe,'listening');
   const {port}=portProbe.address();await new Promise(resolve=>portProbe.close(resolve));
   let calls=0;
+  const library=new LectureLibrary({root});
   const server=createServer({
-    root,library:new LectureLibrary({root}),port,auth:{publicState:()=>({})},translations:{publicJob:()=>null},
+    root,library,port,auth:{publicState:()=>({})},translations:{publicJob:()=>null},
     asrOptions:{tempRoot:scratch,engine:{check:async()=>{},transcribe:async context=>{calls++;return transcribe(context);}},...options},
   });
   server.listen(port,'127.0.0.1');await once(server,'listening');
@@ -44,6 +46,22 @@ async function fixture(t,transcribe=async()=>cues,options={}){
     };
     return {
       start:(key='1',headers={})=>request(key,input,{'content-type':'application/octet-stream','x-asr-format':'wav','x-asr-rights':'confirmed',...headers}),
+      declareSize:size=>new Promise((resolve,reject)=>{
+        // Send only headers: the server must reject before waiting for or staging the body.
+        const req=http.request(origin+'/api/local-asr/1',{method:'POST',agent:false,headers:{
+          cookie,origin,'x-csrf-token':csrf,'content-length':size,'content-type':'application/octet-stream',
+          'x-asr-format':'wav','x-asr-rights':'confirmed',
+        }},async res=>{
+          try{
+            const chunks=[];for await(const chunk of res)chunks.push(chunk);
+            resolve({status:res.statusCode,...JSON.parse(Buffer.concat(chunks).toString())});
+          }catch(error){reject(error);}
+          finally{req.destroy();}
+        });
+        req.on('error',reject);
+        req.setTimeout(2000,()=>req.destroy(new Error('ASR did not reject the declared size before reading the body')));
+        req.flushHeaders();
+      }),
       status:async()=> (await request()).job,
       cancel:()=>request('1/cancel','{}',{'content-type':'application/json'}),
       done:async(predicate=job=>job&&job.state!=='running')=>{
@@ -53,7 +71,7 @@ async function fixture(t,transcribe=async()=>cues,options={}){
       backup:async()=> (await fetch(origin+'/api/learning/export',{headers:{cookie}})).json(),
     };
   }
-  return {client:await client(),other:await client(),calls:()=>calls,current:async()=>JSON.parse(await readFile(file,'utf8')),
+  return {library,client:await client(),other:await client(),calls:()=>calls,current:async()=>JSON.parse(await readFile(file,'utf8')),
     scratch:()=>readdir(scratch),lecture,file};
 }
 
@@ -88,6 +106,16 @@ test('stub input and default model produce prepared cues and provenance preserve
   assert.deepEqual(await f.scratch(),[]);
 });
 
+test('an upload declared above 1 GiB is rejected before invoking the engine or staging a file',async t=>{
+  const f=await fixture(t);
+  const result=await f.client.declareSize(1024**3+1);
+  assert.equal(result.status,413);
+  assert.equal(result.error.code,'asr_size');
+  assert.equal(f.calls(),0);
+  assert.equal(await f.client.status(),null);
+  assert.deepEqual(await f.scratch(),[]);
+});
+
 test('progress, session ownership, concurrent request, cancellation and retry',async t=>{
   let model;
   const f=await fixture(t,async({signal,progress,model:picked})=>{
@@ -107,8 +135,9 @@ test('progress, session ownership, concurrent request, cancellation and retry',a
   assert.equal((await f.client.done()).code,'asr_cancelled');
   assert.deepEqual(await f.current(),f.lecture);
   assert.deepEqual(await f.scratch(),[]);
-  assert.equal((await f.client.start()).status,202);
+  assert.equal((await f.client.start('1',{'x-asr-model':'base'})).status,202);
   assert.equal((await f.client.done()).state,'completed');
+  assert.equal((await f.current()).captionProvenance.model,'base');
 });
 
 test('silence, disk full, invalid engine data and timeout never write cues',async t=>{
@@ -140,4 +169,21 @@ test('official captions added during recognition win the atomic save',async t=>{
   assert.equal((await f.client.done()).code,'asr_existing');
   assert.equal((await f.current()).captionSource,'official');
   assert.deepEqual(await f.scratch(),[]);
+});
+
+test('an abort during the final lecture read prevents entering the save commit',async t=>{
+  const f=await fixture(t),controller=new AbortController(),key='1';
+  const reason=new Error('cancelled during final read');
+  const load=f.library.get.bind(f.library);
+  f.library.get=async id=>{
+    const lecture=await load(id);
+    controller.abort(reason);
+    return lecture;
+  };
+  let committed=false;
+  await assert.rejects(f.library.saveLocalASR(key,cues,'small',{
+    signal:controller.signal,onCommit:()=>{committed=true;},
+  }),error=>error===reason);
+  assert.equal(committed,false);
+  assert.deepEqual(await f.current(),f.lecture);
 });
