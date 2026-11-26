@@ -35,7 +35,16 @@ export class LearningUI{
     this.nav=document.getElementById('learningNav');for(const [id,title]of Object.entries({roadmap:'학습 로드맵',records:'내 기록',review:'복습',backup:'백업·동기화'})){const tab=button(title,()=>this.select(id));tab.dataset.learningView=id;this.nav.append(tab);}
     document.getElementById('openLearning').onclick=()=>this.open('roadmap');
     for(const opener of document.querySelectorAll('[data-open-learning]'))opener.onclick=()=>this.open(opener.dataset.openLearning);
-    document.getElementById('closeLearning').onclick=()=>this.dialog.close();this.dialog.addEventListener('close',()=>{returnFocusTarget({opener:this.opener,label:this.openerLabel,root:document.getElementById(this.openerRootId)})?.focus();if(this.dialog.parentElement.id==='stage')document.body.append(this.dialog);});
+    document.getElementById('closeLearning').onclick=()=>this.dialog.close();
+    this.dialog.addEventListener('close',()=>{
+      const opener=returnFocusTarget({opener:this.opener,label:this.openerLabel,root:document.getElementById(this.openerRootId)});
+      opener?.focus();
+      const stage=this.dialog.parentElement;
+      if(stage.id==='stage'){
+        document.body.append(this.dialog);
+        if(stage.classList.contains('study-focus')&&!stage.contains(document.activeElement))stage.focus();
+      }
+    });
     // 강의 완료 sits in the lecture header and, because fullscreen hides the header, also in fullscreen's ⚙ settings.
     const completeCurrent=()=>{const current=this.capture();if(current)void this.complete(lectureResource(this.roadmap,current.lectureId,current.title)).catch(()=>{});};
     this.completeButtons=['lectureHeaderActions','fullscreenComplete'].map(id=>{const node=button('○ 강의 완료로 표시',completeCurrent,'learning-complete');document.getElementById(id).append(node);return node;});

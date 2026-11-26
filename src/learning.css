@@ -28,6 +28,9 @@
 .view-controls{flex-wrap:wrap}
 .learning-dialog{width:min(var(--learning-width),calc(100% - 32px));padding:var(--space-6)}
 .learning-dialog .dialog-header p{margin:var(--space-2) 0 0}
+#learningDialog{--roadmap-inset:var(--space-6);padding:0 var(--roadmap-inset) var(--roadmap-inset);scroll-padding-top:calc(var(--roadmap-inset) + 5rem)}
+#learningDialog > .dialog-header{position:sticky;top:0;z-index:2;padding-block:var(--roadmap-inset) var(--space-2);background:#fff}
+@media(max-width:700px){#learningDialog{--roadmap-inset:var(--space-4);scroll-padding-top:calc(var(--roadmap-inset) + 7rem)}}
 .learning-nav,.learning-tabs{display:flex;gap:var(--space-1);flex-wrap:wrap}
 .learning-nav{padding-bottom:var(--space-3);border-bottom:1px solid var(--line);margin-bottom:var(--space-4)}
 .learning-nav button{border-color:transparent;padding:var(--space-2) var(--space-3)}
