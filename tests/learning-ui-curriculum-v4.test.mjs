@@ -45,6 +45,13 @@ function withRoadmap(run, through='5') {
   } finally { restore(); }
 }
 
+test('E01 card points to the offline kit and preserves the conclusion tag', () => withRoadmap(({root}) => {
+  const card = all(root, node => node.dataset.v4Card === 'v4-e01')[0];
+  assert.match(card.textContent, /exercises\/e01/);
+  assert.match(card.textContent, /\[가설 의존\] Q-018/);
+  assert.doesNotMatch(card.textContent, /자동 채점기는 없습니다/);
+}));
+
 test('v4 main flow: completed legacy stage 5 leads to its check, earlier prerequisites, E01, then 5B', () => withRoadmap(({finish, hero, progress, update}) => {
   const title = () => byTag(hero(), 'h3')[0].textContent;
   // A later started lecture cannot jump the stage boundary.
