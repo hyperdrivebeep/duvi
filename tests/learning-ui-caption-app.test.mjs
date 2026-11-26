@@ -12,13 +12,14 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
 async function until(check){for(let i=0;i<20;i++){if(check())return;await settle();}assert.ok(check(),'expected app state was not rendered');}
 
 // Load the actual app entry; replace only unrelated views, the media transport and browser globals.
-async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
+async function app(t,{lecture=ready(A),chrome,fetchOverride,loadMedia}={}){
   const nodes=new Map(),writes=new Map(),storage=new Map(chrome?[['mit6100-provider','chrome']]:[]);
   for(const [,id] of html.matchAll(/\bid="([^"]+)"/g)){
     const node=createRoot(),text=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(node),'textContent');
     Object.defineProperty(node,'textContent',{get:()=>text.get.call(node),set:value=>{writes.get(id)?.push(value);text.set.call(node,value);}});
     node.hidden=/^(captionContext|captionNotice|transcriptPanel)$/.test(id);
     node.options=[];
+    node.matches=()=>false;
     const replace=node.replaceChildren.bind(node);
     node.replaceChildren=(...children)=>{replace(...children);if(id==='account'||id==='model'){node.options=children;node.value=children[0]?.value||'';}};
     node.click=()=>{if(!node.disabled)return node.onclick?.();};
@@ -31,7 +32,7 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
     return node;
   };
   const media=new EventTarget();
-  Object.assign(media,{pause(){},currentTime:0,paused:true,load:async()=>{media.currentTime=0;}});
+  Object.assign(media,{pause(){},currentTime:0,paused:true,availableRates:[],playbackRate:1,load:async lecture=>{media.currentTime=0;await loadMedia?.(lecture);}});
   let poll,job=null,translations={};
   const calls=[],fetch=async(path,init)=>{
     const body=init.body&&JSON.parse(init.body);calls.push({path,body});
@@ -54,7 +55,7 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
   const stubModules={
     './media.mjs':{MediaPlayer:class {constructor(){return media;}}},
     './library-ui.mjs':{LibraryUI:class {refresh(id){$('lecture').value=id;}render(){}}},
-    './study-view.mjs':{setupStudyView:()=>({openPanel(){},selectedTab:()=> 'chat'})},
+    './study-view.mjs':{setupStudyView:()=>({openPanel(){},setMedia(){},selectedTab:()=> 'chat'})},
     './app-shell.mjs':{setupShell:()=>({}),installLectureKeys(){},setupWelcome:()=>({update(){}}),accountStatusText:()=>''},
     './learning-ui.mjs':{LearningUI:class {chat={setConnectionNotice(){}};tick(){}lectureChanged(){}init(){}}},
     './quiz-api.mjs':{createLearningViewApi:()=>({quizzes:async()=>({sets:[]})})},
@@ -75,6 +76,39 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
   return {$,calls,media,writes,storage,load:id=>{$('lecture').value=id;return $('lecture').onchange();},
     mode:value=>{$('provider').value=value;$('provider').onchange();},poll:(next,cache)=>{job=next;translations=cache;return poll();}};
 }
+
+test('the playback bar stays disabled before the media is ready and immediately on a lecture change',async t=>{
+  const mediaReady=deferred(),nextLecture=deferred();
+  const a=await app(t,{lecture:{...ready(A),duration:15},loadMedia:l=>l.number===B?mediaReady.promise:undefined,
+    fetchOverride:path=>path==='/api/lectures/'+B?nextLecture.promise:undefined});
+  const state=()=>['playToggle','playMute','playVolume','speed','playSeek','skipBack','skipAhead'].map(id=>a.$(id).disabled);
+  const states=value=>Array(7).fill(value);
+  await until(()=>!a.$('playToggle').disabled);
+  assert.deepEqual(state(),states(false));
+  const switched=a.load(B);assert.deepEqual(state(),states(true));
+  nextLecture.resolve({...ready(B),duration:15});
+  await until(()=>a.$('lectureTitle').textContent===B);
+  a.media.dispatchEvent(new Event('timeupdate'));
+  assert.deepEqual(state(),states(true));
+  mediaReady.resolve();await switched;
+  assert.deepEqual(state(),states(false));
+});
+
+test('native PiP is offered only when supported and usable, and its button enters and exits it',async t=>{
+  const a=await app(t,{lecture:{...ready(A),player:'native',duration:15}});
+  await until(()=>a.$('playToggle').disabled===false);
+  const pip=a.$('playPiP'),native=a.$('video'),calls=[];
+  assert.equal(pip.hidden,true);
+  document.pictureInPictureEnabled=true;
+  native.requestPictureInPicture=async()=>{calls.push('enter');document.pictureInPictureElement=native;native.dispatch('enterpictureinpicture');};
+  document.exitPictureInPicture=async()=>{calls.push('exit');document.pictureInPictureElement=null;native.dispatch('leavepictureinpicture');};
+  a.media.dispatchEvent(new Event('loadedmetadata'));
+  assert.equal(pip.hidden,false);assert.equal(pip.disabled,true);
+  Object.assign(native,{readyState:1,videoWidth:640});a.media.dispatchEvent(new Event('loadedmetadata'));
+  assert.equal(pip.disabled,false);await pip.click();assert.equal(pip.getAttribute('aria-pressed'),'true');
+  await pip.click();assert.equal(pip.getAttribute('aria-pressed'),'false');assert.deepEqual(calls,['enter','exit']);
+  await a.load(B);assert.equal(pip.hidden,true);
+});
 
 test('caption POST transport error re-reads the stored lecture and does not turn pending into failed',async t=>{
   const response=deferred();let reads=0;

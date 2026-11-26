@@ -48,7 +48,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   function showControls(){
     clearTimeout(hideTimer);stage.classList.remove('controls-hidden');
     $('showStudyControls').setAttribute('aria-expanded','true');
-    if(entered)hideTimer=setTimeout(()=>{
+    if(entered&&stage.dataset.media!=='youtube')hideTimer=setTimeout(()=>{
       if((toolbar.contains(document.activeElement)&&holdsControls(document.activeElement))||toolbar.matches(':hover')||!settings.hidden)return;
       hideControls(stage,toolbar,$('showStudyControls'));
     },2500);
@@ -114,8 +114,14 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   $('captionSize').onchange=updateSize;updateSize();
   const placement=stored('duvi-caption-placement','dock');
   $('captionPlacement').value=['dock','bottom','top'].includes(placement)?placement:'dock';
-  const updatePlacement=()=>{stage.dataset.captionPlacement=$('captionPlacement').value;persist('duvi-caption-placement',$('captionPlacement').value);resetCaptions();};
-  $('captionPlacement').onchange=updatePlacement;updatePlacement();
+  const applyPlacement=()=>{stage.dataset.captionPlacement=stage.dataset.media==='youtube'?'dock':$('captionPlacement').value;resetCaptions();};
+  $('captionPlacement').onchange=()=>{persist('duvi-caption-placement',$('captionPlacement').value);applyPlacement();};
+  function setMedia(youtube){
+    stage.dataset.media=youtube?'youtube':'native';
+    $('videoFullscreen').hidden=youtube;
+    applyPlacement();showControls();
+  }
+  applyPlacement();
   function showPanel(open){
     $('transcriptPanel').hidden=!open;stage.classList.toggle('has-transcript',open);resetCaptions();
     $('studyTranscript').setAttribute('aria-expanded',String(open));
@@ -135,5 +141,5 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   $('openQuestion').onclick=()=>openPanel('chat');
   $('studyTranscript').onclick=()=>{if($('transcriptPanel').hidden)openPanel('transcript');else showPanel(false);};
   $('closeTranscript').onclick=()=>{showPanel(false);showControls();$('studyTranscript').focus();};
-  return {openPanel,exit,selectedTab:()=>document.querySelector('[data-stage-tab][aria-selected=true]')?.dataset.stageTab};
+  return {openPanel,exit,setMedia,selectedTab:()=>document.querySelector('[data-stage-tab][aria-selected=true]')?.dataset.stageTab};
 }
