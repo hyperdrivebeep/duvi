@@ -51,6 +51,51 @@ export function prerequisites(data, concept) {
   return concept.prerequisites.map(label => resolvePrerequisite(data, label, concept.field, concept.id));
 }
 
+/** One internal edge per distinct pair. External prerequisite names are not nodes. */
+const edgeCache = new WeakMap();
+export function prerequisiteEdges(data) {
+  if (!edgeCache.has(data)) edgeCache.set(data, data.concepts.flatMap(concept =>
+    [...new Set(prerequisites(data, concept).flatMap(item => item.id ? [item.id] : []))]
+      .map(from => ({from, to: concept.id}))));
+  return edgeCache.get(data);
+}
+
+export function directNeighbours(data, id) {
+  const {byId} = conceptIndex(data), before = [], after = [];
+  for (const {from, to} of prerequisiteEdges(data)) {
+    if (to === id) before.push(byId.get(from));
+    if (from === id) after.push(byId.get(to));
+  }
+  return {before, after};
+}
+
+export function domainOverview(data, progress) {
+  const {byId, roadmap} = conceptIndex(data);
+  const groups = conceptGroups(data), fieldIds = new Map(groups.map(group => [group.name, group.id]));
+  const pairs = new Map();
+  for (const edge of prerequisiteEdges(data)) {
+    const from = fieldIds.get(byId.get(edge.from).field), to = fieldIds.get(byId.get(edge.to).field);
+    if (!from || !to || from === to) continue;
+    if (!pairs.has(from)) pairs.set(from, new Map());
+    const targets = pairs.get(from);
+    targets.set(to, (targets.get(to) || 0) + 1);
+  }
+  const domains = groups.map(group => {
+    const resources = new Map();
+    for (const concept of group.concepts) for (const resource of conceptResources(data, concept)) {
+      const key = resource.lectureId ? `lecture:${resource.lectureId}` : resource.id;
+      resources.set(key, resource);
+    }
+    const marked = progress && resources.size ? {
+      done: [...resources.values()].filter(resource => resourceCompleted(roadmap, progress, resource)).length,
+      total: resources.size,
+    } : null;
+    return {...group, marked};
+  });
+  const edges = [...pairs].flatMap(([from, targets]) => [...targets].map(([to, count]) => ({from, to, count})));
+  return {domains, edges};
+}
+
 /** First-prerequisite chain down to a concept with no known prerequisite: 연쇄법칙 → 도함수 → 일차함수·기울기 → … */
 export function prerequisiteChain(data, concept) {
   const {byId} = conceptIndex(data), chain = [], seen = new Set([concept.id]);
@@ -121,7 +166,8 @@ export const GRAPH = Object.freeze({maxRows: 5, nodeWidth: 256, nodeHeight: 84, 
  */
 export function graphLayout(data) {
   const {byId} = conceptIndex(data), {maxRows, nodeWidth, nodeHeight, columnGap, rowGap, bandGap, bandHeader} = GRAPH;
-  const incoming = new Map(data.concepts.map(concept => [concept.id, [...new Set(prerequisites(data, concept).filter(item => item.id).map(item => item.id))]]));
+  const incoming = new Map(data.concepts.map(concept => [concept.id, []]));
+  for (const {from, to} of prerequisiteEdges(data)) incoming.get(to).push(from);
   const depth = new Map();
   const columnOf = (id, path = new Set()) => {
     if (depth.has(id)) return depth.get(id);

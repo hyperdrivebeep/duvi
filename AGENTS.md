@@ -97,10 +97,11 @@ lecture header's ☰ 내 강의 button. The lecture screen keeps the wide video,
 caption lines in the first viewport at 1280×800 and 1536×864, with a 372px side panel (380px in
 fullscreen) whose tabs are 질문 / 개념 / 확인 문제 / 대본, with counts when known (질문 n, 확인 문제 n).
 `#view-quiz`, `#view-review` and `#lectureQuiz` show the check-question and review modules (below);
-`#view-map` shows the concept map (graph by default, progress table as the accessible equivalent) with real
-records, quiz attempts and repository evidence or "아직 증거 없음", and `#lectureConcepts` lists the lecture's
-concepts, each opening the map at that concept. Edges between fields stay faint until an end is selected; never
-invent or drop an edge. The lecture screen does not scroll
+`#view-map` shows the concept map. On 2026-11-26 the user chose A+B: the first view is the domain overview
+with counts of real between-domain prerequisite edges, then selecting a concept shows its direct prerequisite
+and dependent concepts. Keep the full graph, progress table and inspector available, with real records, quiz attempts
+and repository evidence or "아직 증거 없음". Lecture concepts and linked v4 cards open the direct-connections view.
+Never invent relation types. The lecture screen does not scroll
 at 1280×800 or 1536×864: the sentence toolbar is one row (이전 · 다시 · 다음, 질문하기, ⚙ speed, ⛶), and
 speed, auto pause and fullscreen caption place/size live in the ⚙ popover. Fullscreen top controls are one
 row (이전 · 다시 · 다음, 질문하기, 대본, ⚙, 나가기) and 강의 완료로 표시 is in fullscreen's ⚙. Under the question

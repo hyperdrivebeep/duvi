@@ -33,7 +33,7 @@
 .cmap-note { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--cmap-muted); }
 .cmap-status { grid-column: 1 / -1; margin: 0; font-size: 14px; }
 
-.cmap-main { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.cmap-main { position: relative; min-width: 0; min-height: 0; overflow: auto; background: var(--cmap-canvas); }
 .cmap-main-table { overflow: auto; }
 .cmap-link { color: var(--cmap-accent); text-align: left; text-decoration: none; }
 .cmap-link:hover { text-decoration: underline; }
@@ -51,6 +51,43 @@
 .cmap-table tr[aria-selected="true"] > * { background: var(--cmap-selected); }
 .cmap-table tr[aria-selected="true"] .cmap-concept { color: var(--cmap-accent); }
 .cmap-num { font-variant-numeric: tabular-nums; }
+
+/* A + B: fixed-size type and native buttons; only the SVG curves stretch. */
+.cmap-diagram { padding: 16px 24px; }
+.cmap-diagram-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 12px; }
+.cmap-diagram-title { margin: 0; font-size: 22px; }
+.cmap-diagram-header p { margin: 2px 0 0; }
+.cmap-diagram-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.cmap button.cmap-diagram-action { color: var(--cmap-accent); min-height: 44px; padding: 0 8px; font-size: 14px; font-weight: 600; }
+.cmap button.cmap-diagram-action:hover { text-decoration: underline; }
+.cmap-diagram-legend { margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--cmap-line); font-size: 14px; }
+.cmap-domain-grid { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 9.459%; grid-template-rows: repeat(7, 67.5px); row-gap: 7.5px; }
+.cmap-diagram-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cmap-diagram-edge { fill: none; stroke: var(--cmap-muted); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.cmap-arrowhead { fill: var(--cmap-muted); }
+.cmap button.cmap-diagram-node { position: relative; display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 44px; padding: 4px 10px; border: 1px solid #c4cede; border-radius: 6px; background: #fff; }
+.cmap button.cmap-diagram-node:hover { border-color: var(--cmap-focus); background: #fff; }
+.cmap button.cmap-diagram-node[aria-expanded="true"], .cmap button.cmap-focus-centre { background: var(--cmap-selected); border-color: var(--cmap-accent); }
+.cmap button.cmap-domain-node { padding-right: 22px; }
+.cmap-domain-chevron { position: absolute; right: 9px; top: 8px; color: var(--cmap-muted); }
+.cmap-diagram-name { display: block; font-size: 15px; line-height: 1.3; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.cmap-diagram-meta { display: block; font-size: 14px; line-height: 1.35; color: var(--cmap-muted); word-break: keep-all; overflow-wrap: anywhere; }
+.cmap-diagram-marked { white-space: nowrap; }
+.cmap-domain-count { position: absolute; transform: translate(-50%, -50%); padding: 0 2px; background: var(--cmap-canvas); font-size: 14px; line-height: 1; color: var(--cmap-ink); }
+.cmap-domain-concepts { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--cmap-line); }
+.cmap-domain-concepts h3, .cmap-focus-heads h3 { margin: 0 0 8px; font-size: 15px; }
+.cmap-diagram-list { display: grid; gap: 6px; }
+.cmap button.cmap-diagram-action:focus-visible, .cmap button.cmap-diagram-node:focus-visible { outline: 2px solid var(--cmap-focus); outline-offset: 2px; z-index: 1; }
+.cmap-focus-heads, .cmap-focus-body { display: grid; grid-template-columns: minmax(0, 27fr) 11fr minmax(0, 24fr) 11fr minmax(0, 27fr); }
+.cmap-focus-heads h3:nth-child(2), .cmap-focus-centre { grid-column: 3; text-align: center; }
+.cmap-focus-heads h3:last-child, .cmap-focus-after { grid-column: 5; }
+.cmap-focus-before { grid-column: 1; }
+.cmap-focus-body { position: relative; min-height: calc(var(--cmap-rows) * 68px); align-items: start; }
+.cmap-focus-side, .cmap-focus-centre { grid-row: 1; }
+.cmap button.cmap-focus-centre { min-height: 64px; align-items: center; align-self: center; }
+.cmap-focus-row { position: relative; display: grid; align-items: center; height: 68px; }
+.cmap-focus-row .cmap-diagram-node { height: 60px; }
+.cmap-empty-side { margin: 12px 0 0; color: var(--cmap-muted); font-size: 14px; }
 
 /* Graph */
 /* user-select: dragging to pan must not select node text. */

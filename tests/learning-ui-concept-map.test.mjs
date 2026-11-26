@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {buildConceptMapData, parseConceptMap} from '../scripts/concept-map-data.mjs';
 import {
-  conceptCounts, conceptGroups, fitTransform, graphLayout, lectureConcepts, materialLabel, nodesBox,
+  conceptCounts, conceptGroups, directNeighbours, domainOverview, fitTransform, graphLayout, lectureConcepts, materialLabel, nodesBox,
   prerequisiteChain, prerequisites, resolvePrerequisite, searchConcepts, zoomAt,
 } from '../src/concept-map-model.mjs';
 import {EVIDENCE_NOTE, NO_EVIDENCE, renderConceptMap, renderLectureConcepts} from '../src/concept-map-view.mjs';
@@ -122,6 +122,7 @@ class FakeNode {
   setAttribute(name, value) { this.attributes[name] = String(value); }
   getAttribute(name) { return this.attributes[name] ?? null; }
   addEventListener(type, listener) { (this.listeners[type] ||= []).push(listener); }
+  focus() { document.activeElement = this; this.fire('focus'); }
   fire(type, extra = {}) { for (const listener of this.listeners[type] || []) listener({type, target: this, preventDefault() {}, ...extra}); }
   get clientWidth() { return 0; }
   get clientHeight() { return 0; }
@@ -133,6 +134,7 @@ class FakeNode {
 const hasClass = name => node => (node.getAttribute?.('class') || '').split(' ').includes(name);
 const shown = node => { for (let at = node; at; at = at.parentNode) if (at.hidden) return false; return true; };
 const conceptRows = root => root.all(node => node.tagName === 'TR' && node.getAttribute('data-id') && shown(node));
+const openFull = root => root.find(node => node.tagName === 'BUTTON' && node.textContent === '전체 그래프').fire('click');
 function withDom(run) {
   const original = globalThis.document;
   const listeners = {};
@@ -193,6 +195,7 @@ test('graph view: nodes and edges from data, selection emphasises edges, control
   const root = new FakeNode('div'), concept = named('미분계수·도함수');
   const focus = lectureConcepts(data, lecturesOf(concept)[0].lectureId).map(item => item.id);
   renderConceptMap(root, {data, state: {}, focusConceptIds: focus});
+  openFull(root);
   const nodes = root.all(hasClass('cmap-node')), nodeFor = id => nodes.find(node => node.getAttribute('data-id') === id);
   assert.equal(nodes.length, data.concepts.length);
   const gap = nodeFor(named('GIES').id);
@@ -228,6 +231,7 @@ test('graph node names read as separate phrases, without the material glyph, kee
   const nodeName = (state, name) => {
     const root = new FakeNode('div');
     renderConceptMap(root, {data, state, view: 'graph'});
+    openFull(root);
     return root.find(node => hasClass('cmap-node')(node) && node.getAttribute('data-id') === named(name).id).getAttribute('aria-label');
   };
   const empty = {progress: {}, records: [], attempts: []}, line = named('변수·수직선'), marked = conceptCounts(data, line, empty).marked;
@@ -236,6 +240,7 @@ test('graph node names read as separate phrases, without the material glyph, kee
   assert.equal(nodeName({}, 'GIES'), `GIES, ${materialLabel(data, named('GIES'))}, ${NO_EVIDENCE}`);
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph'});
+  openFull(root);
   const words = text => text.replace(/[●◐○]/g, '').replace(/ · |, /g, '').replace(/\s+/g, '');
   for (const node of root.all(hasClass('cmap-node'))) {
     const label = node.getAttribute('aria-label');
@@ -248,6 +253,7 @@ test('graph node names read as separate phrases, without the material glyph, kee
 test('graph nodes carry no title (read again as a description); a cut-off name is shown in full on hover or focus', () => withDom(() => {
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph'});
+  openFull(root);
   const nodes = root.all(hasClass('cmap-node'));
   assert.equal(nodes.length, data.concepts.length);
   for (const node of nodes) {
@@ -264,6 +270,7 @@ test('graph nodes carry no title (read again as a description); a cut-off name i
 const cutNode = () => {
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph'});
+  openFull(root);
   const [node] = root.all(hasClass('cmap-node'));
   Object.defineProperties(node.find(hasClass('cmap-node-name')), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
   return {node, concept: data.concepts.find(item => item.id === node.getAttribute('data-id'))};
@@ -296,6 +303,7 @@ test('Escape hides a shown tooltip without moving focus; the next hover or focus
 test('a tooltip shown on one node is taken down when another one shows, so Escape never leaves one behind', () => withDom(() => {
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph'});
+  openFull(root);
   const [first, second] = root.all(hasClass('cmap-node'));
   for (const node of [first, second]) Object.defineProperties(node.find(hasClass('cmap-node-name')), {scrollWidth: {value: 240}, clientWidth: {value: 180}});
   first.fire('focus'); second.fire('mouseenter');
@@ -307,8 +315,9 @@ test('a tooltip shown on one node is taken down when another one shows, so Escap
 test('graph controls are named once (no title read again as the description); glyph-only ones show their name in a dismissible tooltip', () => withDom(() => {
   const root = new FakeNode('div');
   renderConceptMap(root, {data, state: {}, view: 'graph', focusConceptIds: [data.concepts[0].id]});
+  openFull(root);
   const controls = root.all(hasClass('cmap-control'));
-  assert.deepEqual(controls.map(button => button.getAttribute('aria-label')), ['화면 맞춤', '지금 강의 개념으로', '확대', '축소']);
+  assert.deepEqual(controls.map(button => button.getAttribute('aria-label')), ['개념 지도로 돌아가기', '화면 맞춤', '지금 강의 개념으로', '확대', '축소']);
   for (const button of controls) {
     const label = button.getAttribute('aria-label');
     assert.equal(button.getAttribute('title'), null, label);
@@ -360,6 +369,7 @@ test('repository evidence counts only commits and tests that name a concept; no 
 test('edges between fields are faint at rest and full strength when an end is selected; the map keeps view and selection', () => withDom(() => {
   const root = new FakeNode('div'), layout = graphLayout(data), field = new Map(layout.nodes.map(node => [node.id, node.field]));
   const map = renderConceptMap(root, {data, state: {}, view: 'graph'});
+  openFull(root);
   const paths = root.all(node => node.tagName === 'PATH'), cross = paths.filter(hasClass('cmap-cross'));
   assert.equal(paths.length, layout.edges.length, 'no edge is dropped');
   assert.equal(cross.length, layout.edges.filter(edge => field.get(edge.from) !== field.get(edge.to)).length);
@@ -371,4 +381,85 @@ test('edges between fields are faint at rest and full strength when an end is se
   map.setView('table');assert.equal(map.view, 'table');
   const again = renderConceptMap(new FakeNode('div'), {data, state: {}, view: map.view, selected: map.selected});
   assert.equal(again.view, 'table');assert.equal(again.selected, end);
+}));
+
+test('overview counts each real inter-domain prerequisite once, in its original direction', () => {
+  const fields = new Map(data.fields.map(field => [field.name, field.id]));
+  const conceptField = new Map(data.concepts.map(concept => [concept.id, fields.get(concept.field)]));
+  const expected = {};
+  for (const {from, to} of graphLayout(data).edges) {
+    const a = conceptField.get(from), b = conceptField.get(to);
+    if (a !== b) expected[`${a}:${b}`] = (expected[`${a}:${b}`] || 0) + 1;
+  }
+  const {domains, edges} = domainOverview(data, {'v4-i-eq': {completed: true}});
+  assert.deepEqual(domains.map(d => [d.id, d.concepts.length]), [['s2',25],['s3',22],['s4',34],['s5',16],['s6',20],['s7',21],['s8',17],['s9',5],['g1',7],['g2',3]]);
+  assert.deepEqual(expected, {'s3:s2':3,'s2:s3':1,'s4:s3':1,'s2:s4':5,'s6:s4':1,'s4:g1':6,'s4:g2':1});
+  assert.deepEqual(Object.fromEntries(edges.map(({from,to,count}) => [`${from}:${to}`,count])), expected);
+  assert.deepEqual(domains.find(d => d.id === 'g1').marked, {done: 1, total: new Set(domains.find(d => d.id === 'g1').concepts.flatMap(c => c.resources)).size});
+  assert.equal(domainOverview(data).domains[0].marked, null);
+});
+
+test('focus neighbour sets match every directed edge; outside labels and indirect relations are excluded', () => {
+  const {edges} = graphLayout(data);
+  for (const {id} of data.concepts) {
+    const {before, after} = directNeighbours(data, id);
+    assert.deepEqual(before.map(c => c.id), edges.filter(e => e.to === id).map(e => e.from));
+    assert.deepEqual(after.map(c => c.id), edges.filter(e => e.from === id).map(e => e.to));
+  }
+  const {before, after} = directNeighbours(data, named('가우스 NLL의 함정').id);
+  assert.deepEqual(before.map(c => c.name), ['음의 로그우도(NLL)', '미분계수·도함수']);
+  assert.deepEqual(after, []);
+});
+
+test('overview and direct connection keyboard path preserves origin and announces relative direction', () => withDom(() => {
+  const root = new FakeNode('div');
+  const map = renderConceptMap(root, {data, state: {progress: {}}});
+  const domain = id => root.find(node => node.getAttribute('data-domain') === id);
+  assert.equal(root.all(hasClass('cmap-domain-node')).length, 10);
+  const mathSummary = '개념 25개 · 자료 0/42 완료 표시';
+  assert.equal(domain('s2').find(hasClass('cmap-diagram-meta')).textContent, mathSummary);
+  assert.equal(domain('s2').getAttribute('aria-label'), `함수와 미분, ${mathSummary}`);
+  assert.equal(root.all(hasClass('cmap-diagram-edge')).length, 7);
+  assert.match(root.find(hasClass('cmap-status')).textContent, /10개 분야.*18개/);
+  domain('s2').fire('keydown', {key: 'ArrowDown'});
+  assert.equal(document.activeElement, domain('s3'));
+  domain('s4').fire('click');
+  assert.equal(domain('s4').getAttribute('aria-expanded'), 'true');
+  const gauss = named('가우스 NLL의 함정'), node = id => root.find(n => hasClass('cmap-diagram-node')(n) && n.getAttribute('data-id') === id);
+  node(gauss.id).fire('click');
+  assert.equal(map.selected, gauss.id);
+  const centre = () => root.find(hasClass('cmap-focus-centre'));
+  assert.equal(document.activeElement, centre());
+  assert.match(root.find(hasClass('cmap-empty-side')).textContent, /직접 후속 개념이 없습니다/);
+  assert.match(root.find(hasClass('cmap-status')).textContent, /직접 선수 2개, 직접 후속 0개/);
+  centre().fire('keydown', {key: 'ArrowLeft'});
+  const neighbour = document.activeElement;
+  assert.match(neighbour.getAttribute('aria-label'), /가우스 NLL의 함정의 직접 선수/);
+  assert.match(root.find(hasClass('cmap-diagram-legend')).textContent, /선수 개념에서 그 선수가 필요한 개념으로/);
+  assert.ok(root.all(hasClass('cmap-diagram-edge')).every(edge => edge.getAttribute('data-to') === gauss.id && edge.getAttribute('marker-end')));
+  neighbour.fire('click');
+  assert.equal(map.selected, neighbour.getAttribute('data-id'));
+  centre().fire('keydown', {key: 'ArrowRight'});
+  assert.match(document.activeElement.getAttribute('aria-label'), /직접 선수로 쓰는 후속 개념/);
+  root.find(n => n.tagName === 'BUTTON' && n.textContent === '← 분야 개요').fire('click');
+  assert.equal(document.activeElement, node(gauss.id));
+  assert.equal(domain('s4').getAttribute('aria-expanded'), 'true');
+  root.find(n => n.tagName === 'BUTTON' && n.textContent === '화면 맞춤').fire('click');
+  assert.equal(domain('s4').getAttribute('aria-expanded'), 'false');
+}));
+
+test('an explicit concept link overrides a remembered table and focuses the requested concept', () => withDom(() => {
+  const root = new FakeNode('div'), target = named('동등성 검정(TOST)');
+  const map = renderConceptMap(root, {data, view: 'table', selected: data.concepts[0].id, conceptId: target.id});
+  const centre = root.find(hasClass('cmap-focus-centre'));
+  const note = root.find(hasClass('cmap-note'));
+  assert.equal(map.view, 'graph');
+  assert.equal(map.selected, target.id);
+  assert.match(centre.getAttribute('aria-label'), /동등성 검정\(TOST\)/);
+  assert.equal(document.activeElement, centre);
+  assert.equal(shown(note), false);
+  map.setView('table');
+  assert.equal(shown(note), true);
+  map.setView('graph');
+  assert.equal(shown(note), false);
 }));
