@@ -86,6 +86,7 @@
 - `FCFpaKcpuXQ` — **Driven Oscillators, Transient Phenomena, Resonance**는 7단계 분할 후보였으나 제외했다. 강제 진동·과도현상·공진 심화는 기존 스프링·진동 입문에 덧붙는 주제다. E05의 회전 좌표와 식별 반례를 수행하는 선수는 아니다.
 - `fKl2JW_qrso` — **Python Multiprocessing Tutorial**은 5B 분할 후보였으나 제외했다. 프로세스 병렬화는 실행량이 커질 때의 심화이고, I-OPS가 요구하는 중단·재개 검증과 E06의 로컬 복구는 단일 프로세스로 먼저 실습할 수 있다.
 - `o6l6tJQgUg4` — Nathan Lambert의 **Post-Training and RLHF Overview**는 5단계 및 I-LEV 추천에서 6단계로 옮겼다. 보상과 정책을 먼저 익힌 뒤 SFT·선호·보상 모델을 구분하는 편이 자연스럽고, 두 곳에서 반복 시청할 필요가 없다.
+- 2026-11-26: 8단계 `mt9WKbQJrI4`가 Duvi에서 YouTube 삽입 오류 150을 반환해 같은 강사의 2022년 17강 `lTFAB6QmwHM`으로 교체했다. 새 영상은 08:32에 측정 오차, 44:01에 오분류를 다룬다.
 
 5·5B·7·8단계 분할을 재검토했지만, 독립 확인이 필요한 경계는 E01·I-OPS·E05·I-CAP과 그 선수 카드로 이미 표시할 수 있다. 제외한 두 영상은 별도 필수 수행을 열어 주지 않으므로, 영상을 넣기 위해 폴더·단계 ID와 일정 경계를 바꾸지 않는다.
 

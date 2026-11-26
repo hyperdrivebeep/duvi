@@ -152,10 +152,11 @@ function renderVideos(root, roadmap, topic, updates, onOpen, card) {
     const title = el('span');
     const launch = button(`${video.title} · Duvi에서 열기`, async () => {
       launch.disabled = true;
-      try { await onOpen({videoId: entry.videoId, start}); }
+      try { await onOpen(start === undefined ? {videoId: entry.videoId} : {videoId: entry.videoId, start}); }
       finally { launch.disabled = false; }
     });
     const original = link('YouTube 원본 ↗', url.href);
+    original.setAttribute('aria-label', `${video.title} · YouTube 원본 (새 탭)`);
     li.dataset.v4Video = entry.videoId;
     text(li, '', `${video.channel} · ${entry.range} · ${entry.minutes}분 · ${entry.reason}`);
     li.prepend(title);

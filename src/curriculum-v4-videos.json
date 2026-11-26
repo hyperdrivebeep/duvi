@@ -254,6 +254,7 @@
       "title": "Statistical Rethinking 2022 Lecture 17 - Measurement Error",
       "channel": "Richard McElreath",
       "url": "https://www.youtube.com/watch?v=lTFAB6QmwHM",
+      "replaces": "mt9WKbQJrI4",
       "oembed": {
         "status": 200,
         "checked_on": "2026-11-25",
