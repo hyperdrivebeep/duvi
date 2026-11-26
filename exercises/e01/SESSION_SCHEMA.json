@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "E01 log/sessions.jsonl: one event per line",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "source", "event", "timestamp", "session_id", "phase"],
+  "properties": {
+    "version": {"const": 1},
+    "source": {"enum": ["self-report", "synthetic"]},
+    "event": {"enum": ["start", "stop", "note"]},
+    "timestamp": {"type": "string", "format": "date-time", "pattern": "[+-][0-9]{2}:[0-9]{2}$"},
+    "session_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "phase": {"enum": ["pre", "setup", "implement", "replay", "diagnose", "mastery", "post", "retention"]},
+    "reason": {"enum": ["done", "break", "interruption", "uncertain"]},
+    "text": {"type": "string"},
+    "help": {"enum": ["none", "hint", "solution-peek", "AI-help"]},
+    "attempt": {"type": "string", "minLength": 1},
+    "outcome": {"enum": ["pass", "fail", "error"]}
+  },
+  "dependentRequired": {"attempt": ["outcome"], "outcome": ["attempt"]},
+  "allOf": [
+    {"if": {"properties": {"event": {"const": "stop"}}}, "then": {"required": ["reason"]}, "else": {"not": {"required": ["reason"]}}},
+    {
+      "if": {"properties": {"event": {"const": "note"}}},
+      "then": {
+        "required": ["text"],
+        "anyOf": [{"required": ["help"]}, {"properties": {"text": {"minLength": 1}}}],
+        "if": {"required": ["attempt"]},
+        "then": {"properties": {"text": {"minLength": 1}}}
+      },
+      "else": {"not": {"anyOf": [{"required": ["text"]}, {"required": ["help"]}, {"required": ["attempt"]}, {"required": ["outcome"]}]}}
+    }
+  ]
+}
