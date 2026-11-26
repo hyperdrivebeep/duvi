@@ -6,6 +6,7 @@ import {checkCompatibility, validateCurriculum} from '../scripts/validate-curric
 import {resourceProgressId} from '../src/learning-model.mjs';
 import {renderRoadmap} from '../src/learning-map-view.mjs';
 import {all, byTag, createRoot, installDom, settle} from './fake-dom.mjs';
+import mapData from '../src/concept-map-data.json' with {type: 'json'};
 
 test('all 227 old resource statuses, keys, URLs and onramp are unchanged using synthetic v3 saved state', () => {
   assert.equal(checkCompatibility(ROADMAP), 227);
@@ -13,6 +14,26 @@ test('all 227 old resource statuses, keys, URLs and onramp are unchanged using s
 
 test('v4 exercises have unique IDs and reachable, classified prerequisites', () => {
   assert.equal(validateCurriculum(ROADMAP).required, 10);
+});
+
+test('v4 cards link to every mapped concept and open the matching ID', t => {
+  t.after(installDom());
+  const root = createRoot(), opened = [];
+  renderRoadmap(root, {roadmap: ROADMAP, state: {progress: {}}, onOpenConcept: id => opened.push(id)});
+  const cards = all(root, node => node.dataset.v4Card);
+  const expected = mapData.concepts.flatMap(concept => concept.resources
+    .filter(id => id.startsWith('v4-')).map(id => [id, `${concept.name} · 개념 지도`, concept.id]));
+  assert.ok(expected.length > 0);
+  assert.equal(cards.flatMap(card => byTag(card, 'button')).filter(button => button.textContent.endsWith(' · 개념 지도')).length, expected.length);
+  for (const [cardId, label, conceptId] of expected) {
+    const card = cards.find(node => node.dataset.v4Card === cardId);
+    assert.ok(card, cardId);
+    const button = byTag(card, 'button').find(node => node.textContent === label);
+    assert.ok(button, `${cardId}: ${label}`);
+    button.click();
+    assert.equal(opened.at(-1), conceptId);
+  }
+  assert.equal(opened.length, expected.length);
 });
 
 test('E01 reads explicit stage and card marks; later architecture exercises wait for E01', () => {

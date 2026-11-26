@@ -61,7 +61,7 @@
 .cmap button.cmap-diagram-action { color: var(--cmap-accent); min-height: 44px; padding: 0 8px; font-size: 14px; font-weight: 600; }
 .cmap button.cmap-diagram-action:hover { text-decoration: underline; }
 .cmap-diagram-legend { margin: 12px 0 0; padding: 10px 0 0; border-top: 1px solid var(--cmap-line); font-size: 14px; }
-.cmap-domain-grid { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 9.459%; grid-template-rows: repeat(7, 54px); row-gap: 6px; }
+.cmap-domain-grid { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 9.459%; grid-template-rows: repeat(7, 67.5px); row-gap: 7.5px; }
 .cmap-diagram-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .cmap-diagram-edge { fill: none; stroke: var(--cmap-muted); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .cmap-arrowhead { fill: var(--cmap-muted); }
@@ -70,8 +70,9 @@
 .cmap button.cmap-diagram-node[aria-expanded="true"], .cmap button.cmap-focus-centre { background: var(--cmap-selected); border-color: var(--cmap-accent); }
 .cmap button.cmap-domain-node { padding-right: 22px; }
 .cmap-domain-chevron { position: absolute; right: 9px; top: 8px; color: var(--cmap-muted); }
-.cmap-diagram-name { display: block; font-size: 15px; line-height: 1.3; font-weight: 700; overflow-wrap: anywhere; }
-.cmap-diagram-meta { display: block; font-size: 14px; line-height: 1.35; color: var(--cmap-muted); overflow-wrap: anywhere; }
+.cmap-diagram-name { display: block; font-size: 15px; line-height: 1.3; font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.cmap-diagram-meta { display: block; font-size: 14px; line-height: 1.35; color: var(--cmap-muted); word-break: keep-all; overflow-wrap: anywhere; }
+.cmap-diagram-marked { white-space: nowrap; }
 .cmap-domain-count { position: absolute; transform: translate(-50%, -50%); padding: 0 2px; background: var(--cmap-canvas); font-size: 14px; line-height: 1; color: var(--cmap-ink); }
 .cmap-domain-concepts { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--cmap-line); }
 .cmap-domain-concepts h3, .cmap-focus-heads h3 { margin: 0 0 8px; font-size: 15px; }
@@ -86,9 +87,6 @@
 .cmap button.cmap-focus-centre { min-height: 64px; align-items: center; align-self: center; }
 .cmap-focus-row { position: relative; display: grid; align-items: center; height: 68px; }
 .cmap-focus-row .cmap-diagram-node { height: 60px; }
-.cmap-edge-label { position: absolute; z-index: 1; top: 10px; display: block; padding: 0 2px; background: var(--cmap-canvas); color: var(--cmap-muted); font-size: 14px; line-height: 1.25; white-space: nowrap; }
-.cmap-focus-before .cmap-edge-label { left: 105%; }
-.cmap-focus-after .cmap-edge-label { right: 105%; }
 .cmap-empty-side { margin: 12px 0 0; color: var(--cmap-muted); font-size: 14px; }
 
 /* Graph */

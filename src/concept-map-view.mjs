@@ -284,20 +284,22 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
  * Returns {select(id), setView('graph'|'table'), search(query), view, selected}; the shell re-mounts with view and selected.
  */
 export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, onOpenRoadmapCard, focusConceptIds, view = 'graph',
-  selected: initial = null, onEntryFocus = false} = {}) {
+  selected: initial = null, conceptId} = {}) {
   const total = data.concepts.length, gaps = data.concepts.filter(concept => concept.gap && !concept.resources.length).length;
   const {byId} = conceptIndex(data), overview = domainOverview(data, state.progress);
   const search = h('input', {type: 'search', className: 'cmap-search', placeholder: '개념 찾기', 'aria-label': '개념 찾기'});
   const status = h('p', {className: 'cmap-status', role: 'status', 'aria-atomic': 'true'});
+  const evidenceNote = h('p', {className: 'cmap-note', text: EVIDENCE_NOTE});
   const viewButtons = Object.fromEntries([['graph', '그래프'], ['table', '표']].map(([key, label]) => [key, h('button', {type: 'button', className: 'cmap-view', 'aria-pressed': 'false', onClick: () => setView(key)}, label)]));
   const main = h('div', {className: 'cmap-main'}), inspector = h('aside', {className: 'cmap-inspector', 'aria-labelledby': 'cmap-inspector-title', 'aria-live': 'polite'});
   root.replaceChildren(h('div', {className: 'cmap'},
     h('header', {className: 'cmap-head'},
       h('div', {className: 'cmap-title'}, h('h1', {text: '개념 지도'}), h('p', {className: 'cmap-muted', text: `개념 ${total}개 · 그중 ${gaps}개는 커리큘럼에 자료가 없습니다`})),
       h('div', {className: 'cmap-toolbar'}, h('div', {className: 'cmap-switch', role: 'group', 'aria-label': '보기'}, viewButtons.graph, viewButtons.table), search),
-      h('p', {className: 'cmap-note', text: EVIDENCE_NOTE}), status),
+      evidenceNote, status),
     main, inspector));
-  let current = null, selected = byId.has(initial) ? initial : null, query = '', full = false, openDomain = null, returnId = null;
+  const deepLink = byId.has(conceptId);
+  let current = null, selected = deepLink ? conceptId : byId.has(initial) ? initial : null, query = '', full = false, openDomain = null, returnId = null;
   const select = (id, focus = false) => {
     if (id != null && !byId.has(id)) return;
     if (!full && !selected && openDomain && !query.trim()) returnId = id;
@@ -347,6 +349,7 @@ export function renderConceptMap(root, {data, state = {}, evidence, onOpenLectur
   }
   function setView(next) {
     current?.dispose?.(); current = null; full = false; view = next;
+    evidenceNote.hidden = view !== 'table';
     for (const [key, button] of Object.entries(viewButtons)) button.setAttribute('aria-pressed', String(key === view));
     setClass(main, 'cmap-main-table', view === 'table');
     if (view === 'table') {
@@ -361,8 +364,8 @@ export function renderConceptMap(root, {data, state = {}, evidence, onOpenLectur
     const [first] = searchConcepts(data, query);
     if (first) { event.preventDefault(); selectFromNode(first); }
   });
-  setView(view); updateInspector();
-  if (onEntryFocus && selected && view === 'graph') renderDiagram(true);
+  setView(deepLink ? 'graph' : view); updateInspector();
+  if (deepLink && view === 'graph') renderDiagram(true);
   return {select, setView, search(text) { search.value = text; query = text; return applySearch(); }, get view() { return view; }, get selected() { return selected; }};
 }
 

@@ -81,7 +81,8 @@ export function renderConceptDiagram(root, {h, svg, data, state, overview: {doma
     return h('button', {type: 'button', className: 'cmap-diagram-node', 'data-id': concept.id,
       'aria-label': [concept.name, relation, ...details].filter(Boolean).join(', '), onClick: () => onSelect(concept.id)},
     h('span', {className: 'cmap-diagram-name', text: concept.name}),
-    h('span', {className: 'cmap-diagram-meta', text: details.join(' · ')}));
+    h('span', {className: 'cmap-diagram-meta'}, ...details.map((text, index) =>
+      h('span', {className: index === 2 ? 'cmap-diagram-marked' : null, text: `${index ? ' · ' : ''}${text}`}))));
   };
   const list = (concepts, relation) => {
     const nodes = concepts.map((concept, y) => ({x: 0, y, id: concept.id, button: conceptButton(concept, relation)}));
@@ -108,8 +109,7 @@ export function renderConceptDiagram(root, {h, svg, data, state, overview: {doma
             : {from: selected, to: concept.id, d: `M620,${port} C${mid},${port} ${mid},${y} 730,${y}`});
           const button = conceptButton(concept, incoming ? `${focused.name}의 직접 선수` : `${focused.name}을(를) 직접 선수로 쓰는 후속 개념`);
           nodes.push({button, x, y});
-          return h('div', {className: 'cmap-focus-row'}, button,
-            h('span', {className: 'cmap-edge-label', 'aria-hidden': 'true', text: '선수'}));
+          return h('div', {className: 'cmap-focus-row'}, button);
         }) : h('p', {className: 'cmap-empty-side', text: incoming
           ? '지도에 연결된 직접 선수가 없습니다. 지도 밖 선수는 개념 상세에서 확인할 수 있습니다.'
           : '이 지도에 기록된 직접 후속 개념이 없습니다.'}));
@@ -121,7 +121,7 @@ export function renderConceptDiagram(root, {h, svg, data, state, overview: {doma
     h('span', {className: 'cmap-diagram-meta', text: '선택한 개념'}));
     focusTarget = centre; nodes.push({button: centre, x: 1, y: cy});
     const right = side(after, false);
-    // Both shorter lanes start at the top, so the line labels and node ports share row positions.
+    // Keyboard coordinates use the same rows as the node ports.
     wireKeys(nodes.map(node => ({...node, y: node.y / 68})));
     content = h('div', {className: 'cmap-focus'},
       h('div', {className: 'cmap-focus-heads'}, h('h3', {text: `직접 선수 · ${before.length}`}),
@@ -143,13 +143,14 @@ export function renderConceptDiagram(root, {h, svg, data, state, overview: {doma
     const routes = edges.map(edge => ({...edge, ...overviewRoute(locations.get(edge.from), locations.get(edge.to))}));
     const buttons = domains.map(domain => {
       const [x, y] = locations.get(domain.id), open = domain.id === openDomain;
-      const progress = domain.marked ? `내가 표시 ${domain.marked.done}/${domain.marked.total}` : '완료 표시 미확인';
+      const progress = domain.marked ? `자료 ${domain.marked.done}/${domain.marked.total} 완료 표시` : '자료 완료 표시 미확인';
+      const summary = `개념 ${domain.concepts.length}개 · ${progress}`;
       const button = h('button', {type: 'button', className: 'cmap-diagram-node cmap-domain-node',
         'data-domain': domain.id, 'aria-expanded': String(open), 'aria-controls': open ? 'cmap-domain-concepts' : null,
-        'aria-label': `${domain.name}, 개념 ${domain.concepts.length}개, ${progress}`,
+        'aria-label': `${names.get(domain.id)}, ${summary}`,
         style: `grid-column:${x + 1};grid-row:${y + 1}`, onClick: () => onDomain(domain.id)},
       h('span', {className: 'cmap-diagram-name', text: names.get(domain.id)}),
-      h('span', {className: 'cmap-diagram-meta', text: `${domain.concepts.length}개 · ${progress}`}),
+      h('span', {className: 'cmap-diagram-meta', text: summary}),
       h('span', {className: 'cmap-domain-chevron', 'aria-hidden': 'true', text: open ? '⌄' : '›'}));
       return {x, y, button, id: domain.id};
     });

@@ -416,6 +416,9 @@ test('overview and direct connection keyboard path preserves origin and announce
   const map = renderConceptMap(root, {data, state: {progress: {}}});
   const domain = id => root.find(node => node.getAttribute('data-domain') === id);
   assert.equal(root.all(hasClass('cmap-domain-node')).length, 10);
+  const mathSummary = '개념 25개 · 자료 0/42 완료 표시';
+  assert.equal(domain('s2').find(hasClass('cmap-diagram-meta')).textContent, mathSummary);
+  assert.equal(domain('s2').getAttribute('aria-label'), `함수와 미분, ${mathSummary}`);
   assert.equal(root.all(hasClass('cmap-diagram-edge')).length, 7);
   assert.match(root.find(hasClass('cmap-status')).textContent, /10개 분야.*18개/);
   domain('s2').fire('keydown', {key: 'ArrowDown'});
@@ -432,7 +435,7 @@ test('overview and direct connection keyboard path preserves origin and announce
   centre().fire('keydown', {key: 'ArrowLeft'});
   const neighbour = document.activeElement;
   assert.match(neighbour.getAttribute('aria-label'), /가우스 NLL의 함정의 직접 선수/);
-  assert.equal(root.all(hasClass('cmap-edge-label')).length, 2);
+  assert.match(root.find(hasClass('cmap-diagram-legend')).textContent, /선수 개념에서 그 선수가 필요한 개념으로/);
   assert.ok(root.all(hasClass('cmap-diagram-edge')).every(edge => edge.getAttribute('data-to') === gauss.id && edge.getAttribute('marker-end')));
   neighbour.fire('click');
   assert.equal(map.selected, neighbour.getAttribute('data-id'));
@@ -443,4 +446,20 @@ test('overview and direct connection keyboard path preserves origin and announce
   assert.equal(domain('s4').getAttribute('aria-expanded'), 'true');
   root.find(n => n.tagName === 'BUTTON' && n.textContent === '화면 맞춤').fire('click');
   assert.equal(domain('s4').getAttribute('aria-expanded'), 'false');
+}));
+
+test('an explicit concept link overrides a remembered table and focuses the requested concept', () => withDom(() => {
+  const root = new FakeNode('div'), target = named('동등성 검정(TOST)');
+  const map = renderConceptMap(root, {data, view: 'table', selected: data.concepts[0].id, conceptId: target.id});
+  const centre = root.find(hasClass('cmap-focus-centre'));
+  const note = root.find(hasClass('cmap-note'));
+  assert.equal(map.view, 'graph');
+  assert.equal(map.selected, target.id);
+  assert.match(centre.getAttribute('aria-label'), /동등성 검정\(TOST\)/);
+  assert.equal(document.activeElement, centre);
+  assert.equal(shown(note), false);
+  map.setView('table');
+  assert.equal(shown(note), true);
+  map.setView('graph');
+  assert.equal(shown(note), false);
 }));
