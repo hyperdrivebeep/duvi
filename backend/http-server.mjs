@@ -133,7 +133,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
           if(pathname==='/api/folders/rename'){json(res,200,await library.folders.rename(body.id,body.name));return;}
           if(pathname==='/api/folders/delete'){json(res,200,await library.folders.remove(body.id));return;}
           if(pathname==='/api/folders/move'){json(res,200,await library.folders.move(body));return;}
-          if(pathname==='/api/translate'){json(res,200,{job:await translations.start({number:body.lecture,model:body.model,scope:body.scope,start:body.start||0,sentenceAligned:body.sentenceAligned===true})});return;}
+          if(pathname==='/api/translate'){json(res,200,{job:await translations.start({number:body.lecture,model:body.model,scope:body.scope,start:body.start??0,sentenceAligned:body.sentenceAligned===true,alignmentRevision:body.alignmentRevision})});return;}
           if(pathname==='/api/translate/stop'){json(res,200,{job:await translations.stop()});return;}
         }
         throw new AppError('요청 경로를 찾지 못했습니다.','not_found',404);
