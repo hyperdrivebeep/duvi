@@ -47,3 +47,21 @@ def suite(seed=None):
             answer_bit = sha256(f"answer:{identity}".encode()).digest()[0] & 1
             cases.append(Case(config, keys[answer_bit], faults))
     return cases
+
+
+def deferral_probes(seed):
+    """Cross grid sign with identifiability; the first warm-up never separates."""
+    rng = Random(seed)
+    cases = suite(seed)
+    probes = []
+    for separable in (False, True):
+        base = cases[2 if rng.randrange(2) else 0]
+        left, right = base.config["predictions"]
+        values = base.config["predictions"][left]
+        other = values.copy()
+        if separable:
+            points = base.config["points"]
+            index = points.index(rng.choice([x for x in points if x != 1]))
+            other[index] += rng.randint(1, 9)
+        probes.append(Case(base.config | {"predictions": {left: values, right: other}}, base.answer, {}))
+    return probes

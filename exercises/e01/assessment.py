@@ -5,11 +5,14 @@ from pathlib import Path
 from random import Random
 from tempfile import TemporaryDirectory
 
-from .fixtures import suite
+from .fixtures import deferral_probes, suite
 from .grader import Failure, grade, rescore, trace_score
-from .protocol import Tools, canonical, digest_bytes, metadata, learner_config
-from .replay import replay
+from .protocol import Tools, canonical, digest, digest_bytes, metadata, learner_config, no_tools
+from .replay import Diverged, replay
 from .solutions import reference
+
+
+VERSION = 2
 
 
 def configure(parser):
@@ -19,6 +22,8 @@ def configure(parser):
         p.add_argument("--seed", required=True, type=int)
         if name != "key":
             p.add_argument("--output", required=name == "form", type=Path)
+        if name == "form":
+            p.add_argument("--hide-seed", action="store_true", help="학습자용 파일과 출력에서 시드 숨기기")
         if name == "score":
             p.add_argument("answers", type=Path)
 
@@ -42,19 +47,103 @@ def compact(rows):
             for row in rows]
 
 
+def pairing_item(rng, logs):
+    trace = rng.choice(("L", "R"))
+    rows = logs[trace]
+    # The second request for the same coordinate is the retry, not the original call.
+    seen = set()
+    for request in rows[::2]:
+        identity = (request["tool"], request["input"])
+        if identity in seen:
+            target = request
+            break
+        seen.add(identity)
+    else:
+        raise ValueError("짝 문항에 재시도 요청이 없습니다.")
+    fields = ("seq", "call_id", "tool", "input")
+    issued = [{k: row[k] for k in fields} | {"trace": trace}
+              for row in rows[::2] if row["input"] == target["input"]]
+    picks = [{k: row[k] for k in fields} | {"trace": source}
+             for source, log in logs.items() for row in log[1::2]
+             if row["tool"] == target["tool"] and row["input"] == target["input"]]
+    rng.shuffle(picks)
+    for line, row in enumerate(picks, 1):
+        row["line"] = line
+    matches = [row["line"] for row in picks if row["trace"] == trace
+               and all(row[k] == target[k] for k in ("call_id", "tool", "input"))
+               and row["seq"] == target["seq"] + 1]
+    if len(matches) != 1:
+        raise ValueError("검증된 로그에서 반환을 하나로 연결할 수 없습니다.")
+    return {
+        "prompt": "L과 R은 서로 다른 실행입니다. 같은 좌표의 첫 요청과 재시도 중 "
+                  "재시도에 대응하는 반환을 골라 목록의 line 번호(원본 seq가 아님)를 쓰세요.",
+        "requests": issued, "choices": picks,
+    }, matches[0]
+
+
+def fault_item(rng, rows, diagnoses):
+    by_seq = {row["seq"]: row for row in rows}
+    failure_rows = [by_seq[item["seq"]] for item in diagnoses]
+    refs = dict(zip((row["seq"] for row in failure_rows), rng.sample(range(100, 1000), len(failure_rows))))
+    audit = [{"ref": refs[row["seq"]], "action": "시험 장치가 측정을 한 번 차단함"}
+             for row in failure_rows if row["return"].get("evidence") == "injected_transient"]
+    rng.shuffle(diagnoses)
+    fields = ("seq", "call_id", "tool", "input")
+    targets = [{k: by_seq[item["seq"] - 1][k] for k in fields} for item in diagnoses]
+    returns = [{k: row[k] for k in fields} | {"value": None, "ref": refs[row["seq"]]}
+               for row in failure_rows]
+    return {
+        "prompt": "fault_1과 fault_2는 아래 지정 요청 순서입니다. 대응 반환의 원본 seq를 찾고 "
+                  "감사 기록을 ref로 대조하세요. 기록에 연결되는 주입 근거가 없으면 원인을 "
+                  "확정하지 마세요. 각각 {seq: 반환 행 번호, label: 주입된 일시 오류 또는 원인 불명}으로 답하세요.",
+        "requests": targets, "returns": returns, "audit": audit,
+    }, {f"fault_{i}": item for i, item in enumerate(diagnoses, 1)}
+
+
+def operation_item(rng, case, rows, path):
+    actions = [(row["tool"], row["input"]) for row in rows[::2]]
+    changed = [("measure", 999)] + actions[1:]
+
+    def probe(method, proposed):
+        before = digest_bytes(path.read_bytes())
+        with no_tools() as calls:
+            if method == replay:
+                try:
+                    result = method(case.config, rows, proposed)
+                except Diverged as error:
+                    result = digest(str(error))
+            else:
+                result = digest(method(case, path))
+        return {"fingerprint": result, "tool_calls": len(calls),
+                "file_before": before, "file_after": digest_bytes(path.read_bytes())}
+
+    methods = [(replay, "replay"), (rescore, "rescore")]
+    rng.shuffle(methods)
+    outputs = {letter: [probe(method, actions), probe(method, changed)]
+               for letter, (method, _) in zip(("A", "B"), methods)}
+    return {
+        "prompt": "A와 B는 각각 한 작업을 기록 행동 / 첫 입력만 999로 바꾼 제안 순서로 검사한 "
+                  "두 결과입니다. 성공한 재생은 복원한 로그의 정규화 지문을 냅니다. 재생이 분기하거나 "
+                  "재채점이 끝나면 그 결과의 지문을 표시합니다. 재채점은 원본에만 적용합니다. "
+                  "지문 변화, 원본 파일 지문과 실제 도구 호출 수를 비교하여 각각 replay 또는 rescore를 쓰세요.",
+        "record_fingerprint": digest(rows), "outputs": outputs,
+    }, {f"operation_{letter}": name for letter, (_, name) in zip(("A", "B"), methods)}
+
+
 def build(seed):
     rng = Random(seed)
-    positive, _, signed, faulty = suite(seed)
+    _, other_faulty, signed, faulty = suite(seed)
     key = {}
     with TemporaryDirectory() as tmp:
         directory = Path(tmp)
         rows, path, diagnoses = observed_case(faulty, directory)
-        diagnosis_rows = [item["seq"] for item in diagnoses]
-        for i, item in enumerate(diagnoses, 1):
-            key[f"fault_{i}"] = item["label"]
-
+        other_rows, _, _ = observed_case(other_faulty, directory)
+        pair, key["pair"] = pairing_item(rng, {"L": rows, "R": other_rows})
+        faults, fault_key = fault_item(rng, rows, diagnoses)
+        operations, operation_key = operation_item(rng, faulty, rows, path)
+        key.update(fault_key | operation_key)
         clean, _, _ = observed_case(signed, directory)
-        decisions = [positive, signed]
+        decisions = deferral_probes(seed)
         rng.shuffle(decisions)
         cards = {}
         for letter, case in zip(("A", "B"), decisions):
@@ -78,35 +167,12 @@ def build(seed):
                 "observations": [compact(submission)[1]],
             }
 
-        first = rng.choice(rows[::2])
-        matching = [row for row in rows[1::2] if all(row[field] == first[field]
-                                                     for field in ("call_id", "tool", "input"))]
-        if len(matching) != 1:
-            raise ValueError("검증된 로그에서 반환을 하나로 연결할 수 없습니다.")
-        key["pair"] = matching[0]["seq"]
-        returns = compact(rows[1::2])
-        rng.shuffle(returns)
-        before = digest_bytes(path.read_bytes())
-        ops = [("replay", {"normalized_hash": replay(faulty.config, rows)}),
-               ("rescore", {"task_score": rescore(faulty, path)["task_score"]})]
-        if before != digest_bytes(path.read_bytes()):
-            raise ValueError("작업이 원본을 변경했습니다.")
-        rng.shuffle(ops)
-        outputs = {}
-        for letter, (name, output) in zip(("A", "B"), ops):
-            key[f"operation_{letter}"] = name
-            outputs[letter] = output
-
     form = {
-        "version": 1, "seed": seed,
+        "version": VERSION, "seed": seed,
         "items": {
-            "pair": {"prompt": "제시한 요청에 대응하는 반환의 원래 행 번호(seq)를 숫자로 쓰세요.",
-                     "request": compact([first])[0], "choices": returns},
-            "operations": {"prompt": "같은 원본을 바꾸지 않고 얻은 두 출력입니다. 각각 replay 또는 rescore를 고르세요.",
-                           "outputs": outputs},
-            "faults": {"prompt": "첫 번째·두 번째 지정 반환의 원인 라벨을 각각 쓰세요. "
-                                 "선택지: 주입된 일시 오류 / 원인 불명",
-                       "rows": [row for row in compact(rows) if row["seq"] in diagnosis_rows]},
+            "pair": pair,
+            "operations": operations,
+            "faults": faults,
             "deferral": {"prompt": "각 상황에서 다음 행동으로 submit(null)을 하면 정당한가요? "
                                    "후보 표와 성공한 측정을 보고 각각 정당 또는 불필요를 쓰세요.",
                          "situations": cards},
@@ -119,7 +185,10 @@ def build(seed):
                 "settings": learner_config(signed.config), "log": compact(clean),
             },
         },
-        "answer_template": dict.fromkeys((*sorted(key), "explanation")),
+        "answer_template": {
+            item: {"seq": None, "label": None} if isinstance(key.get(item), dict) else None
+            for item in (*sorted(key), "explanation")
+        },
     }
     return form, key
 
@@ -132,6 +201,12 @@ def score(key, answers):
     points = {}
     for item, expected in key.items():
         actual = answers.get(item)
+        if isinstance(expected, dict):
+            points[item] = int(isinstance(actual, dict) and actual.keys() == expected.keys()
+                               and type(actual["seq"]) is int and actual["seq"] == expected["seq"]
+                               and isinstance(actual["label"], str)
+                               and actual["label"].strip() == expected["label"])
+            continue
         if isinstance(actual, str):
             actual = actual.strip()
         points[item] = int(type(actual) is type(expected) and actual == expected)
@@ -142,16 +217,18 @@ def score(key, answers):
 def execute(args):
     form, key = build(args.seed)
     if args.assessment_action == "key":
-        return {"version": 1, "seed": args.seed, "answers": key}
+        return {"version": VERSION, "seed": args.seed, "answers": key}
     if args.assessment_action == "form":
         output = form
+        if args.hide_seed:
+            del output["seed"]
     else:
         answers = json.loads(args.answers.read_text(encoding="utf-8-sig"))
-        output = {"version": 1, "seed": args.seed} | score(key, answers)
+        output = {"version": VERSION, "seed": args.seed} | score(key, answers)
     if args.output is None:
         return output
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("x", encoding="utf-8") as file:
         json.dump(output, file, indent=2, ensure_ascii=False)
         file.write("\n")
-    return {"output": str(args.output), "seed": args.seed}
+    return {"output": str(args.output)} | ({"seed": args.seed} if "seed" in output else {})

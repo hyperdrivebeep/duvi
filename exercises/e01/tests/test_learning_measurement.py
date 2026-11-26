@@ -92,7 +92,8 @@ class LearningCliTest(unittest.TestCase):
         self.cli("assessment", "form", "--seed", seed, "--output", str(form_path))
         form = json.loads(form_path.read_text(encoding="utf-8"))
         self.assertEqual(form["seed"], int(seed))
-        self.assertTrue(all(value is None for value in form["answer_template"].values()))
+        self.assertEqual(form["answer_template"]["fault_1"], {"seq": None, "label": None})
+        self.assertIsNone(form["answer_template"]["pair"])
         self.assertNotIn("answers", form)
         key = self.cli("assessment", "key", "--seed", seed)["answers"]
         answers_path.write_text(json.dumps(key | {"explanation": "Needs human scoring"}), encoding="utf-8")
@@ -101,6 +102,15 @@ class LearningCliTest(unittest.TestCase):
         self.assertEqual(score["objective_score"], 7)
         self.assertEqual(score["free_text"], "human-review-required")
         self.cli("assessment", "form", "--seed", seed, "--output", str(form_path), status=1)
+
+    def test_tutor_can_hold_seed_outside_learner_form(self):
+        form_path = self.root / "blind.json"
+        result = self.cli("assessment", "form", "--seed", "87", "--output", str(form_path), "--hide-seed")
+        form = json.loads(form_path.read_text(encoding="utf-8"))
+        expected, _ = assessment.build(87)
+        del expected["seed"]
+        self.assertEqual(form, expected)
+        self.assertNotIn("seed", result)
 
 
 class AssessmentBankTest(unittest.TestCase):
@@ -113,14 +123,31 @@ class AssessmentBankTest(unittest.TestCase):
             self.assertEqual(len(key), 7)
             items = form["items"]
             pair = items["pair"]
-            self.assertEqual(key["pair"], next(row["seq"] for row in pair["choices"]
-                                              if row["call_id"] == pair["request"]["call_id"]))
-            for letter, evidence in items["operations"]["outputs"].items():
-                target = "replay" if "normalized_hash" in evidence else "rescore"
+            first, retry = sorted(pair["requests"], key=lambda row: row["seq"])
+            self.assertEqual(first["input"], retry["input"])
+            self.assertNotEqual(first["call_id"], retry["call_id"])
+            duplicates = [row for row in pair["choices"] if row["call_id"] == retry["call_id"]]
+            self.assertEqual({row["trace"] for row in duplicates}, {"L", "R"})
+            self.assertEqual(key["pair"], next(row["line"] for row in duplicates
+                                              if row["trace"] == retry["trace"]))
+            operations = items["operations"]
+            for letter, (original, changed) in operations["outputs"].items():
+                target = "replay" if original["fingerprint"] == operations["record_fingerprint"] else "rescore"
                 self.assertEqual(key[f"operation_{letter}"], target)
-            for index, row in enumerate(items["faults"]["rows"], 1):
-                expected = "주입된 일시 오류" if row["return"].get("evidence") else "원인 불명"
-                self.assertEqual(key[f"fault_{index}"], expected)
+                self.assertEqual(set(original), set(changed))
+                self.assertEqual(set(original), {"fingerprint", "tool_calls", "file_before", "file_after"})
+                self.assertEqual(original["fingerprint"] != changed["fingerprint"], target == "replay")
+                for evidence in (original, changed):
+                    self.assertEqual(evidence["file_before"], evidence["file_after"])
+                    self.assertEqual(evidence["tool_calls"], 0)
+            fault = items["faults"]
+            audit_refs = {record["ref"] for record in fault["audit"]}
+            for index, request in enumerate(fault["requests"], 1):
+                row = next(row for row in fault["returns"] if row["call_id"] == request["call_id"])
+                self.assertNotIn("status", row)
+                self.assertIsNone(row["value"])
+                expected = "주입된 일시 오류" if row["ref"] in audit_refs else "원인 불명"
+                self.assertEqual(key[f"fault_{index}"], {"seq": row["seq"], "label": expected})
             for letter, situation in items["deferral"]["situations"].items():
                 prediction_rows = list(situation["predictions"].values())
                 self.assertEqual(len(prediction_rows), 2)
@@ -135,6 +162,48 @@ class AssessmentBankTest(unittest.TestCase):
         _, key = assessment.build(3)
         self.assertEqual(assessment.score(key, {})["objective_score"], 0)
         self.assertEqual(assessment.score(key, key | {"pair": str(key["pair"])})["objective_score"], 6)
+        self.assertEqual(assessment.score(key, key | {"fault_1": key["fault_1"]["label"]})["objective_score"], 6)
+        wrong_row = key["fault_1"] | {"seq": key["fault_2"]["seq"]}
+        self.assertEqual(assessment.score(key, key | {"fault_1": wrong_row})["objective_score"], 6)
+        self.assertEqual(assessment.score(key, key | {"fault_1": {"seq": key["fault_1"]["seq"],
+                                                                  "label": ""}})["objective_score"], 6)
         self.assertEqual(assessment.score(key, key | {"explanation": "not a rubric verdict"})["objective_score"], 7)
         with self.assertRaises(ValueError):
             assessment.score(key, {"explanation": ["not text"]})
+
+    def test_four_review_surface_heuristics_over_200_forms(self):
+        hits = dict.fromkeys(("pair", "operation", "fault", "defer"), 0)
+        deferrals = set()
+        perfect = 0
+        for seed in range(1000, 1200):
+            form, key = assessment.build(seed)
+            items = form["items"]
+            pair = items["pair"]
+            retry_id = max(row["call_id"] for row in pair["requests"])
+            guesses = {"pair": next(row["line"] for row in pair["choices"] if row["call_id"] == retry_id)}
+            for letter, records in items["operations"]["outputs"].items():
+                guesses[f"operation_{letter}"] = "replay" if "normalized_hash" in records[0] else "rescore"
+            fault = items["faults"]
+            for index, request in enumerate(fault["requests"], 1):
+                # Give the old label-only rule the correct evidence line for free.
+                row = next(row for row in fault["returns"] if row["call_id"] == request["call_id"])
+                label = "주입된 일시 오류" if row.get("status") == "transient" else "원인 불명"
+                guesses[f"fault_{index}"] = {"seq": row["seq"], "label": label}
+            for letter, situation in items["deferral"]["situations"].items():
+                negative = any(x < 0 for x in situation["points"])
+                guesses[f"defer_{letter}"] = "불필요" if negative else "정당"
+                deferrals.add((negative, key[f"defer_{letter}"]))
+            report = assessment.score(key, guesses)
+            perfect += report["objective_score"] == report["objective_max"]
+            for item, point in report["points_by_item"].items():
+                hits[item.split("_")[0]] += point
+        print(f"200 seeded forms: surface hits {hits}; {sum(hits.values())}/1400; perfect={perfect}")
+        self.assertEqual(deferrals, {(negative, label) for negative in (False, True)
+                                     for label in ("정당", "불필요")})
+        self.assertEqual(perfect, 0)
+        # Each pair of outcomes is balanced or pseudorandom, so a non-reasoning
+        # rule should be near 50%. Allow 10 points of percentage headroom, but
+        # don't let an easy item family be hidden by averaging across families.
+        for family, limit in {"pair": 120, "operation": 240, "fault": 240, "defer": 240}.items():
+            self.assertLessEqual(hits[family], limit, family)
+        self.assertLessEqual(sum(hits.values()), 840)
