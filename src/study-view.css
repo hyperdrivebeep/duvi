@@ -170,6 +170,10 @@
 .caption-actions button:hover:not(:disabled){background:#34445d}
 .caption-actions button[hidden]{display:none}
 .caption-source-note{margin:0;color:#bfcada}
+#localASRLabel{margin:0;color:#bfcada;font-size:14px}
+.study-focus>.captions:has(#localASRLabel:not([hidden])){grid-template-rows:auto repeat(2,minmax(0,auto))}
+#captionNotice [hidden]{display:none}
+#asrProgress{width:100%}
 .stage.study-focus:has(>.caption-context:not([hidden])){grid-template-rows:minmax(0,1fr) auto auto auto}
 .study-focus>.caption-context{grid-column:1;grid-row:4;background:#141922}
 .study-focus:has(>.caption-context:not([hidden]))>.transcript-panel{grid-row:1/5}

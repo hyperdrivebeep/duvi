@@ -17,13 +17,18 @@ for(const source of sources){
   try{lecture=JSON.parse(await readFile(file,'utf8'));}
   catch(error){
     if(error.code!=='ENOENT')throw error;
-    const response=await fetch(source.captionUrl,{signal:AbortSignal.timeout(30000)});
-    if(!response.ok)throw new Error(`MIT ${source.number}: HTTP ${response.status}`);
-    const cues=sentences(parseVtt(await response.text()));
-    if(!cues.length)throw new Error(`MIT ${source.number}: no captions`);
+    let cues=[];
+    if(source.captionUrl){
+      const response=await fetch(source.captionUrl,{signal:AbortSignal.timeout(30000)});
+      if(response.ok){
+        const content=await response.text();
+        if(!/^\uFEFF?WEBVTT(?:\s|$)/.test(content))throw new Error(`MIT ${source.number}: invalid WebVTT`);
+        cues=sentences(parseVtt(content));
+      }else if(![404,410].includes(response.status))throw new Error(`MIT ${source.number}: HTTP ${response.status}`);
+    }
     lecture={...source,cues};await atomicJSON(file,lecture);
   }
-  catalog.push({number:lecture.number,title:lecture.title,duration:lecture.cues.at(-1).end,cueCount:lecture.cues.length});
+  catalog.push({number:lecture.number,title:lecture.title,duration:lecture.duration||lecture.cues.at(-1)?.end,cueCount:lecture.cues.length});
   console.log(`MIT ${source.number}: ${lecture.cues.length} captions ready`);
 }
 await atomicJSON(path.join(root,'data/catalog.json'),catalog);

@@ -1,6 +1,7 @@
 import * as v from './learning-validation.mjs';
+import {ASR_MODELS} from './local-asr.mjs';
 
-const lectureFields=['number','title','course','youtubeId','player','pageUrl','videoUrl','captionUrl','captionSource','captionStatus','captionError','unavailable','duration','createdAt','cues'];
+const lectureFields=['number','title','course','youtubeId','player','pageUrl','videoUrl','captionUrl','captionSource','captionProvenance','captionStatus','captionError','unavailable','duration','createdAt','cues'];
 const cacheFields=['version','lecture','sourceHash','promptVersion','alignmentVersion','alignmentRevision','timing','cues','translations','updatedAt'];
 export const lectureKey=v.lectureId;
 function url(value,hosts){v.text(value,2048);let parsed;try{parsed=new URL(value);}catch{v.invalid();}if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||!hosts.includes(parsed.hostname))v.invalid('지원하지 않는 미디어 출처입니다.');return value;}
@@ -11,6 +12,11 @@ function lecture(value,project){
   for(const key of ['course','captionSource','captionStatus','captionError'])if(result[key]!==undefined)v.text(result[key],1000);
   if(result.youtubeId!==undefined&&!/^[A-Za-z0-9_-]{11}$/.test(result.youtubeId))v.invalid();
   const youtubeKey=String(result.number).startsWith('yt_');
+  if(result.captionProvenance!==undefined||result.captionSource==='local-asr'){
+    if(result.captionSource!=='local-asr'||youtubeKey||result.player==='youtube'||!result.cues.length)v.invalid();
+    const {source,model,savedAt}=pick(result.captionProvenance,['source','model','savedAt'],project);
+    result.captionProvenance={source:v.choice(source,['local-asr']),model:v.choice(model,ASR_MODELS),savedAt:v.date(savedAt)};
+  }
   if(youtubeKey&&(result.youtubeId!==String(result.number).slice(3)||result.player!=='youtube'))v.invalid('YouTube 강의의 영상 식별자와 재생기 정보가 필요합니다.');
   if(result.player!==undefined)v.choice(result.player,['youtube','native']);
   if(youtubeKey||result.createdAt!==undefined)result.createdAt=v.date(result.createdAt);

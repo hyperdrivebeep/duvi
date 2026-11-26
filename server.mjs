@@ -20,5 +20,9 @@ if(warning)console.warn(warning);
 // Opt-in: check-question code runs only with DUVI_QUIZ_CODE_EXECUTION=1 (docs/LEARNING_DESIGN.md, 실행 경계).
 const codeExecution=process.env.DUVI_QUIZ_CODE_EXECUTION==='1';
 const server=createServer({auth,translations,library,root,staticRoot:path.join(project,'dist/client'),port,chatProvider,codeExecution});
+for(const signal of ['SIGINT','SIGTERM'])process.once(signal,async()=>{
+  await server.stopLocalASR();
+  server.close();
+});
 server.on('error',error=>{console.error(error.code==='EADDRINUSE'?`${port} 포트가 사용 중입니다.`:'미리보기 서버를 시작할 수 없습니다.');process.exitCode=1;});
 server.listen(port,'127.0.0.1',()=>console.log(`Study library: http://127.0.0.1:${port}`));

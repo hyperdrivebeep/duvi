@@ -10,9 +10,10 @@
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test:chat-dom": "node scripts/test-chat-dom.mjs",
     "setup": "node scripts/setup.mjs",
+    "setup:asr": "node scripts/setup-asr.mjs",
     "prepare:learning": "node scripts/prepare-learning.mjs",
     "start": "node server.mjs",
-    "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/sentences.test.mjs \"backend/tests/learning*.test.mjs\" tests/app-shell.test.mjs tests/library-ui.test.mjs \"tests/learning-ui*.test.mjs\" tests/media.test.mjs tests/study-guide.test.mjs tests/study-view.test.mjs tests/sites-worker.test.mjs tests/repo-privacy.test.mjs tests/e01-python.test.mjs",
+    "test": "node --test backend/tests/ai.test.mjs backend/tests/library.test.mjs backend/tests/local-asr.test.mjs backend/tests/sentences.test.mjs \"backend/tests/learning*.test.mjs\" tests/app-shell.test.mjs tests/library-ui.test.mjs \"tests/learning-ui*.test.mjs\" tests/media.test.mjs tests/study-guide.test.mjs tests/study-view.test.mjs tests/sites-worker.test.mjs tests/repo-privacy.test.mjs tests/e01-python.test.mjs",
     "pretest": "vite build && node scripts/prepare-sites-build.mjs",
     "docs:study-guide": "node scripts/study-guide.mjs",
     "data:concept-map": "node scripts/concept-map-data.mjs"
