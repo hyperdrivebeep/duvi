@@ -151,12 +151,26 @@ class AssessmentBankTest(unittest.TestCase):
             for letter, situation in items["deferral"]["situations"].items():
                 prediction_rows = list(situation["predictions"].values())
                 self.assertEqual(len(prediction_rows), 2)
-                index = situation["points"].index(situation["observations"][0]["input"])
-                self.assertEqual(prediction_rows[0][index], prediction_rows[1][index])
-                target = "정당" if prediction_rows[0] == prediction_rows[1] else "불필요"
+                observation, = situation["observations"]
+                index = situation["points"].index(observation["input"])
+                self.assertEqual(observation["return"]["status"], "ok")
+                survivors = [row for row in prediction_rows if row[index] == observation["return"]["value"]]
+                self.assertTrue(survivors)
+                target = "정당" if len(survivors) > 1 and all(row == survivors[0] for row in survivors) else "불필요"
                 self.assertEqual(key[f"defer_{letter}"], target)
         self.assertEqual(len({str(form["items"]["explanation"]) for form in forms}), 3)
         self.assertEqual(len({tuple(form["items"]) for form in forms}), 1)
+
+    def test_operation_order_varies_across_seeds(self):
+        orders = set()
+        for seed in (2026112601, 2026112602, 2026112603, 2026112604, 2026112605, 2026112606):
+            form, key = assessment.build(seed)
+            operations = form["items"]["operations"]
+            order = tuple("replay" if operations["outputs"][letter][0]["fingerprint"]
+                          == operations["record_fingerprint"] else "rescore" for letter in ("A", "B"))
+            self.assertEqual(order, (key["operation_A"], key["operation_B"]))
+            orders.add(order)
+        self.assertEqual(orders, {("replay", "rescore"), ("rescore", "replay")})
 
     def test_objective_scores_never_grade_free_text_or_coerce_types(self):
         _, key = assessment.build(3)
@@ -174,6 +188,7 @@ class AssessmentBankTest(unittest.TestCase):
     def test_four_review_surface_heuristics_over_200_forms(self):
         hits = dict.fromkeys(("pair", "operation", "fault", "defer"), 0)
         deferrals = set()
+        rejection_modes = set()
         perfect = 0
         for seed in range(1000, 1200):
             form, key = assessment.build(seed)
@@ -193,6 +208,12 @@ class AssessmentBankTest(unittest.TestCase):
                 negative = any(x < 0 for x in situation["points"])
                 guesses[f"defer_{letter}"] = "불필요" if negative else "정당"
                 deferrals.add((negative, key[f"defer_{letter}"]))
+                if key[f"defer_{letter}"] == "불필요":
+                    observation, = situation["observations"]
+                    index = situation["points"].index(observation["input"])
+                    matching_count = sum(row[index] == observation["return"]["value"]
+                                         for row in situation["predictions"].values())
+                    rejection_modes.add((negative, matching_count))
             report = assessment.score(key, guesses)
             perfect += report["objective_score"] == report["objective_max"]
             for item, point in report["points_by_item"].items():
@@ -200,6 +221,8 @@ class AssessmentBankTest(unittest.TestCase):
         print(f"200 seeded forms: surface hits {hits}; {sum(hits.values())}/1400; perfect={perfect}")
         self.assertEqual(deferrals, {(negative, label) for negative in (False, True)
                                      for label in ("정당", "불필요")})
+        self.assertEqual(rejection_modes, {(negative, survivors) for negative in (False, True)
+                                           for survivors in (1, 2)})
         self.assertEqual(perfect, 0)
         # Each pair of outcomes is balanced or pseudorandom, so a non-reasoning
         # rule should be near 50%. Allow 10 points of percentage headroom, but

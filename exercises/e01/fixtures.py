@@ -50,7 +50,7 @@ def suite(seed=None):
 
 
 def deferral_probes(seed):
-    """Cross grid sign with identifiability; the first warm-up never separates."""
+    """Cross grid sign with identifiability, before or after a decisive observation."""
     rng = Random(seed)
     cases = suite(seed)
     probes = []
@@ -59,9 +59,13 @@ def deferral_probes(seed):
         left, right = base.config["predictions"]
         values = base.config["predictions"][left]
         other = values.copy()
+        observed_point = 1
         if separable:
             points = base.config["points"]
-            index = points.index(rng.choice([x for x in points if x != 1]))
-            other[index] += rng.randint(1, 9)
-        probes.append(Case(base.config | {"predictions": {left: values, right: other}}, base.answer, {}))
+            distinguishing_point = rng.choice([x for x in points if x != observed_point])
+            other[points.index(distinguishing_point)] += rng.randint(1, 9)
+            if rng.randrange(2):
+                observed_point = distinguishing_point
+        case = Case(base.config | {"predictions": {left: values, right: other}}, base.answer, {})
+        probes.append((case, observed_point))
     return probes

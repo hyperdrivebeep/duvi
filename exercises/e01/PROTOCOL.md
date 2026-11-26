@@ -22,7 +22,8 @@
 ## 2. 사전 검사 — E01 연습 전에
 
 튜터가 [평가 문항·채점표](ASSESSMENT.md)의 절차로 새 시드를 배정해 검사지를
-만듭니다. 예를 들어 명령의 `PRE_SEED`는 배정된 숫자로 바꾸세요.
+만듭니다. 학습자는 사전 답안을 고정하기 전까지 채점표의 검증 근거와
+연습 안내를 열지 마세요. 아래 명령의 `PRE_SEED`는 배정된 숫자로 바꾸세요.
 
 ```sh
 python -m exercises.e01 assessment form --seed PRE_SEED --output exercises/e01/out/pre.form.json

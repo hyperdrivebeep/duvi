@@ -12,7 +12,7 @@ from .replay import Diverged, replay
 from .solutions import reference
 
 
-VERSION = 2
+VERSION = 3
 
 
 def configure(parser):
@@ -75,8 +75,8 @@ def pairing_item(rng, logs):
     if len(matches) != 1:
         raise ValueError("검증된 로그에서 반환을 하나로 연결할 수 없습니다.")
     return {
-        "prompt": "L과 R은 서로 다른 실행입니다. 같은 좌표의 첫 요청과 재시도 중 "
-                  "재시도에 대응하는 반환을 골라 목록의 line 번호(원본 seq가 아님)를 쓰세요.",
+        "prompt": "L과 R은 서로 다른 실행입니다. 재시도 요청의 반환을 "
+                  "목록의 line 번호로 쓰세요.",
         "requests": issued, "choices": picks,
     }, matches[0]
 
@@ -93,9 +93,8 @@ def fault_item(rng, rows, diagnoses):
     returns = [{k: row[k] for k in fields} | {"value": None, "ref": refs[row["seq"]]}
                for row in failure_rows]
     return {
-        "prompt": "fault_1과 fault_2는 아래 지정 요청 순서입니다. 대응 반환의 원본 seq를 찾고 "
-                  "감사 기록을 ref로 대조하세요. 기록에 연결되는 주입 근거가 없으면 원인을 "
-                  "확정하지 마세요. 각각 {seq: 반환 행 번호, label: 주입된 일시 오류 또는 원인 불명}으로 답하세요.",
+        "prompt": "fault_1과 fault_2는 아래 요청 순서입니다. 각각 근거 반환 행 번호(seq)와 "
+                  "원인 라벨(label: 주입된 일시 오류 또는 원인 불명)을 쓰세요.",
         "requests": targets, "returns": returns, "audit": audit,
     }, {f"fault_{i}": item for i, item in enumerate(diagnoses, 1)}
 
@@ -122,10 +121,8 @@ def operation_item(rng, case, rows, path):
     outputs = {letter: [probe(method, actions), probe(method, changed)]
                for letter, (method, _) in zip(("A", "B"), methods)}
     return {
-        "prompt": "A와 B는 각각 한 작업을 기록 행동 / 첫 입력만 999로 바꾼 제안 순서로 검사한 "
-                  "두 결과입니다. 성공한 재생은 복원한 로그의 정규화 지문을 냅니다. 재생이 분기하거나 "
-                  "재채점이 끝나면 그 결과의 지문을 표시합니다. 재채점은 원본에만 적용합니다. "
-                  "지문 변화, 원본 파일 지문과 실제 도구 호출 수를 비교하여 각각 replay 또는 rescore를 쓰세요.",
+        "prompt": "각 작업의 결과는 기록 행동 / 첫 입력만 999로 바꾼 제안 순으로 표시됩니다. "
+                  "A와 B에 각각 replay 또는 rescore를 쓰세요.",
         "record_fingerprint": digest(rows), "outputs": outputs,
     }, {f"operation_{letter}": name for letter, (_, name) in zip(("A", "B"), methods)}
 
@@ -146,10 +143,10 @@ def build(seed):
         decisions = deferral_probes(seed)
         rng.shuffle(decisions)
         cards = {}
-        for letter, case in zip(("A", "B"), decisions):
+        for letter, (case, observed_point) in zip(("A", "B"), decisions):
             submission = []
             tools = Tools(case, submission.append)
-            tools.measure(next(x for x in case.config["points"] if x > 0))
+            tools.measure(observed_point)
             tools.submit(None)
             submission = [row | {"seq": i} for i, row in enumerate(submission, 1)]
             try:
@@ -173,8 +170,8 @@ def build(seed):
             "pair": pair,
             "operations": operations,
             "faults": faults,
-            "deferral": {"prompt": "각 상황에서 다음 행동으로 submit(null)을 하면 정당한가요? "
-                                   "후보 표와 성공한 측정을 보고 각각 정당 또는 불필요를 쓰세요.",
+            "deferral": {"prompt": "각 상황에서 다음 행동인 submit(null)을 "
+                                   "정당 또는 불필요로 판정하세요.",
                          "situations": cards},
             "explanation": {
                 "prompt": "별도 사례의 전체 로그를 읽으세요. ① 첫 호출에서 실제로 일어난 일과 "
