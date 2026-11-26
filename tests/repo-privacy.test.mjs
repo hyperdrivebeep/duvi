@@ -13,7 +13,7 @@ const HOME_START = /(?:(?<![\w.%\/-])|(?<=(?:^|\s)-(?:[a-zA-Z]|isystem|iquote)))
 const LOCAL_FILE = /file:\/\/(?:localhost)?/.source;
 // Recognize raw, URL-encoded and twice-encoded separators without rewriting the scanned text.
 const DRIVE = /[a-z](?::|%(?:25)?3a)/.source;
-const FORWARD_SLASH = /(?:\/|%(?:25)?2f)/.source;
+const FORWARD_SLASH = /(?:\/|%(?:25)?2[fF])/.source;
 const PATH_SEP = /(?:[\\/]|%(?:25)?(?:2f|5c))/.source;
 const PARENT = /(?:\.\.\/)+/.source;
 // An embedded drive (host/C:/Users/...) must not fall back to a bare /Users match.
@@ -28,10 +28,11 @@ const BARE_ROUTE_ROOT = `${FORWARD_SLASH}(?:users|home)${FORWARD_SLASH}`;
 const ROUTE_END = /[?#\s`'"),]/.source;
 const ROUTE_PARAM = new RegExp(`^${BARE_ROUTE_ROOT}(?:(?::|%(?:25)?3a)[\\w-]+|`+
   `(?:\\{|%(?:25)?7b)[\\w-]+(?:\\}|%(?:25)?7d))(?=$|${FORWARD_SLASH}|${ROUTE_END})`, 'i');
-// Ordinary route words are ambiguous only as terminal segments in a literal or query value.
+// Only lowercase route roots are eligible; /Users is the macOS home root.
+// /home is also a Unix home root, so only common landing pages qualify there.
 const ROUTE_START = /(?:["'`]|\?[\w.-]+=)$/;
-const ROUTE_WORD = new RegExp(`^${BARE_ROUTE_ROOT}(?:me|dashboard|index|settings|profile|login|new)`+
-  `(?=$|${ROUTE_END})`, 'i');
+const ROUTE_WORD = new RegExp(`^${FORWARD_SLASH}(?:users${FORWARD_SLASH}(?:me|dashboard|index|settings|profile|login|new)|`+
+  `home${FORWARD_SLASH}(?:dashboard|index))(?=$|${ROUTE_END})`);
 // Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
 const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
@@ -46,10 +47,7 @@ function looksLikeHome(match, text) {
   if (!match[0].startsWith('../')) {
     const tail = text.slice(match.index);
     const prefix = text.slice(0, match.index);
-    // Preserve these exact route spellings without extending the username allow-list.
-    const exactRoute = (prefix.endsWith('"') && tail.startsWith('/users'+'/settings/security"')) ||
-      (!prefix && (tail === '/users/profile?tab=1' || tail === encodeURIComponent('/home/dashboard')));
-    return !ROUTE_PARAM.test(tail) && !exactRoute && !(ROUTE_START.test(prefix) && ROUTE_WORD.test(tail));
+    return !ROUTE_PARAM.test(tail) && !(ROUTE_START.test(prefix) && ROUTE_WORD.test(tail));
   }
   // A parent-relative home needs a directory-like username and a child path, not a module filename.
   return !/\.[a-z\d]+$/i.test(match[1]) &&
@@ -223,8 +221,8 @@ test('privacy scanner recognizes twice-encoded paths without matching placeholde
 test('privacy scanner distinguishes bare app routes from account names', () => {
   for (const text of [
     '"/users/{id}"', 'fetch("/users/me")', '"/home/dashboard"', "'/users/:id'", '?p=/home/index',
-    '"/users/settings/security"', '"/home/profile?tab=one"', '/users/profile?tab=1', '"/users/login"', '"/home/new"',
-    encodeURIComponent('/users/{id}'), encodeURIComponent('/home/dashboard'), '/users/{userId}/edit'
+    '"/users/profile?tab=1"', '"/users/login"', '"/users/new"',
+    encodeURIComponent('/users/{id}'), '?next='+encodeURIComponent('/home/dashboard'), '/users/{userId}/edit'
   ]) assert.deepEqual(personalMatches(text), [], text);
 
   for (const home of [
@@ -254,6 +252,33 @@ test('privacy scanner detects actual home paths even when the account name is a 
     const text = prefix+home+(child ? '/'+child : '')+suffix;
     assert.deepEqual(personalMatches(text), [home], text);
   }
+});
+
+test('privacy scanner detects home paths in config values even when names resemble routes', () => {
+  const unix = ['', 'home', 'me'].join('/');
+  const mac = ['', 'Users', 'new'].join('/');
+  for (const [text, home] of [
+    [JSON.stringify({home: unix}), unix],
+    [JSON.stringify({dir: mac}), mac],
+    [`home: "${unix}"`, unix],
+    [`open?dir=${unix}`, unix]
+  ]) assert.deepEqual(personalMatches(text), [home], text);
+});
+
+test('privacy scanner catches ambiguous paths without sufficient route context', () => {
+  const settings = ['', 'users', 'settings'].join('/');
+  const profile = ['', 'users', 'profile'].join('/');
+  const dashboard = encodeURIComponent(['/home', 'dashboard'].join('/'));
+  const homeProfile = ['', 'home', 'profile'].join('/');
+  const homeNew = ['', 'home', 'new'].join('/');
+  // A child path or a bare value is not enough to distinguish a route from a real home path.
+  for (const [text, home] of [
+    [`"${settings}/security"`, settings],
+    [profile+'?tab=1', profile+'?tab=1'],
+    [dashboard, dashboard],
+    [`"${homeProfile}?tab=one"`, homeProfile],
+    [`"${homeNew}"`, homeNew]
+  ]) assert.deepEqual(personalMatches(text), [home], text);
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {
