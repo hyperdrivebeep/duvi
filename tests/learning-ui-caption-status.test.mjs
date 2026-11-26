@@ -9,6 +9,8 @@ function state(options={},lecture={}){
 test('initial caption preparation and retry are not failures',()=>{
   assert.equal(state({},{cues:[],captionStatus:'pending'}).english,'영어 자막 준비 중');
   assert.equal(state({preparing:true},{cues:[],captionStatus:'failed'}).english,'영어 자막 준비 중');
+  assert.equal(state({preparing:true},{captionStatus:'ready'}).english,'영어 자막 준비 중');
+  assert.equal(state({preparing:true},{captionStatus:'ready'}).canTranslate,false);
   assert.equal(state({},{cues:[],captionStatus:'failed'}).english,'영어 자막 실패');
   assert.equal(state({checkError:'network'},{cues:[],captionStatus:'pending'}).english,'영어 자막 미준비');
   assert.equal(state({},{cues:[],captionStatus:'unavailable'}).english,'영어 자막 이용 불가');

@@ -7,7 +7,8 @@
 <div id="stage" class="stage has-transcript" tabindex="-1"><button id="showStudyControls" class="study-controls-handle immersive-only icon-button" aria-label="학습 설정 열기" aria-controls="studyToolbar" aria-expanded="true"><i data-lucide="settings"></i></button><header class="study-header"><button id="openLibrary" class="library-toggle" aria-expanded="false" aria-controls="libraryPanel"><span aria-hidden="true">☰</span>내 강의</button><div class="title-group"><h2 id="lectureTitle">강의를 불러오는 중</h2><span id="lecturePlace" class="muted"></span><span id="courseLabel" class="muted">영상과 자막을 준비합니다.</span></div><div id="lectureHeaderActions" class="study-header-actions"></div></header><div class="media-slot"><button id="videoFullscreen" class="video-fullscreen" title="자막 포함 전체화면 (F)"><i data-lucide="maximize"></i>자막 전체화면</button><video id="video" controls playsinline preload="metadata" controlsList="nofullscreen" aria-label="강의 영상"></video><div id="youtubeWrap" class="youtube-wrap" hidden></div></div><div id="timeStrip" class="time-strip"></div><section class="captions" aria-label="현재 문장과 번역" tabindex="0"><div class="caption-row" tabindex="0"><span class="caption-label">영어 자막</span><div id="english" lang="en" class="english">영상을 준비하고 있습니다.</div></div><div class="caption-row" tabindex="0"><span class="caption-label">한국어 번역</span><div id="korean" class="korean">저장된 번역을 불러옵니다.</div></div></section>
 <div id="captionContext" class="caption-context" hidden>
   <div class="caption-actions">
-    <span id="subtitleStatus" role="status" aria-live="polite"></span>
+    <span id="subtitleInfo"></span>
+    <span id="subtitleStatus" class="caption-announcement" role="status" aria-live="polite"></span>
     <button id="translateSection" type="button" disabled>현재 구간 번역</button>
     <button id="stopSection" type="button" hidden>번역 중지</button>
   </div>

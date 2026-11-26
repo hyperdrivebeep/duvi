@@ -28,6 +28,7 @@ const $=id=>document.getElementById(id),video=new MediaPlayer($('video'),$('yout
 createIcons({icons:{Search,Plus,Settings,X,PanelLeft,SkipBack,SkipForward,RotateCcw,Maximize,Minimize,Languages,ChevronRight,ChevronDown,Play},attrs:{'aria-hidden':'true'}});
 let follow=true,resumeSaved=0,lectureReady=false,captionLoadingKey='',cacheRequest=0;
 let aiCacheCountState=null,captionCheckError='',chromeAvailability='checking',translatorPromise,autoTranslate=false,sectionError='';
+let announcedEnglish='',announcedTranslation='',chromePhase='',providerRevision=0;
 function readStored(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}}
 const playPositions=readStored('study-positions',{});
 const positionState=new LearningPlaybackState(playPositions,localStorage);
@@ -70,11 +71,18 @@ function renderCaptionStatus(count){
     working:working||!!translatorPromise,current,saved:translated(current)});
   $('captionContext').hidden=!state;
   if(!state)return;
-  const ownSection=job?.scope==='section'&&String(job.number)===String(lecture.number);
-  const sectionActivity=chromeMode()?(translatorPromise?'Chrome 번역 모델 준비 중':working?'번역 중':translationError):
-    ownSection&&job.status==='running'?'번역 중':ownSection&&['stopped','error'].includes(job.status)?job.message:
-    sectionError;
-  setText('subtitleStatus',[state.english,state.korean,sectionActivity].filter(Boolean).join(' · '));
+  const ownJob=String(job?.number)===String(lecture.number),ownSection=ownJob&&job.scope==='section';
+  const phase=chromeMode()?chromePhase:sectionError?'error':ownJob?job.status:'';
+  const activity=chromeMode()?(translationError||(chromePhase==='running'&&translatorPromise?'Chrome 번역 모델 준비 중':'')):
+    sectionError||(ownJob&&['stopped','error'].includes(phase)?job.message:'');
+  const transition={running:'한국어 번역 시작',completed:'한국어 번역 완료',error:'한국어 번역 오류'}[phase];
+  const visibleActivity=activity||(phase==='running'?'번역 중':phase==='completed'?'번역 완료':'');
+  setText('subtitleInfo',[state.english,state.korean,visibleActivity].filter(Boolean).join(' · '));
+  // Never feed changing counts or job progress messages into the live region.
+  const english=state.english!==announcedEnglish&&['영어 자막 준비됨','영어 자막 실패'].includes(state.english)?state.english:'';
+  const messages=[english,phase!==announcedTranslation&&transition].filter(Boolean);
+  if(messages.length||phase!==announcedTranslation||state.english!==announcedEnglish)setText('subtitleStatus',messages.join(' · '));
+  announcedEnglish=state.english;announcedTranslation=phase;
   $('stopSection').hidden=chromeMode()||!ownSection||job.status!=='running';
   const cue=lecture.cues[current],button=$('translateSection');
   button.disabled=!state.canTranslate;
@@ -103,6 +111,7 @@ function paintTranslations(){nodes.forEach((node,i)=>node.querySelector('.ko').t
 async function load(number){
   savePosition();save();lectureReady=false;positionState.beginLecture();const requestGeneration=++generation;video.pause();lecture=null;current=-1;repeat=false;follow=true;translationError='';$('repeatLabel').textContent='다시';$('repeat').setAttribute('aria-pressed','false');
   $('status').textContent='강의와 자막을 불러오는 중…';$('captionNotice').hidden=true;$('captionContext').hidden=true;captionCheckError='';aiCacheCountState=null;sectionError='';
+  announcedEnglish=announcedTranslation=chromePhase='';setText('subtitleStatus','');setText('subtitleInfo','');
   const incoming=await api(`/api/lectures/${encodeURIComponent(number)}`);if(requestGeneration!==generation)return;lecture=incoming;
   try{chromeTranslations=JSON.parse(localStorage.getItem(`mit6100-ko-${number}`)||'{}');}catch{chromeTranslations={};}aiTranslations={};
   $('source').href=lecture.pageUrl;$('source').textContent=lecture.player==='youtube'?'강의 원본 ↗':'MIT 강의 자료 ↗';$('youtube').href=`https://www.youtube.com/watch?v=${lecture.youtubeId}`;
@@ -173,22 +182,30 @@ function update(){
   if(next!==old){document.querySelectorAll('.caption-row').forEach(row=>row.scrollTop=0);progress();if(chromeMode())void translateAhead();}
 }
 async function translateAhead(section){
-  if(working||!translator||!lecture||!chromeMode()||(!section&&!autoTranslate))return;working=true;progress();
+  if(working||!translator||!lecture||!chromeMode()||(!section&&!autoTranslate))return;working=true;
+  const revision=providerRevision;
+  let attemptedGeneration,attemptedCues,translatedGeneration;
+  const isCurrent=()=>attemptedGeneration===generation&&attemptedCues===lecture?.cues&&revision===providerRevision;
   try{while(translator&&lecture&&chromeMode()){
     const activeGeneration=generation,cues=lecture.cues,focus=Math.max(0,cueAt(cues,video.currentTime));let index=-1;
     if(section){
-      if(section.generation!==generation||section.cues!==cues||chromeTranslations[section.index])break;
+      if(section.generation!==generation||section.cues!==cues||section.revision!==providerRevision||chromeTranslations[section.index])break;
       index=section.index;
     }else{
       for(let k=focus;k<cues.length;k++)if(!chromeTranslations[k]){index=k;break;}
       if(index<0)for(let k=0;k<focus;k++)if(!chromeTranslations[k]){index=k;break;}
     }
     if(index<0)break;
+    attemptedGeneration=activeGeneration;attemptedCues=cues;chromePhase='running';translationError='';progress();
     const result=await translator.translate(cues[index].en);if(activeGeneration!==generation||cues!==lecture?.cues)continue;
+    translatedGeneration=activeGeneration;
     chromeTranslations[index]=result;if(chromeMode()){nodes[index].querySelector('.ko').textContent=result;if(index===current)$('korean').textContent=result;}
     if(section)break;
     if(Date.now()-savedAt>2000)save();progress();await new Promise(resolve=>setTimeout(resolve,15));
-  }}catch(error){translationError=`Chrome 번역이 멈췄습니다: ${error.message}`;}finally{working=false;save();progress();}
+  }
+  if(isCurrent()&&translatedGeneration===generation)chromePhase='completed';
+  }catch(error){if(isCurrent()){chromePhase='error';translationError=`Chrome 번역이 멈췄습니다: ${error.message}`;}}
+  finally{working=false;save();progress();}
 }
 const chromeLanguages={sourceLanguage:'en',targetLanguage:'ko'};
 async function checkChromeAvailability(){
@@ -255,7 +272,7 @@ async function refreshSession(){
 }
 $('provider').value=localStorage.getItem('mit6100-provider')==='chrome'?'chrome':'chatgpt';
 if(chromeMode())void checkChromeAvailability();
-$('provider').onchange=()=>{localStorage.setItem('mit6100-provider',$('provider').value);paintTranslations();renderAI();if(chromeMode())void checkChromeAvailability();void translateAhead();};
+$('provider').onchange=()=>{providerRevision++;translationError=chromePhase='';localStorage.setItem('mit6100-provider',$('provider').value);paintTranslations();renderAI();if(chromeMode())void checkChromeAvailability();void translateAhead();};
 $('connect').onclick=async()=>{
   connectError='';accountBusy=true;renderAI();
   try{const {path}=await api('/api/auth/start',{accountId:$('account').value||null});location.assign(path);}
@@ -280,9 +297,10 @@ $('translateSection').onclick=async()=>{
   const cues=lecture?.cues,index=current;
   if(!cues?.[index]||translated(index))return;
   if(!chromeMode())return startJob('section',cues[index].start);
-  const section={generation,cues,index};translationError='';
+  const section={generation,cues,index,revision:providerRevision};translationError='';
+  chromePhase='running';progress();
   try{await ensureTranslator();await translateAhead(section);}
-  catch(error){if(section.generation===generation){translationError=error.message;progress();}}
+  catch(error){if(section.generation===generation&&section.revision===providerRevision){chromePhase='error';translationError=error.message;progress();}}
 };
 async function stopJob(){try{({job}=await api('/api/translate/stop',{}));await loadAICache();renderAI();}catch(e){$('aiStatus').textContent=e.message;}}
 $('stopJob').onclick=$('stopSection').onclick=stopJob;
