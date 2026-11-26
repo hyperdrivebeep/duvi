@@ -47,3 +47,25 @@ def suite(seed=None):
             answer_bit = sha256(f"answer:{identity}".encode()).digest()[0] & 1
             cases.append(Case(config, keys[answer_bit], faults))
     return cases
+
+
+def deferral_probes(seed):
+    """Cross grid sign with identifiability, before or after a decisive observation."""
+    rng = Random(seed)
+    cases = suite(seed)
+    probes = []
+    for separable in (False, True):
+        base = cases[2 if rng.randrange(2) else 0]
+        left, right = base.config["predictions"]
+        values = base.config["predictions"][left]
+        other = values.copy()
+        observed_point = 1
+        if separable:
+            points = base.config["points"]
+            distinguishing_point = rng.choice([x for x in points if x != observed_point])
+            other[points.index(distinguishing_point)] += rng.randint(1, 9)
+            if rng.randrange(2):
+                observed_point = distinguishing_point
+        case = Case(base.config | {"predictions": {left: values, right: other}}, base.answer, {})
+        probes.append((case, observed_point))
+    return probes

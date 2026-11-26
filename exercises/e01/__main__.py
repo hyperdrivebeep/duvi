@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 
 from .fixtures import suite
+from . import assessment, session_log
 from .grader import grade, load_rows, read_diagnostics, rescore
 from .protocol import Tools, canonical, digest_bytes, learner_config, metadata
 from .replay import replay
@@ -48,9 +49,14 @@ def main(argv=None):
             p.add_argument("--actions", type=Path, help='변경된 행동 배열 JSON (예: [["measure",999]])')
         else:
             p.add_argument("--seed", type=int)
+    session_log.configure(commands.add_parser("log", help="로컬 학습 시간 기록"))
+    assessment.configure(commands.add_parser("assessment", help="진단 평행형 생성·채점"))
     args = parser.parse_args(argv)
     try:
-        if args.command == "replay":
+        if args.command in ("log", "assessment"):
+            module = session_log if args.command == "log" else assessment
+            print(canonical(module.execute(args)))
+        elif args.command == "replay":
             config = read_diagnostics(args.log.with_suffix(".config.json"))
             actions = read_diagnostics(args.actions) if args.actions else None
             print(canonical({"normalized_hash": replay(config, load_rows(args.log), actions)}))
