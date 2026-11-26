@@ -13,6 +13,7 @@ import {renderReviewScreen} from './review-view.mjs';
 import {renderSourcesSettings} from './sources-settings.mjs';
 import {routeTarget,segmentIdAt} from './app-routes.mjs';
 import {captionStatus} from './caption-status.mjs';
+import {setupLocalASR} from './local-asr-ui.mjs';
 import mapData from './concept-map-data.json';
 import {renderConceptMap,renderLectureConcepts} from './concept-map-view.mjs';
 import {lectureConcepts,attemptsByConcept,evidenceByConcept} from './concept-map-model.mjs';
@@ -41,12 +42,15 @@ const canStartAI=()=>!!(session?.accounts?.find(a=>a.id===session.activeId)?.pla
 function setText(id,text){const node=$(id);if(node.textContent!==text)node.textContent=text;}
 function chromeCacheKey(){return `mit6100-ko-${lecture.number}${lecture.alignmentRevision?'-'+lecture.alignmentRevision:''}`;}
 function save(){if(!lecture)return;try{localStorage.setItem(chromeCacheKey(),JSON.stringify(chromeTranslations));}catch{}savedAt=Date.now();}
-async function request(route,body,signal){
-  let response;try{response=await fetch(route,body===undefined?{signal}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrf||''},body:JSON.stringify(body),signal});}catch(error){if(signal?.aborted)throw error;throw new Error('플레이어 서버에 연결할 수 없습니다. 시작 파일을 다시 실행하세요.');}
+async function request(route,body,signal,headers){
+  let response;try{response=await fetch(route,body===undefined?{signal}:{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':session?.csrf||'',...headers},body:headers?body:JSON.stringify(body),signal});}catch(error){if(signal?.aborted)throw error;throw new Error('플레이어 서버에 연결할 수 없습니다. 시작 파일을 다시 실행하세요.');}
   if(!response.ok){const value=await response.json().catch(()=>({}));const error=new Error(value.error?.message||'요청에 실패했습니다.');error.status=response.status;error.code=value.error?.code;error.details=value.error?.details;throw error;}
   return response;
 }
 async function api(route,body){return (await request(route,body)).json();}
+async function uploadASR(route,file,model,signal){
+  return (await request(route,file,signal,{'Content-Type':'application/octet-stream','X-ASR-Rights':'confirmed','X-ASR-Model':model,'X-ASR-Format':file.name.split('.').at(-1).toLowerCase()})).json();
+}
 /** POST answered with server-sent events (the 질문하기 chat); errors before the stream starts arrive as JSON. */
 async function streamApi(route,body,{signal,onEvent}){
   const reader=(await request(route,body,signal)).body.getReader(),decoder=new TextDecoder();let buffer='';
@@ -110,13 +114,13 @@ async function loadAICache(number=lecture?.number){
 function paintTranslations(){nodes.forEach((node,i)=>node.querySelector('.ko').textContent=translated(i)||'');update();progress();}
 async function load(number){
   savePosition();save();lectureReady=false;positionState.beginLecture();const requestGeneration=++generation;video.pause();lecture=null;current=-1;repeat=false;follow=true;translationError='';$('repeatLabel').textContent='다시';$('repeat').setAttribute('aria-pressed','false');
-  $('status').textContent='강의와 자막을 불러오는 중…';$('captionNotice').hidden=true;$('captionContext').hidden=true;captionCheckError='';aiCacheCountState=null;sectionError='';
+  $('status').textContent='강의와 자막을 불러오는 중…';$('captionNotice').hidden=true;$('captionContext').hidden=true;$('localASRLabel').hidden=true;captionCheckError='';aiCacheCountState=null;sectionError='';
   announcedEnglish=announcedTranslation=chromePhase='';setText('subtitleStatus','');setText('subtitleInfo','');
   const incoming=await api(`/api/lectures/${encodeURIComponent(number)}`);if(requestGeneration!==generation)return;lecture=incoming;
   try{chromeTranslations=JSON.parse(localStorage.getItem(`mit6100-ko-${number}`)||'{}');}catch{chromeTranslations={};}aiTranslations={};
   $('source').href=lecture.pageUrl;$('source').textContent=lecture.player==='youtube'?'강의 원본 ↗':'MIT 강의 자료 ↗';$('youtube').href=`https://www.youtube.com/watch?v=${lecture.youtubeId}`;
   $('lectureTitle').textContent=lecture.title.split(' | ')[0];$('lectureTitle').title=lecture.title;$('courseLabel').textContent=(lecture.course||'MIT OpenCourseWare')+(lecture.title.includes(' | ')?' · '+lecture.title.split(' | ').slice(1).join(' | '):'');
-  $('sourceNote').textContent=lecture.player==='youtube'?'영어: '+(lecture.captionSource==='youtube-auto-captions'?'YouTube 자동 생성 자막':lecture.captionSource==='user-supplied'?'직접 가져온 자막':'YouTube 제공 자막'):'영어: MIT 공식 자막';
+  renderCaptionSource();
   const mediaLoading=video.load(lecture).catch(error=>{if(requestGeneration===generation){video.lastError=error.message;progress();}});
   $('english').textContent=lecture.title;$('korean').textContent='재생하면 두 언어의 자막이 함께 표시됩니다.';
   renderTranscript();renderCaptionNotice();
@@ -129,15 +133,24 @@ function renderTranscript(){
 }
 function renderCaptionNotice(){
   const missing=lecture&&!lecture.cues.length,busy=String(lecture?.number)===captionLoadingKey;
+  const youtube=lecture?.player==='youtube'||String(lecture?.number).startsWith('yt_');
   $('captionNotice').hidden=!missing;
+  $('retryCaptions').hidden=$('captionFileLabel').hidden=$('localASRYouTubeNote').hidden=!missing||!youtube;
+  $('openASR').hidden=!missing||youtube||lecture.unavailable;
   for(const id of ['back','next','repeat','autoPause'])$(id).disabled=!lecture?.cues.length;
   $('retryCaptions').disabled=$('captionFile').disabled=busy||!!lecture?.unavailable;
   if(missing){
-    $('captionNoticeText').textContent=lecture.unavailable?'이 영상은 비공개이거나 재생이 제한되어 있습니다. 강의 원본에서 확인하세요.':busy?'영어 자막을 준비하고 있습니다. 영상은 바로 재생할 수 있습니다.':lecture.captionError||captionCheckError||'아직 영어 자막이 없습니다. 다시 가져오거나 SRT/VTT 파일을 추가할 수 있습니다.';
+    $('captionNoticeText').textContent=lecture.unavailable?'이 영상은 비공개이거나 재생이 제한되어 있습니다. 강의 원본에서 확인하세요.':busy?'영어 자막을 준비하고 있습니다. 영상은 바로 재생할 수 있습니다.':lecture.captionError||captionCheckError||(youtube?'아직 영어 자막이 없습니다. 다시 가져오거나 SRT/VTT 파일을 추가할 수 있습니다.':'아직 영어 자막이 없습니다. 권한이 있는 로컬 파일에서 만들 수 있습니다.');
     $('english').textContent=busy?'영어 자막을 준비하고 있습니다.':'영어 자막이 아직 없습니다.';
     $('korean').textContent='영어 자막이 준비되면 한국어 번역을 시작할 수 있습니다.';
   }
   progress();
+}
+function renderCaptionSource(){
+  const local=lecture.captionSource==='local-asr';
+  const label=`영어 자막: 기계 생성 · 미검증${lecture.captionProvenance?.model?` (${lecture.captionProvenance.model})`:''}`;
+  $('localASRLabel').hidden=!local;$('localASRLabel').textContent=local?label:'';
+  $('sourceNote').textContent=local?label:lecture.player==='youtube'?'영어: '+(lecture.captionSource==='youtube-auto-captions'?'YouTube 자동 생성 자막':lecture.captionSource==='user-supplied'?'직접 가져온 자막':'YouTube 제공 자막'):lecture.cues.length?'영어: MIT 공식 자막':'영어 자막 없음';
 }
 async function prepareCaptions(subtitleText){
   if(!lecture||lecture.cues.length||lecture.unavailable)return;
@@ -150,7 +163,7 @@ async function prepareCaptions(subtitleText){
       incoming=await api(`/api/lectures/${encodeURIComponent(number)}`).catch(()=>null);
       if(version===generation)captionCheckError=error.message;
     }
-    if(version===generation&&incoming){lecture=incoming;current=-1;$('sourceNote').textContent='영어: '+(lecture.captionSource==='youtube-auto-captions'?'YouTube 자동 생성 자막':lecture.captionSource==='user-supplied'?'직접 가져온 자막':'YouTube 제공 자막');renderTranscript();await loadAICache(number);renderAI();update();}
+    if(version===generation&&incoming){lecture=incoming;current=-1;renderCaptionSource();renderTranscript();await loadAICache(number);renderAI();update();}
     await refreshLibrary($('lecture').value).catch(()=>{});
   }finally{if(captionLoadingKey===number)captionLoadingKey='';if(version===generation){renderCaptionNotice();renderAI();}}
 }
@@ -333,6 +346,15 @@ document.querySelectorAll('dialog').forEach(d=>d.addEventListener('close',()=>{
   const target=opener?.isConnected?opener:key?[...document.querySelectorAll('[data-library-focus]')].find(node=>node.dataset.libraryFocus===key):null;
   if(target?.getClientRects().length)target.focus();else $(shell.current()==='lecture'?'openLibrary':'study').focus();
 }));
+setupLocalASR({$,api,upload:uploadASR,lecture:()=>lecture,onSaved:async number=>{
+  const version=generation;
+  const incoming=await api(`/api/lectures/${encodeURIComponent(number)}`);
+  if(version===generation&&String(lecture?.number)===number){
+    lecture=incoming;current=-1;renderCaptionSource();renderTranscript();renderCaptionNotice();
+    await loadAICache(number);renderAI();update();
+  }
+  await refreshLibrary($('lecture').value).catch(()=>{});
+}});
 $('translationToSettings').onclick=()=>{closeDialog('translationDialog');openDialog('settingsDialog',document.querySelector('[data-open="translationDialog"]'));};
 function scrollToCue(){const node=nodes[current];if(node)$('transcript').scrollTop=node.offsetTop-20;}
 $('followTranscript').onclick=()=>{follow=true;scrollToCue();};

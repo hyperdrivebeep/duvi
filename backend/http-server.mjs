@@ -9,6 +9,7 @@ import {ChatGPTAuth,AppError} from './chatgpt-auth.mjs';
 import {TranslationService} from './chatgpt-translate.mjs';
 import {LectureLibrary} from './library.mjs';
 import {LearningService} from './learning-service.mjs';
+import {LocalASR} from './local-asr.mjs';
 export const ROOT=path.resolve(fileURLToPath(new URL('.',import.meta.url)));
 const staticFiles=new Set(['/index.html','/app.mjs','/core.mjs','/style.css','/media.mjs']);
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.vtt':'text/vtt; charset=utf-8','.woff2':'font/woff2','.svg':'image/svg+xml','.jpg':'image/jpeg','.png':'image/png'};
@@ -30,9 +31,10 @@ async function streamChat(req,res,chat,body){
   catch(error){if(!res.headersSent)throw error;send('error',{message:error instanceof AppError?error.message:'답변을 저장하지 못했습니다. 다시 질문해 주세요.',code:error.code||'internal'});}
   res.end();
 }
-export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider,codeExecution=false}){
+export function createServer({auth,translations,library,root=ROOT,staticRoot=root,port=6101,chatProvider,codeExecution=false,asrOptions}){
   const base=`http://127.0.0.1:${port}`,sessions=new Map();
   const learning=new LearningService({root,auth,translations,library,chatProvider,codeExecution});
+  const asr=new LocalASR({...asrOptions,library,withAssets:callback=>learning.withAssets(callback)});
   const cookieName=`mit_session_${port}`;
   function session(req,res,create=false){
     let sid=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1);
@@ -46,7 +48,7 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
     }
     if(value)value.expires=Date.now()+86400000;return value;
   }
-  return http.createServer(async(req,res)=>{
+  const server=http.createServer(async(req,res)=>{
     res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
     res.setHeader('Cross-Origin-Resource-Policy','same-origin');res.setHeader('X-Frame-Options','DENY');
     res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com; style-src 'self'; img-src 'self' data: https://i.ytimg.com; font-src 'self'; media-src https://ocw.mit.edu; connect-src 'self'; frame-src https://www.youtube.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
@@ -71,10 +73,16 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
       if(pathname.startsWith('/api/')){
         if(!s)throw new AppError('플레이어를 새로고침하세요.','missing_session',403);
         let body;
+        const asrRoute=/^\/api\/local-asr\/([A-Za-z0-9_-]{1,14})(\/cancel)?$/.exec(pathname);
         if(req.method==='POST'){
           if(req.headers.origin!==base||req.headers['x-csrf-token']!==s.csrf)throw new AppError('요청을 확인할 수 없습니다. 플레이어를 새로고침하세요.','csrf',403);
+          if(asrRoute&&!asrRoute[2]){
+            json(res,202,{job:await asr.start(s.id,req,asrRoute[1])});return;
+          }
           body=await readJSON(req,pathname==='/api/learning/import/preview'?16*1024*1024+1024:2300000);
         }
+        if(asrRoute&&req.method==='GET'&&!asrRoute[2]){json(res,200,{job:asr.status(s.id,asrRoute[1])});return;}
+        if(asrRoute&&req.method==='POST'&&asrRoute[2]){json(res,200,{job:asr.cancel(s.id,asrRoute[1])});return;}
         if(req.method==='GET'&&pathname==='/api/session'){json(res,200,{csrf:s.csrf,...auth.publicState(),job:translations.publicJob(),authMessage:s.authMessage||'',authConnectFailed:!!s.authConnectFailed});return;}
         if(req.method==='GET'&&pathname==='/api/models'){json(res,200,{models:await auth.models()});return;}
         if(req.method==='GET'&&pathname==='/api/job'){json(res,200,{job:translations.publicJob()});return;}
@@ -148,6 +156,9 @@ export function createServer({auth,translations,library,root=ROOT,staticRoot=roo
       if(!res.headersSent)json(res,error instanceof AppError?error.status:500,{error:{message:error instanceof AppError?error.message:'처리 중 오류가 발생했습니다. 다시 시도하세요.',code:error instanceof AppError?error.code:'internal',details:error instanceof AppError?error.details:{}}});else res.end();
     }
   });
+  server.on('close',()=>{void asr.shutdown();});
+  server.stopLocalASR=()=>asr.shutdown();
+  return server;
 }
 function openBrowser(base){spawn('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',[base],{detached:true,stdio:'ignore',windowsHide:true}).unref();}
 export async function main(){

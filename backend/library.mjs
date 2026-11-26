@@ -60,6 +60,24 @@ export class LectureLibrary{
     try{return JSON.parse(await readFile(path.join(this.root,String(key).startsWith('yt_')?'library':'data',`${key}.json`),'utf8'));}
     catch(error){if(error.code==='ENOENT')throw new AppError('강의를 찾을 수 없습니다.','not_found',404);throw error;}
   }
+  checkLocalASR(key,lecture){
+    if(String(key).startsWith('yt_')||lecture.player==='youtube')throw new AppError('YouTube 강의의 음성을 다운로드하거나 추출하지 않습니다. 권한이 있는 SRT/VTT 자막 파일을 추가하세요.','asr_youtube',422);
+    if(lecture.cues?.length)throw new AppError('이 강의에 이미 자막이 있습니다. 기존 자막은 변경하지 않습니다.','asr_existing',409);
+    if(lecture.unavailable)throw new AppError('재생할 수 있는 강의를 선택하세요.','asr_unavailable',422);
+  }
+  saveLocalASR(key,raw,model,{signal,onCommit}){
+    return this.mutateLecture(key,async()=>{
+      const lecture=await this.get(key);
+      this.checkLocalASR(key,lecture);
+      if(raw.length>20000||raw.some(c=>!c||typeof c.en!=='string'||c.en.length>4000||!Number.isFinite(c.start)||!Number.isFinite(c.end)||c.start<0||c.end<=c.start||c.end>7201))throw new AppError('음성 인식 결과의 형식이 올바르지 않습니다.','asr_engine',500);
+      const cues=normalizeCues(raw.map(({start,end,en})=>({start,end,en:en.trim()})));
+      if(!cues.length)throw new AppError('말소리가 감지되지 않았습니다.','asr_silence',422);
+      const saved={...lecture,cues,captionSource:'local-asr',captionProvenance:{source:'local-asr',model,savedAt:new Date().toISOString()},captionStatus:'ready',captionError:undefined};
+      signal.throwIfAborted();
+      onCommit();
+      await atomicJSON(path.join(this.root,'data',key+'.json'),saved);
+    });
+  }
   async list(){
     const catalog=JSON.parse(await readFile(path.join(this.root,'data/catalog.json'),'utf8'));
     await mkdir(this.directory,{recursive:true});
