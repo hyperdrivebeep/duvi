@@ -8,10 +8,19 @@ import {readFileSync} from 'node:fs';
 // Vendored third-party code and the lockfile are skipped.
 const root = new URL('..', import.meta.url);
 const BINARY = /\.(webp|png|jpe?g|gif|ico|woff2?|ttf|exe|zip|wasm)$/i, SKIP = /^(package-lock\.json|backend\/vendor\/)/;
-// Reject roots embedded in URL/path segments, but allow delimiters and explicit local file URLs.
-// A drive embedded in a URL (host/C:/Users/...) must not fall back to a bare /Users match.
-const USER_HOME = /(?<![\w.%\/-])(?:file:\/\/\/(?=[a-z]:)|file:\/\/)?(?:[a-z]:[\\/]{1,2}|(?<![\w.%\/-]\/[a-z]:)\/(?:(?:mnt\/)?[a-z]\/)?)users[\\/]{1,2}([^\\/\s`'"<>…]+)/gi;
-const UNIX_HOME = /(?<![\w.%\/-])(?:file:\/\/)?\/home\/([\w.-]+)/g;
+// Start at a path boundary or immediately after a standalone short CLI flag.
+const HOME_START = /(?:(?<![\w.%\/-])|(?<=(?:^|\s)-[a-zA-Z]))/.source;
+const LOCAL_FILE = /file:\/\/(?:localhost)?/.source;
+const DRIVE = /[a-z](?::|%3a)/.source;
+const PATH_SEP = /(?:[\\/]|%2f|%5c)/.source;
+const PARENT = /(?:\.\.\/)+/.source;
+// An embedded drive (host/C:/Users/...) must not fall back to a bare /Users match.
+const USER_ROOT = `(?:(?:${LOCAL_FILE}/)?${DRIVE}${PATH_SEP}{1,2}|`+
+  `(?:${LOCAL_FILE}/|${PARENT}|(?<![\\w.%/-]/${DRIVE})/)(?:(?:mnt/)?[a-z]/)?)`;
+const USER_NAME = /((?:(?!(?:%2f|%5c))[^\\/\s`'"<>…])+)/.source;
+// A colon at the start of a username segment denotes a route parameter, not a literal username.
+const USER_HOME = new RegExp(`${HOME_START}${USER_ROOT}users${PATH_SEP}{1,2}(?!:|%3c)${USER_NAME}`, 'gi');
+const UNIX_HOME = new RegExp(`${HOME_START}(?:${LOCAL_FILE}/|${PARENT}|/)home/([\\w.-]+)`, 'g');
 // Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
 const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
@@ -77,7 +86,10 @@ test('privacy scanner detects personal home paths across shells and operating sy
   for (const text of [
     'GET /api/users/123', 'github.com/users/octo', 'https://github.com/users/octo',
     'https://example.org/home/index', 'https://example.org/c/Users/octo',
-    'https://example.org/mnt/c/Users/octo', 'https://example.org/C:/Users/octo'
+    'https://example.org/mnt/c/Users/octo', 'https://example.org/C:/Users/octo',
+    'https://example.org/C%3A/Users/octo', 'https://example.org/../home/index',
+    'https://example.org/-I/Users/octo', 'src/users/alice.js',
+    'router.get("/users/:id")', 'router.get("/users/:id/settings")'
   ]) assert.deepEqual(personalMatches(text), [], text);
 });
 
@@ -113,6 +125,27 @@ test('privacy scanner detects personal paths in local file URLs and after delimi
     [`\`${unix}/x\``, unix], [`'${mac}/x'`, mac],
     [`"${escapedWindows}"`, escapedWindows], [`[log](${unix}/x)`, unix]
   ]) assert.deepEqual(personalMatches(text), [home], text);
+});
+
+test('privacy scanner detects attached flags, parent paths and encoded Windows paths', () => {
+  const mac = ['', 'Users', 'DemoUser'].join('/');
+  const unix = ['', 'home', 'demo-user'].join('/');
+  const windows = ['C:', 'Users', 'DemoUser'].join('/');
+  const encodedDrive = windows.replace(':', '%3A');
+  const encodedWindows = ['c%3a', 'users', 'DemoUser'].join('%5c');
+  for (const [text, home] of [
+    [`cc -I${mac}/include`, mac], [`-L${unix}/lib`, unix],
+    [`../../${unix.slice(1)}/x`, `../..${unix}`],
+    [`file://localhost/${windows}/notes`, `file://localhost/${windows}`],
+    [`file:///${encodedDrive}`, `file:///${encodedDrive}`],
+    [`${encodedWindows}%5cnotes`, encodedWindows]
+  ]) assert.deepEqual(personalMatches(text), [home], text);
+
+  for (const name of ['YourName', 'USERNAME', '<user>']) {
+    const path = ['C:', 'Users', name].join('\\');
+    assert.deepEqual(personalMatches(`file://localhost/${path}`), []);
+    assert.deepEqual(personalMatches(encodeURIComponent(path)), []);
+  }
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {
