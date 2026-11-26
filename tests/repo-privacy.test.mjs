@@ -31,14 +31,21 @@ const RESERVED = /(^|\.)(example|invalid|test|localhost)$|^example\.(com|net|org
 const DENSITY_ASSET = /^[23]x\.(?:png|jpe?g|gif|webp|svg)$/i;
 const PACKAGE_ARCHIVE = /^\d+\.\d+\.\d+(?:-[a-z0-9-]+(?:\.[a-z0-9-]+)*)?\.tgz$/i;
 
+function looksLikeHome(match, text) {
+  if (!match[0].startsWith('../')) return true;
+  // A parent-relative home needs a directory-like username and a child path, not a module filename.
+  return !/\.[a-z\d]+$/i.test(match[1]) &&
+    /^\/+[^\\/\s`'"<>…()[\]{},;|]/.test(text.slice(match.index+match[0].length));
+}
+
 function personalMatches(text) {
   const found = [];
   for (const match of text.matchAll(USER_HOME)) {
     const name = match[1].toLowerCase();
-    if (!SHARED_USERS.has(name) && !PLACEHOLDERS.has(name)) found.push(match[0]);
+    if (looksLikeHome(match, text) && !SHARED_USERS.has(name) && !PLACEHOLDERS.has(name)) found.push(match[0]);
   }
   for (const match of text.matchAll(UNIX_HOME)) {
-    if (!SANDBOX_USERS.has(match[1]) && !PLACEHOLDERS.has(match[1].toLowerCase())) found.push(match[0]);
+    if (looksLikeHome(match, text) && !SANDBOX_USERS.has(match[1]) && !PLACEHOLDERS.has(match[1].toLowerCase())) found.push(match[0]);
   }
   for (const match of text.matchAll(EMAIL)) {
     const gitRemote = match[1] === 'github.com' && match[0].startsWith('git@') &&
@@ -146,6 +153,23 @@ test('privacy scanner detects attached flags, parent paths and encoded Windows p
     assert.deepEqual(personalMatches(`file://localhost/${path}`), []);
     assert.deepEqual(personalMatches(encodeURIComponent(path)), []);
   }
+});
+
+test('privacy scanner does not confuse parent-relative module imports with home paths', () => {
+  for (const text of [
+    "import m from '../users/model.js'",
+    "import P from '../home/page.tsx'",
+    '../../users/list.mjs',
+    '../users/model',
+    '../home/page/',
+    '../users/model.js/export',
+    '../home/page.tsx/export'
+  ]) assert.deepEqual(personalMatches(text), [], text);
+
+  const relativeHome = ['..', '..', 'users', 'DemoUser'].join('/');
+  assert.deepEqual(personalMatches(relativeHome+'/notes'), [relativeHome]);
+  const absoluteHome = ['', 'home', 'demo.user'].join('/');
+  assert.deepEqual(personalMatches(absoluteHome+'/notes'), [absoluteHome]);
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {
