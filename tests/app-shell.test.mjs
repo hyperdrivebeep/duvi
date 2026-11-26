@@ -133,3 +133,14 @@ test('lecture keys run in the capture phase and stop a handled key before the vi
   const field=key('ArrowRight',{closest:()=>({})});assert.deepEqual(pressed,['next']);assert.ok(!field.prevented&&!field.stopped);
   const other=key('Enter');assert.ok(!other.prevented&&!other.stopped);
 });
+
+test('turning off single-letter shortcuts disables J/K/L and R/F without affecting arrow keys',()=>{
+  const pressed=[];let enabled=false;
+  const handler=installLectureKeys({addEventListener(){}},{active:()=>true,press:id=>pressed.push(id),letterKeys:()=>enabled});
+  const key=key=>handler({key,preventDefault(){},stopPropagation(){}});
+  for(const letter of 'jklrf')key(letter);
+  key('ArrowLeft');assert.deepEqual(pressed,['back']);
+  enabled=true;
+  for(const letter of 'jklrf')key(letter);
+  assert.deepEqual(pressed,['back','skipBack','playToggle','skipAhead','repeat','fullscreen']);
+});

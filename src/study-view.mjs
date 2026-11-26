@@ -118,6 +118,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
   $('captionPlacement').onchange=()=>{persist('duvi-caption-placement',$('captionPlacement').value);applyPlacement();};
   function setMedia(youtube){
     stage.dataset.media=youtube?'youtube':'native';
+    $('videoFullscreen').hidden=youtube;
     applyPlacement();showControls();
   }
   applyPlacement();

@@ -1,7 +1,42 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {revealsControls,holdsControls,hideControls} from '../src/study-view.mjs';
+import {revealsControls,holdsControls,hideControls,setupStudyView} from '../src/study-view.mjs';
+
+function studyFixture(t){
+  const nodes=new Map();
+  const $=id=>{
+    if(!nodes.has(id))nodes.set(id,{dataset:{},style:{setProperty(){},removeProperty(){}},
+      classList:{remove(){}},setAttribute(){},querySelector(){},querySelectorAll:()=>[],
+      addEventListener(){},selectedOptions:[]});
+    return nodes.get(id);
+  };
+  $('studySettingsPanel').parentElement=$('studySettingsParent');
+  const prefs=new Map([['duvi-caption-placement','"top"']]);
+  for(const [key,value] of Object.entries({document:{getElementById:$,querySelectorAll:()=>[],addEventListener(){}},
+    MutationObserver:class {observe(){}},matchMedia:()=>({matches:true}),addEventListener(){},requestAnimationFrame(){},
+    localStorage:{getItem:key=>prefs.get(key)??null,setItem:(key,value)=>prefs.set(key,value)}})){
+    const original=Object.getOwnPropertyDescriptor(globalThis,key);
+    Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
+    t.after(()=>original?Object.defineProperty(globalThis,key,original):delete globalThis[key]);
+  }
+  return {$,view:setupStudyView({})};
+}
+test('YouTube forces the actual stage to dock subtitles without overwriting the native placement',t=>{
+  const {$,view}=studyFixture(t);
+  view.setMedia(false);assert.equal($('stage').dataset.captionPlacement,'top');
+  view.setMedia(true);assert.equal($('stage').dataset.captionPlacement,'dock');
+  view.setMedia(false);assert.equal($('stage').dataset.captionPlacement,'top');
+});
+test('the video overlay fullscreen button is hidden only for YouTube, leaving its separate entry',async t=>{
+  const {$,view}=studyFixture(t);
+  view.setMedia(true);
+  assert.equal($('videoFullscreen').hidden,true);
+  assert.equal(typeof $('fullscreen').onclick,'function');
+  view.setMedia(false);assert.equal($('videoFullscreen').hidden,false);
+  const css=await readFile(new URL('../src/study-view.css',import.meta.url),'utf8');
+  assert.match(css,/\.video-fullscreen\[hidden\][^{]*\{display:none\}/);
+});
 
 const target=matches=>({target:{closest:selector=>matches(selector)?{}:null}});
 test('typing in a note field keeps fullscreen controls hidden; other keys reveal them',()=>{

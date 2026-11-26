@@ -1,6 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MediaPlayer,youtubePlayerVars} from '../src/media.mjs';
+test('late readiness, state, speed, autoplay and errors from a destroyed YouTube player are ignored',async t=>{
+  const embeds=[];
+  class FakePlayer{
+    constructor(_,options){this.events=options.events;embeds.push(this);}
+    pauseVideo(){}
+    destroy(){this.destroyed=true;}
+  }
+  for(const [name,value] of Object.entries({window:{YT:{Player:FakePlayer}},YT:{Player:FakePlayer},
+    document:{createElement:()=>({})},setInterval:()=>0,location:{origin:'http://localhost'}})){
+    const old=Object.getOwnPropertyDescriptor(globalThis,name);
+    Object.defineProperty(globalThis,name,{value,configurable:true,writable:true});
+    t.after(()=>old?Object.defineProperty(globalThis,name,old):delete globalThis[name]);
+  }
+  const native=Object.assign(new EventTarget(),{pause(){},load(){},removeAttribute(){}});
+  const player=new MediaPlayer(native,{replaceChildren(){}});
+  const observed=[];
+  for(const name of ['timeupdate','ratechange','playblocked','error'])player.addEventListener(name,()=>observed.push(name));
+  const first=player.load({player:'youtube',youtubeId:'first'});await Promise.resolve();
+  const second=player.load({player:'youtube',youtubeId:'second'});await Promise.resolve();
+  const [old,current]=embeds;
+  assert.equal(old.destroyed,true);
+  old.events.onReady();await first;assert.equal(player.ready,false);
+  current.events.onReady();await second;assert.equal(player.ready,true);
+  old.events.onStateChange({data:1});old.events.onPlaybackRateChange();old.events.onAutoplayBlocked();old.events.onError({data:153});
+  assert.equal(player.ready,true);assert.equal(player.paused,true);assert.equal(player.lastError,'');assert.deepEqual(observed,[]);
+  current.events.onStateChange({data:1});current.events.onPlaybackRateChange();current.events.onAutoplayBlocked();current.events.onError({data:150});
+  assert.equal(player.ready,false);assert.match(player.lastError,/150/);
+  assert.deepEqual(observed,['timeupdate','ratechange','playblocked','error']);
+});
 test('the supported embed parameters retain YouTube identity and do not force captions',()=>{
   const origin='http://127.0.0.1:6202';
   assert.deepEqual(youtubePlayerVars(origin),{origin,enablejsapi:1,playsinline:1,controls:0,fs:0,rel:0,iv_load_policy:3,disablekb:1,cc_lang_pref:'en'});

@@ -110,6 +110,7 @@ async function loadAICache(number=lecture?.number){
 function paintTranslations(){nodes.forEach((node,i)=>node.querySelector('.ko').textContent=translated(i)||'');update();progress();}
 async function load(number){
   savePosition();save();lectureReady=false;positionState.beginLecture();const requestGeneration=++generation;video.pause();lecture=null;current=-1;repeat=false;follow=true;translationError='';$('repeatLabel').textContent='다시';$('repeat').setAttribute('aria-pressed','false');
+  renderPlayback();
   $('status').textContent='강의와 자막을 불러오는 중…';$('captionNotice').hidden=true;$('captionContext').hidden=true;captionCheckError='';aiCacheCountState=null;sectionError='';
   announcedEnglish=announcedTranslation=chromePhase='';setText('subtitleStatus','');setText('subtitleInfo','');
   const incoming=await api(`/api/lectures/${encodeURIComponent(number)}`);if(requestGeneration!==generation)return;lecture=incoming;
@@ -310,6 +311,7 @@ $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textCont
 $('pause').onclick=()=>video.pause();
 $('video').controls=false;
 const seekBar=$('playSeek'),volumeBar=$('playVolume'),speedControl=$('speed');
+const pipButton=$('playPiP'),nativeVideo=$('video');
 function renderPlayback(){
   const ready=lectureReady&&!video.lastError,duration=video.duration||lecture?.duration||0;
   const playing=!video.paused,muted=video.muted,rates=video.availableRates;
@@ -317,6 +319,10 @@ function renderPlayback(){
   $('playMute').setAttribute('aria-pressed',String(muted));
   for(const id of ['playToggle','playMute','playVolume','speed'])$(id).disabled=!ready;
   for(const id of ['playSeek','skipBack','skipAhead'])$(id).disabled=!ready||!(duration>0);
+  const inPiP=document.pictureInPictureElement===nativeVideo;
+  pipButton.hidden=!lecture||lecture.player==='youtube'||!document.pictureInPictureEnabled||typeof nativeVideo.requestPictureInPicture!=='function';
+  pipButton.disabled=!ready||(!inPiP&&!(nativeVideo.readyState>=1&&nativeVideo.videoWidth>0));
+  pipButton.setAttribute('aria-pressed',String(inPiP));
   seekBar.max=String(duration);
   if(!seekBar.matches(':active'))seekBar.value=String(video.currentTime||0);
   seekBar.setAttribute('aria-valuetext',`${fmt(Number(seekBar.value))} / ${fmt(duration)}`);
@@ -338,6 +344,13 @@ $('skipAhead').onclick=()=>skip(10);
 seekBar.oninput=()=>seekTime(Number(seekBar.value));
 $('playMute').onclick=()=>{video.muted=!video.muted;renderPlayback();};
 volumeBar.oninput=()=>video.volume=Number(volumeBar.value);
+pipButton.onclick=async()=>{
+  try{
+    if(document.pictureInPictureElement===nativeVideo)await document.exitPictureInPicture();
+    else await nativeVideo.requestPictureInPicture();
+  }catch{setText('status','이 브라우저에서 화면 속 화면을 전환하지 못했습니다.');}
+};
+for(const name of ['enterpictureinpicture','leavepictureinpicture'])nativeVideo.addEventListener(name,renderPlayback);
 for(const name of ['timeupdate','loadedmetadata','play','pause','ended','ratechange','volumechange','error'])video.addEventListener(name,renderPlayback);
 video.addEventListener('playblocked',()=>setText('status','브라우저가 재생을 차단했습니다. 영상 안의 YouTube 재생 버튼을 눌러 주세요.'));
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
@@ -372,7 +385,10 @@ function scrollToCue(){const node=nodes[current];if(node)$('transcript').scrollT
 $('followTranscript').onclick=()=>{follow=true;scrollToCue();};
 for(const event of ['wheel','touchstart','pointerdown'])$('transcript').addEventListener(event,()=>{follow=false;},{passive:true});
 $('transcript').addEventListener('keydown',e=>{if(['PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key))follow=false;});
-installLectureKeys(window,{active:()=>shell.current()==='lecture'&&!document.querySelector('dialog[open]'),press:id=>$(id).click()});
+const letterKeys=$('lectureLetterKeys');
+letterKeys.checked=readStored('duvi-lecture-letter-keys',true)!==false;
+letterKeys.onchange=()=>{try{localStorage.setItem('duvi-lecture-letter-keys',JSON.stringify(letterKeys.checked));}catch{}};
+installLectureKeys(window,{active:()=>shell.current()==='lecture'&&!document.querySelector('dialog[open]'),press:id=>$(id).click(),letterKeys:()=>letterKeys.checked});
 const libraryUI=new LibraryUI({api,load,openDialog,closeDialog,closeLibrary:()=>shell.closeLibrary(),playPositions,format:fmt});
 const learningUI=new LearningUI({api,stream:streamApi,onChatCount:count=>tabLabel('stageChatTab','질문',count),player:{time:()=>video.currentTime,seek:seekTime,pause:()=>video.pause(),isPlaying:()=>!video.paused,duration:()=>video.duration||lecture?.duration||lecture?.cues.at(-1)?.end||0,openSettings:async()=>{await studyView.exit();openDialog('settingsDialog',$('openQuestion'));}},openPanel:name=>studyView.openPanel(name),closeLibrary:()=>shell.closeLibrary(),showView:view=>shell.show(view),getModel:()=>$('model').value,
   onStateChange:(roadmap,progress)=>libraryUI.setLearning({roadmap,progress,onComplete:resource=>learningUI.complete(resource),onPhase:id=>learningUI.openPhase(id)}),

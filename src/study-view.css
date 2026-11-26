@@ -198,7 +198,8 @@
 .study-focus>.playback-bar{grid-column:1;grid-row:5}
 .study-focus.has-transcript>.transcript-panel,
 .study-focus:has(>.caption-context:not([hidden]))>.transcript-panel{grid-row:1/-1}
-.stage[data-media=youtube] :is(.video-fullscreen,.fullscreen-caption-size:has(#captionPlacement)){display:none}
+.video-fullscreen[hidden],.playback-bar button[hidden],
+.stage[data-media=youtube] .fullscreen-caption-size:has(#captionPlacement){display:none}
 .stage[data-media=youtube]:not(.study-focus) .settings-popover{position:static;min-width:0}
 .stage[data-media=youtube] .view-controls:has(.settings-popover:not([hidden])),
 .stage[data-media=youtube] .study-settings:has(.settings-popover:not([hidden])){flex-wrap:wrap}
