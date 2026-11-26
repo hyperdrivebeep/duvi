@@ -1,10 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {parseEvents,textSegments,parseClock,composerAction,lectureThreads,withThread,chatAutoPause,CHAT_AUTOPAUSE_KEY} from '../src/learning-chat-model.mjs';
 import {recordInput} from '../src/learning-ui.mjs';
 import {recordMarkdown} from '../src/learning-model.mjs';
 import {ChatPanel} from '../src/learning-chat.mjs';
 import {installDom,createRoot,byTag,byText} from './fake-dom.mjs';
+
+test('empty notice styling clips status regions without removing them or occupying layout space',()=>{
+  const css=file=>readFileSync(new URL(`../src/${file}.css`,import.meta.url),'utf8');
+  const status=css('live-status').match(/\[role="status"\]:empty:not\(\[hidden\]\)\s*\{([^}]+)\}/)?.[1]??'';
+  assert.match(status,/position:\s*absolute/);
+  assert.match(status,/clip-path:\s*inset\(50%\)/);
+  assert.doesNotMatch(status,/display:\s*none|visibility:\s*hidden/);
+  for(const name of ['library','concept-map'])assert.ok(css(name).includes("@import './live-status.css'"));
+  assert.doesNotMatch(css('learning')+css('concept-map'),/\.(?:chat-[\w-]*notice|learning-completion-notice|learning-ai-answer|cmap-status):empty/);
+  assert.ok(css('library').includes('.notice:empty:not([role="status"]){display:none}'));
+});
 
 test('a connection error is shown with a settings action without replacing the question status',()=>{
   const restore=installDom(),notice=createRoot(),connectionNotice=createRoot();
@@ -56,10 +68,14 @@ test('saving a same-question draft only clears the exact draft this editor last 
       return {form,text:byTag(form,'textarea')[0]};
     };
     const stale=open(async()=>{}),b=open(()=>new Promise(resolve=>{finish=resolve;}));
+    const notices=()=>byTag(stale.form,'p').filter(node=>node.getAttribute('role')==='status');
+    const initialNotices=notices();
+    assert.deepEqual(initialNotices.map(node=>node.textContent),['','']);
     b.text.value='B saves';b.text.dispatch('input');b.form.dispatch('submit');
     const a=open(async()=>{});a.text.value='newer A draft';a.text.dispatch('input');
     stale.text.value='stale edit';stale.text.dispatch('input');
-    assert.match(byTag(stale.form,'p').map(node=>node.textContent).join(' '),/다른 창.*새로고침/);
+    const draftNotice=notices().find(node=>/다른 창.*새로고침/.test(node.textContent));
+    assert.ok(initialNotices.includes(draftNotice),'draft message updates a pre-existing status node');
     assert.equal(stale.text.value,'stale edit');
     finish();await new Promise(resolve=>setImmediate(resolve));
     assert.equal(open().text.value,'newer A draft');

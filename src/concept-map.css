@@ -1,3 +1,5 @@
+@import './live-status.css';
+
 /* 개념 지도 (graph + outline table). Duvi tokens from DESIGN.md §2; accent only for links, primary/selected and focus.
    No left accent bars, no nested bordered boxes, no colored pills; status is text (with a glyph), 14px minimum. */
 .cmap, .cmap-graph, .cmap-lecture {
@@ -30,7 +32,6 @@
 .cmap-search { width: 240px; height: 40px; padding: 0 12px; border: 1px solid var(--cmap-line); border-radius: 8px; font: inherit; font-size: 15px; color: inherit; background: #fff; }
 .cmap-note { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--cmap-muted); }
 .cmap-status { grid-column: 1 / -1; margin: 0; font-size: 14px; }
-.cmap-status:empty { display: none; }
 
 .cmap-main { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 .cmap-main-table { overflow: auto; }
