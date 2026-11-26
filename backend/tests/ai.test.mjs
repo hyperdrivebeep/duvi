@@ -93,6 +93,31 @@ test('Translation validation rejects missing, duplicated and foreign cue IDs',()
   const batch=makeBatch(lecture,[5,6]);assert.equal(batch.contextBefore.length,3);assert.equal(batch.contextAfter.length,3);assert.deepEqual(batch.target.map(x=>x.id),[5,6]);
 });
 const fakeAuth={state:{activeId:'test'},models:async()=>[{id:'test-model',name:'Test'}],token:async()=>'test-only'};
+test('Current section translates one visible cue through the existing cache and cancellation path',async()=>{
+  const calls=[];let block=false;
+  const service=new TranslationService({auth:fakeAuth,root:temp,cacheDirectory:path.join(temp,'section-cache'),fetcher:async(url,{body,signal})=>{
+    const {target}=JSON.parse(JSON.parse(body).input[0].content);
+    calls.push(target.map(c=>c.id));
+    if(block)return new Promise((resolve,reject)=>{
+      if(signal.aborted)reject(signal.reason);
+      else signal.addEventListener('abort',()=>reject(signal.reason),{once:true});
+    });
+    return stream([{type:'response.output_text.delta',delta:JSON.stringify({translations:target.map(c=>({id:c.id,ko:`검증용 ${c.id}`}))})},{type:'response.completed',response:{status:'completed'}}]);
+  }});
+  const job={number:1,model:'test-model',scope:'section'};
+  await assert.rejects(service.start({...job,start:1}),{code:'stale_cue'});
+  await assert.rejects(service.start({...job,start:8,alignmentRevision:'stale'}),{code:'stale_cue'});
+  assert.equal((await service.start({...job,start:8})).total,1);
+  await service.task;
+  assert.deepEqual(calls,[[2]]);
+  assert.deepEqual(Object.keys((await service.cache(1)).translations),['2']);
+  assert.equal((await service.start({...job,start:8})).status,'completed');
+  assert.deepEqual(calls,[[2]]);
+  block=true;
+  await service.start({...job,start:12});
+  assert.equal((await service.stop()).status,'stopped');
+  assert.deepEqual(Object.keys((await service.cache(1)).translations),['2']);
+});
 test('Translation saves complete batches, resumes after failure, reuses cache without requests',async()=>{
   let calls=0,fail=true;const bodies=[];
   const service=new TranslationService({auth:fakeAuth,root:temp,cacheDirectory:path.join(temp,'cache'),fetcher:async(url,init)=>{
@@ -138,9 +163,9 @@ test('SRT/VTT and YouTube captions import with ordered nonoverlapping cues',asyn
 });
 test('HTTP rejects cross-origin writes, DNS rebinding, private files; exposes no credentials',async()=>{
   const h=await harness();await login(h);const library=new LectureLibrary({root:temp});const service=new TranslationService({auth:h.auth,library,root:temp,cacheDirectory:path.join(temp,'http-cache')});
-  const port=6198,base=`http://127.0.0.1:${port}`,server=createServer({auth:h.auth,translations:service,library,root:temp,port});await new Promise(r=>server.listen(port,'127.0.0.1',r));
+  const port=Number(process.env.DUVI_AI_TEST_PORT||6198),base=`http://127.0.0.1:${port}`,server=createServer({auth:h.auth,translations:service,library,root:temp,port});await new Promise(r=>server.listen(port,'127.0.0.1',r));
   try{
-    const response=await fetch(base+'/api/session');assert.match(response.headers.get('set-cookie'),/^mit_session_6198=/);const cookie=response.headers.get('set-cookie').split(';')[0];const value=await response.json();assert.ok(value.csrf);assert.equal(JSON.stringify(value).includes('access-test'),false);
+    const response=await fetch(base+'/api/session');assert.ok(response.headers.get('set-cookie').startsWith(`mit_session_${port}=`));const cookie=response.headers.get('set-cookie').split(';')[0];const value=await response.json();assert.ok(value.csrf);assert.equal(JSON.stringify(value).includes('access-test'),false);
     const headers={Cookie:cookie,Origin:base,'X-CSRF-Token':value.csrf,'Content-Type':'application/json'};
     assert.equal((await fetch(base+'/api/auth/ack',{method:'POST',headers:{...headers,Origin:'https://evil.invalid'},body:'{}'})).status,403);
     assert.equal((await fetch(base+'/api/auth/ack',{method:'POST',headers:{...headers,'X-CSRF-Token':'wrong'},body:'{}'})).status,403);

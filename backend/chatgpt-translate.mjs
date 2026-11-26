@@ -87,11 +87,11 @@ export class TranslationService{
     return {version:1,lecture:number,sourceHash:fingerprint(lecture),promptVersion:PROMPT_VERSION,translations:{}};
   }
   publicJob(){if(!this.job)return null;const {controller,accountId,...safe}=this.job;return safe;}
-  async start({number,model,scope,start=0,sentenceAligned=false}){
+  async start({number,model,scope,start=0,sentenceAligned=false,alignmentRevision=null}){
     if(this.job?.status==='running'||this.starting)throw new AppError('진행 중인 번역을 먼저 멈추세요.','busy',409);
     this.starting=true;
     try{
-      if(!['sample','lecture'].includes(scope)||!Number.isFinite(start)||start<0)throw new AppError('번역 범위를 확인하세요.');
+      if(!['section','sample','lecture'].includes(scope)||!Number.isFinite(start)||start<0)throw new AppError('번역 범위를 확인하세요.');
       const accountId=this.auth.state.activeId;
       const models=await this.auth.models(accountId);if(!models.some(m=>m.id===model))throw new AppError('이 계정에서 사용할 수 있는 모델을 선택하세요.','invalid_model');
       const source=await this.lecture(number),cache=await this.cache(number,source);
@@ -103,7 +103,8 @@ export class TranslationService{
         return this.publicJob();
       }
       if(scope==='sample')start=Math.min(start,lecture.cues.at(-1).end);
-      const ids=lecture.cues.map((c,i)=>({c,i})).filter(({c})=>scope==='lecture'||(c.end>start&&c.start<start+300)).map(({i})=>i);
+      const ids=lecture.cues.map((c,i)=>({c,i})).filter(({c})=>scope==='lecture'||(scope==='section'?c.start===start:c.end>start&&c.start<start+300)).map(({i})=>i);
+      if(scope==='section'&&(!ids.length||alignmentRevision!==(cache.alignmentRevision||null)))throw new AppError('현재 영어 자막이 바뀌었습니다. 강의를 새로고침한 뒤 다시 시도하세요.','stale_cue',409);
       const pending=ids.filter(id=>!cache.translations[id]);
       this.job={id:randomUUID(),number,title:lecture.title,model,scope,status:pending.length?'running':'completed',done:ids.length-pending.length,total:ids.length,startedAt:new Date().toISOString(),message:pending.length?'앞뒤 문맥을 함께 읽고 번역하고 있습니다.':'선택한 구간은 이미 저장되어 있습니다.',controller:new AbortController(),accountId};
       if(pending.length){this.task=this.run(this.job,lecture,cache,pending).finally(()=>this.task=null);}return this.publicJob();
