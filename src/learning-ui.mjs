@@ -18,8 +18,8 @@ export function returnFocusTarget({opener,label,root}){
   return label&&root?[...root.querySelectorAll('button,a,summary')].find(node=>node.textContent===label)||null:null;
 }
 export class LearningUI{
-  constructor({api,stream,capture,onOpen,onJump,onPrepare,onRestorePositions=()=>{},resumeSync,onStateChange=()=>{},getModel,openPanel,closeLibrary,showView=()=>{},player,cueAt,onChatCount=()=>{}}){
-    Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,resumeSync,onStateChange,getModel,openPanel,closeLibrary,showView,player});
+  constructor({api,stream,capture,onOpen,onOpenConcept,onJump,onPrepare,onRestorePositions=()=>{},resumeSync,onStateChange=()=>{},getModel,openPanel,closeLibrary,showView=()=>{},player,cueAt,onChatCount=()=>{}}){
+    Object.assign(this,{api,capture,onOpen,onOpenConcept,onJump,onPrepare,onRestorePositions,resumeSync,onStateChange,getModel,openPanel,closeLibrary,showView,player});
     this.strip=new TimeStrip(document.getElementById('timeStrip'),{jump:seconds=>{player.pause();player.seek(seconds);}});this.state={revision:0,records:[],progress:{},chats:[]};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
     this.dialog=document.getElementById('learningDialog');this.content=document.getElementById('learningContent');this.notice=document.getElementById('learningNotice');
     const header=this.dialog.querySelector('.dialog-header');
@@ -101,7 +101,7 @@ export class LearningUI{
     try{await this.refresh();this.select(view);if(view==='roadmap'&&cardId)focusV4Card(this.content,cardId);}catch(error){this.notice.textContent=error.message;this.content.replaceChildren(button('다시 불러오기',()=>this.open(view,cardId)));}
   }
   select(view){if(!this.loaded)return;this.view=view;this.notice.textContent='';this.updateRoadmap=null;for(const tab of this.nav.children)tab.setAttribute('aria-pressed',String(tab.dataset.learningView===view));this.content.replaceChildren();
-    if(view==='roadmap')this.updateRoadmap=renderRoadmap(this.content,{roadmap:this.roadmap,state:this.state,onOpen:resource=>this.openResource(resource),onProgress:(id,status)=>this.changeProgress(id,status),onPrepare:event=>this.prepare(event),onComplete:resource=>this.complete(resource)});
+    if(view==='roadmap')this.updateRoadmap=renderRoadmap(this.content,{roadmap:this.roadmap,state:this.state,onOpen:resource=>this.openResource(resource),onOpenConcept:this.onOpenConcept&&((id)=>{this.dialog.close();this.onOpenConcept(id);}),onProgress:(id,status)=>this.changeProgress(id,status),onPrepare:event=>this.prepare(event),onComplete:resource=>this.complete(resource)});
     if(view==='records'||view==='review')renderRecords(this.content,{state:this.state,review:view==='review',filter:this.recordFilter||'all',onFilter:filter=>{this.recordFilter=filter;this.select('records');},lectureName:id=>this.lectureName(id),onEdit:record=>this.edit(record),onJump:record=>this.jump(record),onReview:body=>this.review(body),onReload:()=>this.refresh()});
     if(view==='backup'){new LearningBackupUI(this.content,{api:this.api,onImported:async()=>{this.onRestorePositions();await this.refresh();await this.onPrepare();}});new LearningSyncUI(this.content,{api:this.api,resumeSync:this.resumeSync,onImported:()=>this.refresh()});}
   }

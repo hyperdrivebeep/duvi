@@ -262,6 +262,7 @@ const learningUI=new LearningUI({api,stream:streamApi,onChatCount:count=>tabLabe
   capture:()=>lecture?{lectureId:String(lecture.number),title:lecture.title,anchor:makeAnchor({lecture,seconds:video.currentTime,cue:lecture.cues[Math.max(current,0)],translation:translated(Math.max(current,0))||''})}:null,
   onOpen:async resource=>{const {lectureId}=resource.videoId?await api('/api/learning/v4-video',{videoId:resource.videoId}):resource;shell.show('lecture');await refreshLibrary(lectureId);if(!libraryUI.rows.some(row=>String(row.number)===String(lectureId)))throw new Error('이 강의는 아직 준비되지 않았습니다. “순서대로 강의 폴더 준비”를 먼저 눌러주세요.');$('lecture').value=lectureId;await load(lectureId);if(resource.start!==undefined)video.currentTime=resource.start;},
   onPrepare:()=>refreshLibrary($('lecture').value),
+  onOpenConcept:id=>void openMap(id),
   onJump:async anchor=>{if(!anchor)throw new Error('저장한 원문 연결이 없습니다.');const target=await api(`/api/lectures/${encodeURIComponent(anchor.lectureId)}`),cache=await api(`/api/translations/${encodeURIComponent(anchor.lectureId)}`);const aligned=cache.cues&&cache.alignmentRevision?{...target,cues:cache.cues,alignmentRevision:cache.alignmentRevision}:target,result=anchorState(anchor,aligned);if(result.status!=='matched')return result;shell.show('lecture');if(String(lecture?.number)!==String(anchor.lectureId)){$('lecture').value=anchor.lectureId;await load(anchor.lectureId);}video.currentTime=anchor.seconds;update();return result;}
 });
 // 확인 문제 and 돌아보기 (quiz-view.mjs, review-view.mjs). Each screen is mounted once and reloaded when shown again;
@@ -317,7 +318,8 @@ async function showMap({conceptId}={}){
   try{evidence=evidenceByConcept(mapData,await views.evidence());}catch{evidence=undefined;}
   if(shell.current()!=='map')return;
   mounts.map=renderConceptMap($('mapRoot'),{data:mapData,state:{progress:state.progress,records:state.records,attempts:attemptsByConcept(mapData,state.attempts||[])},evidence,
-    focusConceptIds:currentConcepts(),view:previous?.view||'graph',selected:conceptId||previous?.selected||null,
+    focusConceptIds:currentConcepts(),view:conceptId?'graph':previous?.view||'graph',selected:conceptId||previous?.selected||null,
+    onEntryFocus:!!conceptId,
     onOpenRoadmapCard:id=>void learningUI.open('roadmap',id),
     onOpenLecture:resource=>void openTarget({kind:'lecture',lectureId:resource.lectureId}).catch(error=>{$('status').textContent=error.message;})});
 }

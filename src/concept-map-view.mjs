@@ -1,11 +1,12 @@
-// 개념 지도 screen: graph view (default) and the outline progress table (design alternative C), sharing one inspector.
+// 개념 지도: domain overview, direct connections, full graph and progress table share one inspector.
 // Mount: renderConceptMap(root, {data, state, evidence, onOpenLecture, focusConceptIds, view}).
 // Data comes from src/concept-map-data.json; state is the local learning state {progress, records, attempts?};
 // evidence is optional {[conceptId]: {commits, testsPassed, testsFailed}}. Missing evidence shows '아직 증거 없음'.
 import {
-  GRAPH, conceptCounts, conceptGroups, conceptIndex, conceptLectures, conceptResources, fitTransform, graphLayout,
+  GRAPH, conceptCounts, conceptGroups, conceptIndex, conceptLectures, conceptResources, domainOverview, fitTransform, graphLayout,
   lectureConcepts, materialLabel, nodesBox, prerequisiteChain, prerequisites, searchConcepts, zoomAt,
 } from './concept-map-model.mjs';
+import {renderConceptDiagram} from './concept-map-diagram.mjs';
 
 export const NO_EVIDENCE = '아직 증거 없음';
 export const EVIDENCE_NOTE = '내가 표시는 자기 표시이고, 오른쪽 세 칸은 기록에서 나온 증거입니다';
@@ -47,14 +48,18 @@ function lectureButton(resource, onOpenLecture) {
 
 /** Inspector for the selected concept: definition, reason, prerequisite chain, lectures and evidence. */
 function renderInspector(root, {data, state, evidence, onOpenLecture, onOpenRoadmapCard, onSelect}, concept) {
-  if (!concept) { root.replaceChildren(h('p', {className: 'cmap-muted', text: '개념을 고르면 정의와 먼저 알아야 할 것이 여기에 보입니다.'})); return; }
+  if (!concept) {
+    root.replaceChildren(h('h2', {id: 'cmap-inspector-title', text: '개념 상세'}),
+      h('p', {className: 'cmap-muted', text: '개념을 고르면 정의와 먼저 알아야 할 것이 여기에 보입니다. 완료 표시는 숙달 판정이 아닙니다.'}));
+    return;
+  }
   const direct = prerequisites(data, concept), chain = prerequisiteChain(data, concept), external = direct.filter(item => item.external);
   const lectures = conceptLectures(data, concept), readings = conceptResources(data, concept).filter(resource => !resource.lectureId);
   const counts = conceptCounts(data, concept, state, evidence);
   const meta = [concept.field, concept.level && `수준 ${concept.level}`, concept.gap ? (concept.resources.length ? '이전 공백 · v4 자료 연결' : '커리큘럼에 없음') : `로드맵 v1 판정 ${concept.status}`].filter(Boolean).join(' · ');
   const row = (label, ...value) => [h('dt', {text: label}), h('dd', {}, ...value)];
   root.replaceChildren(
-    h('h2', {id: 'cmap-inspector-title', text: concept.name}),
+    h('h2', {id: 'cmap-inspector-title', tabindex: '-1', text: concept.name}),
     h('p', {className: 'cmap-muted', text: meta}),
     h('p', {className: 'cmap-definition', text: concept.definition || '정의 없음'}),
     h('dl', {className: 'cmap-facts'},
@@ -126,7 +131,7 @@ function renderTable(root, {data, state, evidence, onOpenLecture, onSelect}) {
 }
 
 /** Graph view: SVG edges + positioned node buttons in one transformed layer. Returns {filter, select, fit, focusCurrent}. */
-export function renderConceptGraph(root, {data, state, evidence, onSelect, focusConceptIds} = {}) {
+export function renderConceptGraph(root, {data, state, evidence, onSelect, focusConceptIds, onBack} = {}) {
   const layout = graphLayout(data), {byId} = conceptIndex(data), nodeOf = new Map(layout.nodes.map(node => [node.id, node]));
   const edgesLayer = svg('svg', {class: 'cmap-edges', width: layout.width, height: layout.height, 'aria-hidden': 'true'});
   const edgeEls = layout.edges.map(edge => {
@@ -185,6 +190,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     return button;
   };
   const controls = h('div', {className: 'cmap-controls', role: 'group', 'aria-label': '그래프 보기 조절'},
+    onBack ? control('개념 지도로 돌아가기', '←', onBack, {showText: true}) : null,
     control('화면 맞춤', '⛶', () => fit(), {showText: true}),
     focusConceptIds ? control('지금 강의 개념으로', '◎', () => focusCurrent(), {showText: true, disabled: focusIds.length ? null : true}) : null,
     control('확대', '+', () => zoomBy(1.25)), control('축소', '−', () => zoomBy(0.8)));
@@ -192,7 +198,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
     h('span', {}, h('span', {className: 'cmap-legend-line', 'aria-hidden': 'true'}), '실선: 자료가 있는 개념으로 이어짐'),
     h('span', {}, h('span', {className: 'cmap-legend-line cmap-dashed', 'aria-hidden': 'true'}), '점선: 자료가 없는 개념으로 이어짐'),
     h('span', {}, h('span', {className: 'cmap-legend-line cmap-cross', 'aria-hidden': 'true'}), '흐린 선: 다른 분야로 이어짐 · 개념을 고르면 진해짐'),
-    h('span', {className: 'cmap-muted', text: '선은 선수 개념에서 그 개념이 필요한 개념으로 갑니다'}));
+    h('span', {className: 'cmap-muted', text: '데이터에는 선수 관계만 있습니다. 선은 선수에서 그 선수가 필요한 개념으로 갑니다.'}));
   const viewport = h('section', {className: 'cmap-graph', tabindex: '0', 'aria-label': '개념 그래프. 더하기·빼기로 확대·축소, 0으로 화면 맞춤, 화살표로 이동, Tab으로 개념 이동'}, layer, legend, controls, note);
   root.replaceChildren(viewport);
 
@@ -259,6 +265,7 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
   else { const observer = new ResizeObserver(() => { if (viewport.clientWidth) { observer.disconnect(); fit(); } }); observer.observe(viewport); }
   return {
     fit, focusCurrent, zoomBy, get transform() { return transform; }, viewport,
+    dispose() { hideTip({key: 'Escape'}); },
     filter(ids, searching) { for (const [id, el] of nodeEls) setClass(el, 'cmap-dim', searching && !ids.has(id)); },
     select(id, {reveal: show = true} = {}) {
       if (selected) nodeEls.get(selected)?.setAttribute('aria-pressed', 'false');
@@ -276,10 +283,12 @@ export function renderConceptGraph(root, {data, state, evidence, onSelect, focus
  * Full 개념 지도 page: header (search, 그래프/표 toggle, evidence note), graph or table, and the inspector.
  * Returns {select(id), setView('graph'|'table'), search(query), view, selected}; the shell re-mounts with view and selected.
  */
-export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, onOpenRoadmapCard, focusConceptIds, view = 'graph', selected: initial = null} = {}) {
+export function renderConceptMap(root, {data, state = {}, evidence, onOpenLecture, onOpenRoadmapCard, focusConceptIds, view = 'graph',
+  selected: initial = null, onEntryFocus = false} = {}) {
   const total = data.concepts.length, gaps = data.concepts.filter(concept => concept.gap && !concept.resources.length).length;
+  const {byId} = conceptIndex(data), overview = domainOverview(data, state.progress);
   const search = h('input', {type: 'search', className: 'cmap-search', placeholder: '개념 찾기', 'aria-label': '개념 찾기'});
-  const status = h('p', {className: 'cmap-status', role: 'status'});
+  const status = h('p', {className: 'cmap-status', role: 'status', 'aria-atomic': 'true'});
   const viewButtons = Object.fromEntries([['graph', '그래프'], ['table', '표']].map(([key, label]) => [key, h('button', {type: 'button', className: 'cmap-view', 'aria-pressed': 'false', onClick: () => setView(key)}, label)]));
   const main = h('div', {className: 'cmap-main'}), inspector = h('aside', {className: 'cmap-inspector', 'aria-labelledby': 'cmap-inspector-title', 'aria-live': 'polite'});
   root.replaceChildren(h('div', {className: 'cmap'},
@@ -288,31 +297,72 @@ export function renderConceptMap(root, {data, state = {}, evidence, onOpenLectur
       h('div', {className: 'cmap-toolbar'}, h('div', {className: 'cmap-switch', role: 'group', 'aria-label': '보기'}, viewButtons.graph, viewButtons.table), search),
       h('p', {className: 'cmap-note', text: EVIDENCE_NOTE}), status),
     main, inspector));
-  let current = null, selected = null, query = '';
-  const select = id => {
-    selected = id; current?.select(id);
-    renderInspector(inspector, {data, state, evidence, onOpenLecture, onOpenRoadmapCard, onSelect: select}, id ? conceptIndex(data).byId.get(id) : null);
+  let current = null, selected = byId.has(initial) ? initial : null, query = '', full = false, openDomain = null, returnId = null;
+  const select = (id, focus = false) => {
+    if (id != null && !byId.has(id)) return;
+    if (!full && !selected && openDomain && !query.trim()) returnId = id;
+    selected = id;
+    if (view === 'graph' && !full) {
+      query = search.value = ''; full = false;
+      renderDiagram(focus);
+    } else current?.select(id);
+    updateInspector();
   };
-  function applySearch() {
+  const selectFromNode = id => select(id, true);
+  function updateInspector() {
+    renderInspector(inspector, {data, state, evidence, onOpenLecture, onOpenRoadmapCard, onSelect: selectFromNode}, byId.get(selected));
+  }
+  function renderDiagram(focus = false) {
     const ids = new Set(searchConcepts(data, query)), searching = !!query.trim();
-    current?.filter(ids, searching);
-    status.textContent = !searching ? '' : ids.size ? `'${query.trim()}' 개념 ${ids.size}개` : `'${query.trim()}'에 맞는 개념이 없습니다. 이름 일부나 영어 약어(TOST, NLL)로 찾아 보세요.`;
+    const announcement = renderConceptDiagram(main, {h, svg, data, state, overview, selected, query: query.trim(), matches: ids, openDomain,
+      returnId, focus, focusConceptIds, onSelect: selectFromNode,
+      onDomain(id) { openDomain = openDomain === id ? null : id; returnId = id; renderDiagram(true); },
+      onOverview(fit) {
+        query = search.value = '';
+        if (fit) openDomain = returnId = null;
+        select(null, true);
+      },
+      onFull() { full = true; renderFull(true); },
+    });
+    setStatus(ids, searching, announcement);
+    if (!selected && !searching && !openDomain) main.scrollTop = 0;
     return ids;
   }
-  function setView(next) {
-    view = next;
-    for (const [key, button] of Object.entries(viewButtons)) button.setAttribute('aria-pressed', String(key === view));
-    const options = {data, state, evidence, onOpenLecture, onSelect: select, focusConceptIds};
-    current = view === 'table' ? renderTable(main, options) : renderConceptGraph(main, options);
-    setClass(main, 'cmap-main-table', view === 'table');
+  function setStatus(ids, searching, fallback = '') {
+    status.textContent = !searching ? fallback : ids.size ? `'${query.trim()}' 개념 ${ids.size}개`
+      : `'${query.trim()}'에 맞는 개념이 없습니다. 이름 일부나 영어 약어(TOST, NLL)로 찾아 보세요.`;
+  }
+  function applySearch() {
+    if (view === 'graph' && !full) return renderDiagram();
+    const ids = new Set(searchConcepts(data, query)), searching = !!query.trim();
+    current?.filter(ids, searching); setStatus(ids, searching);
+    return ids;
+  }
+  function renderFull(focus) {
+    main.scrollTop = 0;
+    current = renderConceptGraph(main, {data, state, evidence, focusConceptIds, onSelect: selectFromNode,
+      onBack() { current?.dispose?.(); current = null; full = false; renderDiagram(true); }});
     applySearch(); if (selected) current.select(selected);
+    if (focus) current.viewport.focus?.();
+  }
+  function setView(next) {
+    current?.dispose?.(); current = null; full = false; view = next;
+    for (const [key, button] of Object.entries(viewButtons)) button.setAttribute('aria-pressed', String(key === view));
+    setClass(main, 'cmap-main-table', view === 'table');
+    if (view === 'table') {
+      current = renderTable(main, {data, state, evidence, onOpenLecture, onSelect: selectFromNode});
+      applySearch(); if (selected) current.select(selected);
+    } else renderDiagram();
   }
   search.addEventListener('input', () => { query = search.value; applySearch(); });
   search.addEventListener('keydown', event => {
     if (event.key !== 'Enter') return;
-    const [first] = applySearch(); if (first && query.trim()) select(first);
+    if (event.isComposing || !query.trim()) return;
+    const [first] = searchConcepts(data, query);
+    if (first) { event.preventDefault(); selectFromNode(first); }
   });
-  setView(view); select(initial);
+  setView(view); updateInspector();
+  if (onEntryFocus && selected && view === 'graph') renderDiagram(true);
   return {select, setView, search(text) { search.value = text; query = text; return applySearch(); }, get view() { return view; }, get selected() { return selected; }};
 }
 

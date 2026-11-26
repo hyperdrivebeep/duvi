@@ -1,6 +1,14 @@
 import {el, button, link} from './learning-dom.mjs';
 import {resourceCompleted} from './learning-model.mjs';
 import {stageCheck, studyCards, missingPrerequisites, requiredPhaseCards} from './curriculum-v4-model.mjs';
+import mapData from './concept-map-data.json' with {type: 'json'};
+
+const conceptsByCard = new Map();
+for (const concept of mapData.concepts) for (const id of concept.resources) {
+  if (!id.startsWith('v4-')) continue;
+  if (!conceptsByCard.has(id)) conceptsByCard.set(id, []);
+  conceptsByCard.get(id).push(concept);
+}
 
 const labels = {required: '필수', recommended: '권장', optional: '선택'};
 const text = (root, label, value) => { if (value) root.append(el('p', 'learning-preserve', `${label}${value}`)); };
@@ -31,7 +39,7 @@ export function focusV4Card(root, id) {
   (card.querySelector('summary') || card.querySelector('button'))?.focus();
 }
 
-export function renderV4Phase(section, roadmap, phase, updates, onComplete, onOpen) {
+export function renderV4Phase(section, roadmap, phase, updates, onComplete, onOpen, onOpenConcept) {
   const v4 = roadmap.curriculumV4;
   if (!v4) return;
   const cards = v4.phases[phase.id] || [];
@@ -129,6 +137,12 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete, onOp
     for (const entry of card.readingPrerequisites || []) text(item, '발췌 선수: ', `${entry.portion} 이전에 ${entry.resourceIds.join(' · ')} 직접 확인`);
     if (sources.childElementCount) item.append(sources);
     renderVideos(item, roadmap, card.id, updates, onOpen, card);
+    if (onOpenConcept && conceptsByCard.has(card.id)) {
+      const actions = el('div', 'learning-resource-actions');
+      for (const concept of conceptsByCard.get(card.id))
+        actions.append(button(`${concept.name} · 개념 지도`, () => onOpenConcept(concept.id)));
+      item.append(actions);
+    }
     item.append(toggle(card, '완료로 표시', updates, roadmap, onComplete));
     (card.level === 'required' ? core : group).append(item);
   }
