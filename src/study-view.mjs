@@ -84,7 +84,7 @@ export function setupStudyView({onTranscriptOpen,onChatOpen=()=>{},onQuizOpen=()
     else if(entered)setActive(false);
   });
   document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&entered&&!document.fullscreenElement){event.preventDefault();exit();}
+    if(event.key==='Escape'&&entered&&!document.fullscreenElement&&!document.querySelector('dialog[open]')){event.preventDefault();exit();}
     if(entered&&revealsControls(event))showControls();
   });
   const revealFromPointer=event=>{if(revealsControls(event))showControls();};
