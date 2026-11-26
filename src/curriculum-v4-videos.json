@@ -250,10 +250,10 @@
         "previously_verified_on": null
       }
     },
-    "mt9WKbQJrI4": {
-      "title": "Statistical Rethinking 2023 - 17 - Measurement & Misclassification",
+    "lTFAB6QmwHM": {
+      "title": "Statistical Rethinking 2022 Lecture 17 - Measurement Error",
       "channel": "Richard McElreath",
-      "url": "https://www.youtube.com/watch?v=mt9WKbQJrI4",
+      "url": "https://www.youtube.com/watch?v=lTFAB6QmwHM",
       "oembed": {
         "status": 200,
         "checked_on": "2026-11-25",
@@ -868,9 +868,9 @@
         ]
       },
       {
-        "videoId": "mt9WKbQJrI4",
+        "videoId": "lTFAB6QmwHM",
         "range": "전체",
-        "minutes": 77.3,
+        "minutes": 70.6,
         "reason": "관측과정이 만든 측정 오차와 오분류를 모형에서 명시하는 사례. Duvi의 네 조건과 1:1 대응하지 않으므로 별도 독립 판정표가 필요하다.",
         "prerequisite": [
           "learning-phase-3b",
