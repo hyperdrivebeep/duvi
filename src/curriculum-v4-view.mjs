@@ -31,7 +31,7 @@ export function focusV4Card(root, id) {
   (card.querySelector('summary') || card.querySelector('button'))?.focus();
 }
 
-export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
+export function renderV4Phase(section, roadmap, phase, updates, onComplete, onOpen) {
   const v4 = roadmap.curriculumV4;
   if (!v4) return;
   const cards = v4.phases[phase.id] || [];
@@ -52,7 +52,7 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     checkpoint.append(toggle(check, '단계 직접 수행 확인', updates, roadmap, onComplete));
     core.append(checkpoint);
   }
-  renderVideos(group, roadmap, phase.id, updates);
+  renderVideos(group, roadmap, phase.id, updates, onOpen);
   const byId = new Map(studyCards(roadmap).map(card => [card.id, card]));
   for (const card of [...required, ...optional]) {
     const item = el('details', 'learning-v4-card');
@@ -128,7 +128,7 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
     }
     for (const entry of card.readingPrerequisites || []) text(item, '발췌 선수: ', `${entry.portion} 이전에 ${entry.resourceIds.join(' · ')} 직접 확인`);
     if (sources.childElementCount) item.append(sources);
-    renderVideos(item, roadmap, card.id, updates, card);
+    renderVideos(item, roadmap, card.id, updates, onOpen, card);
     item.append(toggle(card, '완료로 표시', updates, roadmap, onComplete));
     (card.level === 'required' ? core : group).append(item);
   }
@@ -136,7 +136,7 @@ export function renderV4Phase(section, roadmap, phase, updates, onComplete) {
   if (optional.length || v4.topics?.[phase.id]?.length) section.append(group);
 }
 
-function renderVideos(root, roadmap, topic, updates, card) {
+function renderVideos(root, roadmap, topic, updates, onOpen, card) {
   const entries = roadmap.curriculumV4.topics?.[topic];
   if (!entries?.length) return;
   const group = el('details', 'learning-v4-card'), list = el('ul');
@@ -145,11 +145,21 @@ function renderVideos(root, roadmap, topic, updates, card) {
     const video = roadmap.curriculumV4.videos[entry.videoId], li = el('li');
     const url = new URL(video.url);
     const time = entry.range.match(/^(\d+):(\d{2})(?::(\d{2}))?/);
+    let start;
     if (time) {
       const [, a, b, c] = time;
-      url.searchParams.set('t', String(c ? 3600 * +a + 60 * +b + +c : 60 * +a + +b));
+      start = c ? 3600 * +a + 60 * +b + +c : 60 * +a + +b;
+      url.searchParams.set('t', String(start));
     }
     const title = el('span');
+    const launch = button(`${video.title} · Duvi에서 열기`, async () => {
+      launch.disabled = true;
+      try { await onOpen(start === undefined ? {videoId: entry.videoId} : {videoId: entry.videoId, start}); }
+      finally { launch.disabled = false; }
+    });
+    const original = link('YouTube 원본 ↗', url.href);
+    original.setAttribute('aria-label', `${video.title} · YouTube 원본 (새 탭)`);
+    li.dataset.v4Video = entry.videoId;
     text(li, '', `${video.channel} · ${entry.range} · ${entry.minutes}분 · ${entry.reason}`);
     li.prepend(title);
     updates.push(({progress}) => {
@@ -157,9 +167,8 @@ function renderVideos(root, roadmap, topic, updates, card) {
         prerequisite: [...new Set([...(card?.prerequisite || []), ...entry.prerequisite])],
         cardPrerequisites: card?.cardPrerequisites,
       }, progress);
-      title.replaceChildren(missing.length
-        ? el('span', 'muted', `${video.title} · 선수 확인 대기: ${missing.map(check => check.title).join(' / ')}`)
-        : link(`${video.title} ↗`, url.href));
+      if (missing.length) title.replaceChildren(el('span', 'muted', `${video.title} · 선수 확인 대기: ${missing.map(check => check.title).join(' / ')}`));
+      else if (title.firstChild !== launch) title.replaceChildren(launch, document.createTextNode(' · '), original);
     });
     list.append(li);
   }

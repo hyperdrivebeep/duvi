@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {LectureLibrary} from '../library.mjs';
-import {prepareRoadmap} from '../learning-curriculum.mjs';
+import {prepareRoadmap, prepareV4Video} from '../learning-curriculum.mjs';
 import {atomicJSON} from '../vault.mjs';
 import {ROADMAP, VIDEO_METADATA} from '../../src/learning-roadmap.mjs';
 
@@ -34,6 +34,25 @@ async function fixture(t) {
 
 const phaseIds = ['1', '2', '2b', '3', '3b', '4', '5', '5b', '5c', '5d', '6', '7', '8'].map(n => `learning-phase-${n}`);
 const phase5 = phaseIds.indexOf('learning-phase-5');
+
+test('opening a curated v4 video registers it without fetching captions or replacing a prior import', async t => {
+  const {root, library} = await fixture(t);
+  const [id, metadata] = Object.entries(ROADMAP.curriculumV4.videos)[0];
+  const key = `yt_${id}`;
+  await assert.rejects(prepareV4Video(library, 'constructor'), {code: 'not_found'});
+  const results = await Promise.all([prepareV4Video(library, id), prepareV4Video(library, id)]);
+  assert.deepEqual(results, [{lectureId: key}, {lectureId: key}]);
+  const item = await library.get(key);
+  assert.equal(item.youtubeId, id);
+  assert.equal(item.title, metadata.title);
+  assert.equal(item.captionStatus, 'pending');
+  assert.deepEqual(item.cues, []);
+  const imported = {...item, title: 'Existing import', cues: [{start: 0, end: 2, en: 'Existing caption'}], captionStatus: 'ready'};
+  await writeJSON(path.join(root, 'library', `${key}.json`), imported);
+  await prepareV4Video(library, id);
+  assert.deepEqual(await library.get(key), imported);
+  assert.equal((await library.folders.list()).folders.length, 1);
+});
 
 test('roadmap keeps the original eight phase ids in order with five inserted phases, numeric MIT entry point and prerequisite bridge', () => {
   assert.deepEqual(ROADMAP.phases.map(p => p.id), phaseIds);

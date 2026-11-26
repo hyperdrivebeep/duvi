@@ -5,7 +5,7 @@ import {studyCards, stageCheck, missingPrerequisites} from '../src/curriculum-v4
 import {checkCompatibility, validateCurriculum} from '../scripts/validate-curriculum-v4.mjs';
 import {resourceProgressId} from '../src/learning-model.mjs';
 import {renderRoadmap} from '../src/learning-map-view.mjs';
-import {all, byTag, createRoot, installDom} from './fake-dom.mjs';
+import {all, byTag, createRoot, installDom, settle} from './fake-dom.mjs';
 
 test('all 227 old resource statuses, keys, URLs and onramp are unchanged using synthetic v3 saved state', () => {
   assert.equal(checkCompatibility(ROADMAP), 227);
@@ -27,6 +27,69 @@ test('E01 reads explicit stage and card marks; later architecture exercises wait
   assert.deepEqual(missingPrerequisites(ROADMAP, e03, progress), [e01]);
   progress[e01.id] = {completed: true};
   assert.deepEqual(missingPrerequisites(ROADMAP, e03, progress), []);
+});
+
+const videoPrerequisites = () => Object.fromEntries([
+  ...ROADMAP.phases.map(phase => stageCheck(phase).id),
+  ...studyCards(ROADMAP).map(card => card.id),
+].map(id => [id, {completed: true}]));
+const videoLocations = root => all(root, node => node.dataset.v4Video);
+
+test('v4 video locations are all locked without progress', t => {
+  t.after(installDom());
+  const root = createRoot();
+  renderRoadmap(root, {roadmap: ROADMAP, state: {progress: {}}});
+  const rows = videoLocations(root);
+  assert.equal(rows.length, 87);
+  for (const row of rows) {
+    assert.match(row.textContent, /선수 확인 대기/);
+    assert.equal(byTag(row, 'button').length, 0);
+    assert.equal(byTag(row, 'a').length, 0);
+  }
+});
+
+test('v4 video locations unlock with one open button and one named original link each', t => {
+  t.after(installDom());
+  const root = createRoot();
+  const update = renderRoadmap(root, {roadmap: ROADMAP, state: {progress: {}}});
+  update({progress: videoPrerequisites()});
+  const rows = videoLocations(root);
+  assert.equal(rows.length, 87);
+  for (const row of rows) {
+    const id = row.dataset.v4Video, {title} = ROADMAP.curriculumV4.videos[id];
+    const buttons = byTag(row, 'button'), links = byTag(row, 'a');
+    assert.equal(buttons.length, 1, id);
+    assert.equal(buttons[0].textContent, `${title} · Duvi에서 열기`);
+    assert.equal(links.length, 1, id);
+    assert.equal(new URL(links[0].href).searchParams.get('v'), id);
+    assert.equal(links[0].target, '_blank');
+    assert.equal(links[0].getAttribute('aria-label'), `${title} · YouTube 원본 (새 탭)`);
+    assert.doesNotMatch(row.textContent, /선수 확인 대기/);
+  }
+  update({progress: {}});
+  for (const row of rows) {
+    assert.equal(byTag(row, 'button').length, 0);
+    assert.equal(byTag(row, 'a').length, 0);
+  }
+});
+
+test('v4 video open passes only the video ID for a full video and never writes progress', async t => {
+  t.after(installDom());
+  const root = createRoot(), open = [], writes = [];
+  renderRoadmap(root, {
+    roadmap: ROADMAP, state: {progress: videoPrerequisites()},
+    onOpen: (...args) => { open.push(args); },
+    onProgress: (...args) => { writes.push(['progress', ...args]); },
+    onComplete: (...args) => { writes.push(['complete', ...args]); },
+  });
+  const rows = videoLocations(root);
+  for (const id of ['lTFAB6QmwHM', 'ci3muJMEYho']) {
+    const row = rows.find(node => node.dataset.v4Video === id);
+    byTag(row, 'button')[0].click();
+  }
+  await settle();
+  assert.deepEqual(open, [[{videoId: 'lTFAB6QmwHM'}], [{videoId: 'ci3muJMEYho', start: 437}]]);
+  assert.deepEqual(writes, []);
 });
 
 function withRoadmap(run, through='5') {

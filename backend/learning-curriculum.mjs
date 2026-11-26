@@ -3,6 +3,27 @@ import {ROADMAP, VIDEO_METADATA} from '../src/learning-roadmap.mjs';
 import {atomicJSON} from './vault.mjs';
 import {AppError} from './chatgpt-auth.mjs';
 
+/** Open one curated reference without making playback depend on subtitle extraction. */
+export async function prepareV4Video(library, id) {
+  const videos = ROADMAP.curriculumV4.videos;
+  if (typeof id !== 'string' || !Object.hasOwn(videos, id)) {
+    throw new AppError('로드맵의 YouTube 강의를 선택하세요.', 'not_found', 404);
+  }
+  const key = `yt_${id}`, metadata = videos[id];
+  return library.mutateLecture(key, async () => {
+    try { await library.get(key); }
+    catch (error) {
+      if (error.code !== 'not_found') throw error;
+      await atomicJSON(path.join(library.directory, `${key}.json`), {
+        number: key, title: metadata.title, course: metadata.channel, youtubeId: id,
+        player: 'youtube', pageUrl: metadata.url, cues: [], captionStatus: 'pending',
+        createdAt: new Date().toISOString(),
+      });
+    }
+    return {lectureId: key};
+  });
+}
+
 /** Attach curriculum references; never import captions or mark learning complete. */
 export async function prepareRoadmap(library) {
   const resources = ROADMAP.phases.flatMap(phase => phase.resources);
