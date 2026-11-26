@@ -22,6 +22,11 @@ export class LearningUI{
     Object.assign(this,{api,capture,onOpen,onJump,onPrepare,onRestorePositions,resumeSync,onStateChange,getModel,openPanel,closeLibrary,showView,player});
     this.strip=new TimeStrip(document.getElementById('timeStrip'),{jump:seconds=>{player.pause();player.seek(seconds);}});this.state={revision:0,records:[],progress:{},chats:[]};this.roadmap=null;this.view='roadmap';this.loaded=false;this.saving=false;
     this.dialog=document.getElementById('learningDialog');this.content=document.getElementById('learningContent');this.notice=document.getElementById('learningNotice');
+    const header=this.dialog.querySelector('.dialog-header');
+    new ResizeObserver(()=>{
+      const {height}=header.getBoundingClientRect();
+      if(height)this.dialog.style.setProperty('--roadmap-header-height',`${height}px`);
+    }).observe(header,{box:'border-box'});
     // The full record editor (evidence fields, history, Markdown, tutor) opens as a dialog from a question's 자세히.
     this.recordDialog=document.getElementById('recordDialog');
     document.getElementById('closeRecord').onclick=()=>this.recordDialog.close();
