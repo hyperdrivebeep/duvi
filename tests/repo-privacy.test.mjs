@@ -25,10 +25,13 @@ const USER_HOME = new RegExp(`${HOME_START}${USER_ROOT}users${PATH_SEP}{1,2}(?!:
 const UNIX_HOME = new RegExp(`${HOME_START}(?:${LOCAL_FILE}/|${PARENT}|${FORWARD_SLASH})home${FORWARD_SLASH}([\\w.-]+)`, 'gi');
 // Only bare /users and /home are ambiguous with app routes (not drive paths or file URLs).
 const BARE_ROUTE_ROOT = `${FORWARD_SLASH}(?:users|home)${FORWARD_SLASH}`;
-const ROUTE_PARAM = new RegExp(`^${BARE_ROUTE_ROOT}(?:[:{]|%(?:25)?(?:3a|7b))`, 'i');
-// Keep the list short and match whole segments so e.g. "megan" remains a candidate.
+const ROUTE_END = /[?#\s`'"),]/.source;
+const ROUTE_PARAM = new RegExp(`^${BARE_ROUTE_ROOT}(?:(?::|%(?:25)?3a)[\\w-]+|`+
+  `(?:\\{|%(?:25)?7b)[\\w-]+(?:\\}|%(?:25)?7d))(?=$|${FORWARD_SLASH}|${ROUTE_END})`, 'i');
+// Ordinary route words are ambiguous only as terminal segments in a literal or query value.
+const ROUTE_START = /(?:["'`]|\?[\w.-]+=)$/;
 const ROUTE_WORD = new RegExp(`^${BARE_ROUTE_ROOT}(?:me|dashboard|index|settings|profile|login|new)`+
-  `(?=$|${FORWARD_SLASH}|`+ /[?#\s`'"<>…()[\]{},;|]/.source +`)`, 'i');
+  `(?=$|${ROUTE_END})`, 'i');
 // Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
 const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
@@ -42,7 +45,11 @@ const PACKAGE_ARCHIVE = /^\d+\.\d+\.\d+(?:-[a-z0-9-]+(?:\.[a-z0-9-]+)*)?\.tgz$/i
 function looksLikeHome(match, text) {
   if (!match[0].startsWith('../')) {
     const tail = text.slice(match.index);
-    return !ROUTE_PARAM.test(tail) && !ROUTE_WORD.test(tail);
+    const prefix = text.slice(0, match.index);
+    // Preserve these exact route spellings without extending the username allow-list.
+    const exactRoute = (prefix.endsWith('"') && tail.startsWith('/users'+'/settings/security"')) ||
+      (!prefix && (tail === '/users/profile?tab=1' || tail === encodeURIComponent('/home/dashboard')));
+    return !ROUTE_PARAM.test(tail) && !exactRoute && !(ROUTE_START.test(prefix) && ROUTE_WORD.test(tail));
   }
   // A parent-relative home needs a directory-like username and a child path, not a module filename.
   return !/\.[a-z\d]+$/i.test(match[1]) &&
@@ -216,15 +223,37 @@ test('privacy scanner recognizes twice-encoded paths without matching placeholde
 test('privacy scanner distinguishes bare app routes from account names', () => {
   for (const text of [
     '"/users/{id}"', 'fetch("/users/me")', '"/home/dashboard"', "'/users/:id'", '?p=/home/index',
-    '"/users/settings/security"', '"/home/profile?tab=one"', '"/users/login"', '"/home/new"',
-    encodeURIComponent('/users/{id}'), encodeURIComponent('/home/dashboard')
+    '"/users/settings/security"', '"/home/profile?tab=one"', '/users/profile?tab=1', '"/users/login"', '"/home/new"',
+    encodeURIComponent('/users/{id}'), encodeURIComponent('/home/dashboard'), '/users/{userId}/edit'
   ]) assert.deepEqual(personalMatches(text), [], text);
 
   for (const home of [
     ['', 'home', 'alice'].join('/'), ['', 'Users', 'megan'].join('/'),
     ['', 'home', 'dashboard-admin'].join('/'), ['C:', 'Users', 'me'].join('/'),
-    ['file://', 'home', 'dashboard'].join('/')
+    ['file://', 'home', 'dashboard'].join('/'), ['', 'Users', '{alice'].join('/'),
+    ['', 'Users', '{id}.old'].join('/')
   ]) assert.deepEqual(personalMatches(home+'/notes'), [home], home);
+});
+
+test('privacy scanner detects actual home paths even when the account name is a route word', () => {
+  for (const [root, name, child, prefix = '', suffix = ''] of [
+    ['home', 'me', 'projects/x'],
+    ['home', 'me', '', 'HOME='],
+    ['home', 'me', 'lib', '-L'],
+    ['Users', 'new', 'Desktop'],
+    ['Users', 'Me', 'Desktop'],
+    ['Users', 'profile', 'Documents', '"', '"'],
+    ['Users', 'settings', 'Library'],
+    ['home', 'new', '.ssh'],
+    ['home', 'login', '', 'cd '],
+    ['home', 'index', 'notes'],
+    ['home', 'me', 'projects', '?p='],
+    ['users', 'settings', 'security/audit', '"', '"']
+  ]) {
+    const home = ['', root, name].join('/');
+    const text = prefix+home+(child ? '/'+child : '')+suffix;
+    assert.deepEqual(personalMatches(text), [home], text);
+  }
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {
