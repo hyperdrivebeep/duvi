@@ -19,6 +19,7 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
     Object.defineProperty(node,'textContent',{get:()=>text.get.call(node),set:value=>{writes.get(id)?.push(value);text.set.call(node,value);}});
     node.hidden=/^(captionContext|captionNotice|transcriptPanel)$/.test(id);
     node.options=[];
+    node.matches=()=>false;
     const replace=node.replaceChildren.bind(node);
     node.replaceChildren=(...children)=>{replace(...children);if(id==='account'||id==='model'){node.options=children;node.value=children[0]?.value||'';}};
     node.click=()=>{if(!node.disabled)return node.onclick?.();};
@@ -31,7 +32,7 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
     return node;
   };
   const media=new EventTarget();
-  Object.assign(media,{pause(){},currentTime:0,paused:true,load:async()=>{media.currentTime=0;}});
+  Object.assign(media,{pause(){},currentTime:0,paused:true,availableRates:[],playbackRate:1,load:async()=>{media.currentTime=0;}});
   let poll,job=null,translations={};
   const calls=[],fetch=async(path,init)=>{
     const body=init.body&&JSON.parse(init.body);calls.push({path,body});
@@ -54,7 +55,7 @@ async function app(t,{lecture=ready(A),chrome,fetchOverride}={}){
   const stubModules={
     './media.mjs':{MediaPlayer:class {constructor(){return media;}}},
     './library-ui.mjs':{LibraryUI:class {refresh(id){$('lecture').value=id;}render(){}}},
-    './study-view.mjs':{setupStudyView:()=>({openPanel(){},selectedTab:()=> 'chat'})},
+    './study-view.mjs':{setupStudyView:()=>({openPanel(){},setMedia(){},selectedTab:()=> 'chat'})},
     './app-shell.mjs':{setupShell:()=>({}),installLectureKeys(){},setupWelcome:()=>({update(){}}),accountStatusText:()=>''},
     './learning-ui.mjs':{LearningUI:class {chat={setConnectionNotice(){}};tick(){}lectureChanged(){}init(){}}},
     './quiz-api.mjs':{createLearningViewApi:()=>({quizzes:async()=>({sets:[]})})},

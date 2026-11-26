@@ -56,7 +56,7 @@ export function setupShell({onShow=()=>{}}={}){
 /** Lecture keys: ← → sentence, R repeat, F fullscreen. Fields, tabs, sliders and radios keep their own keys.
  * The listener runs in the capture phase and stops a handled key there: the video's native controls (closed shadow
  * DOM) also seek on ← →, so a bubble-phase handler made one press move twice (sentence + 1% of the video). */
-export const LECTURE_KEYS=Object.freeze({ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen'});
+export const LECTURE_KEYS=Object.freeze({ArrowLeft:'back',ArrowRight:'next',r:'repeat',f:'fullscreen',j:'skipBack',k:'playToggle',l:'skipAhead'});
 export function installLectureKeys(target,{active,press}){
   const handler=event=>{
     if(!active()||event.ctrlKey||event.metaKey||event.altKey||event.repeat)return;

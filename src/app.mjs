@@ -118,11 +118,13 @@ async function load(number){
   $('lectureTitle').textContent=lecture.title.split(' | ')[0];$('lectureTitle').title=lecture.title;$('courseLabel').textContent=(lecture.course||'MIT OpenCourseWare')+(lecture.title.includes(' | ')?' · '+lecture.title.split(' | ').slice(1).join(' | '):'');
   $('sourceNote').textContent=lecture.player==='youtube'?'영어: '+(lecture.captionSource==='youtube-auto-captions'?'YouTube 자동 생성 자막':lecture.captionSource==='user-supplied'?'직접 가져온 자막':'YouTube 제공 자막'):'영어: MIT 공식 자막';
   const mediaLoading=video.load(lecture).catch(error=>{if(requestGeneration===generation){video.lastError=error.message;progress();}});
+  studyView.setMedia(lecture.player==='youtube');
+  renderPlayback();
   $('english').textContent=lecture.title;$('korean').textContent='재생하면 두 언어의 자막이 함께 표시됩니다.';
   renderTranscript();renderCaptionNotice();
   localStorage.setItem('mit6100-lecture',String(number));history.replaceState(null,'',`?lecture=${encodeURIComponent(number)}`);renderLibrary();progress();
   if(!lecture.cues.length&&lecture.captionStatus==='pending'&&!lecture.unavailable)void prepareCaptions();
-  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.lectureChanged();lectureQuizChanged();
+  await loadAICache(number);await mediaLoading;if(requestGeneration!==generation)return;video.playbackRate=Number($('speed').value);const resume=Number(playPositions[number]);if(Number.isFinite(resume)&&resume>0)video.currentTime=Math.min(resume,lecture.duration||lecture.cues.at(-1)?.end||resume);lectureReady=true;renderPlayback();update();if(translator&&chromeMode())void translateAhead();renderAI();learningUI.lectureChanged();lectureQuizChanged();
 }
 function renderTranscript(){
   $('transcript').replaceChildren();nodes=lecture.cues.map((cue,i)=>{const b=document.createElement('button');b.className='cue';const t=document.createElement('time');t.textContent=fmt(cue.start);const e=document.createElement('span');e.className='en';e.textContent=cue.en;const k=document.createElement('span');k.className='ko';k.textContent=translated(i)||'';b.append(t,e,k);b.onclick=()=>seek(i);$('transcript').append(b);return b;});
@@ -306,6 +308,38 @@ async function stopJob(){try{({job}=await api('/api/translate/stop',{}));await l
 $('stopJob').onclick=$('stopSection').onclick=stopJob;
 $('lecture').onchange=()=>load($('lecture').value).catch(e=>$('status').textContent=e.message);
 $('pause').onclick=()=>video.pause();
+$('video').controls=false;
+const seekBar=$('playSeek'),volumeBar=$('playVolume'),speedControl=$('speed');
+function renderPlayback(){
+  const ready=lectureReady&&!video.lastError,duration=video.duration||lecture?.duration||0;
+  const playing=!video.paused,muted=video.muted,rates=video.availableRates;
+  setText('playToggle',playing?'일시정지':'재생');
+  $('playMute').setAttribute('aria-pressed',String(muted));
+  for(const id of ['playToggle','playMute','playVolume','speed'])$(id).disabled=!ready;
+  for(const id of ['playSeek','skipBack','skipAhead'])$(id).disabled=!ready||!(duration>0);
+  seekBar.max=String(duration);
+  if(!seekBar.matches(':active'))seekBar.value=String(video.currentTime||0);
+  seekBar.setAttribute('aria-valuetext',`${fmt(Number(seekBar.value))} / ${fmt(duration)}`);
+  if(!volumeBar.matches(':active'))volumeBar.value=String(muted?0:video.volume);
+  for(const option of speedControl.options)option.disabled=!!rates.length&&!rates.includes(Number(option.value));
+  if(video.playbackRate!==Number(speedControl.value)&&[...speedControl.options].some(option=>Number(option.value)===video.playbackRate)){
+    speedControl.value=String(video.playbackRate);
+    setText('studySettingsLabel',speedControl.selectedOptions[0].textContent);
+  }
+}
+$('playToggle').onclick=async()=>{
+  if(!video.paused){video.pause();return;}
+  try{positionState.allowWrite(lecture?.number);await video.play();}
+  catch(error){setText('status',error.message);}
+};
+const skip=delta=>seekTime(Math.max(0,Math.min(video.duration||lecture?.duration||0,video.currentTime+delta)));
+$('skipBack').onclick=()=>skip(-10);
+$('skipAhead').onclick=()=>skip(10);
+seekBar.oninput=()=>seekTime(Number(seekBar.value));
+$('playMute').onclick=()=>{video.muted=!video.muted;renderPlayback();};
+volumeBar.oninput=()=>video.volume=Number(volumeBar.value);
+for(const name of ['timeupdate','loadedmetadata','play','pause','ended','ratechange','volumechange','error'])video.addEventListener(name,renderPlayback);
+video.addEventListener('playblocked',()=>setText('status','브라우저가 재생을 차단했습니다. 영상 안의 YouTube 재생 버튼을 눌러 주세요.'));
 $('speed').onchange=()=>video.playbackRate=Number($('speed').value);$('back').onclick=()=>seek(current>0?current-1:0);$('next').onclick=()=>seek(current>=0?current+1:0);
 $('repeat').onclick=()=>{repeat=!repeat;$('repeatLabel').textContent=repeat?'반복 중':'다시';$('repeat').setAttribute('aria-pressed',String(repeat));if(repeat)seek(Math.max(current,0));};
 const studyView=setupStudyView({onTranscriptOpen:()=>{follow=true;scrollToCue();},onChatOpen:focus=>learningUI.chat.open(focus),onQuizOpen:()=>showLectureQuiz(),onConceptsOpen:()=>showLectureConcepts()});

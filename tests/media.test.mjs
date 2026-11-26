@@ -1,6 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MediaPlayer} from '../src/media.mjs';
+import {MediaPlayer,youtubePlayerVars} from '../src/media.mjs';
+test('the supported embed parameters retain YouTube identity and do not force captions',()=>{
+  const origin='http://127.0.0.1:6202';
+  assert.deepEqual(youtubePlayerVars(origin),{origin,enablejsapi:1,playsinline:1,controls:0,fs:0,rel:0,iv_load_policy:3,disablekb:1,cc_lang_pref:'en'});
+});
+test('YouTube uses the shared play, pause, seek, speed and volume adapter without loading captions',async()=>{
+  const saved={window:globalThis.window,document:globalThis.document,YT:globalThis.YT,setInterval:globalThis.setInterval,location:globalThis.location};
+  const calls=[];let vars;
+  class FakePlayer{
+    constructor(_,options){this.events=options.events;vars=options.playerVars;queueMicrotask(options.events.onReady);}
+    playVideo(){calls.push('play');this.events.onStateChange({data:1});}pauseVideo(){calls.push('pause');}
+    seekTo(...args){calls.push(['seek',...args]);this.events.onStateChange({data:3});}
+    setPlaybackRate(rate){calls.push(['rate',rate]);}getPlaybackRate(){return 1.25;}
+    getAvailablePlaybackRates(){return [1,1.25,1.5];}
+    setVolume(volume){calls.push(['volume',volume]);}mute(){calls.push('mute');}unMute(){calls.push('unmute');}
+  }
+  try{
+    const origin='http://127.0.0.1:6202';
+    Object.assign(globalThis,{window:{YT:{Player:FakePlayer}},YT:{Player:FakePlayer},document:{createElement:()=>({})},setInterval:()=>0,location:{origin}});
+    const native=Object.assign(new EventTarget(),{pause(){},load(){},removeAttribute(){}});
+    const player=new MediaPlayer(native,{replaceChildren(){}});
+    await player.load({player:'youtube',youtubeId:'aircAruvnKk'});
+    assert.deepEqual(vars,youtubePlayerVars(origin));assert.equal(Object.hasOwn(vars,'cc_load_policy'),false);
+    await player.play();player.currentTime=21;assert.equal(player.paused,false);
+    player.currentTime=31;player.youtube.events.onStateChange({data:1});player.pause();player.playbackRate=1.25;
+    player.volume=.5;player.muted=true;
+    assert.equal(player.playbackRate,1.25);assert.deepEqual(player.availableRates,[1,1.25,1.5]);
+    assert.deepEqual(calls,['play',['seek',21,true],['seek',31,true],'pause',['rate',1.25],['volume',50],'unmute','mute']);
+  }finally{Object.assign(globalThis,saved);}
+});
 test('native poster upgrades only to a real widescreen thumbnail for the current lecture',async()=>{
   const saved={Image:globalThis.Image,setInterval:globalThis.setInterval},images=[];
   try{
