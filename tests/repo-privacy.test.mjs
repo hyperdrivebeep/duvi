@@ -8,19 +8,27 @@ import {readFileSync} from 'node:fs';
 // Vendored third-party code and the lockfile are skipped.
 const root = new URL('..', import.meta.url);
 const BINARY = /\.(webp|png|jpe?g|gif|ico|woff2?|ttf|exe|zip|wasm)$/i, SKIP = /^(package-lock\.json|backend\/vendor\/)/;
-// Start at a path boundary or immediately after a standalone short CLI flag.
-const HOME_START = /(?:(?<![\w.%\/-])|(?<=(?:^|\s)-[a-zA-Z]))/.source;
+// Start at a path boundary or after a standalone CLI flag that accepts an attached path.
+const HOME_START = /(?:(?<![\w.%\/-])|(?<=(?:^|\s)-(?:[a-zA-Z]|isystem|iquote)))/.source;
 const LOCAL_FILE = /file:\/\/(?:localhost)?/.source;
-const DRIVE = /[a-z](?::|%3a)/.source;
-const PATH_SEP = /(?:[\\/]|%2f|%5c)/.source;
+// Recognize raw, URL-encoded and twice-encoded separators without rewriting the scanned text.
+const DRIVE = /[a-z](?::|%(?:25)?3a)/.source;
+const FORWARD_SLASH = /(?:\/|%(?:25)?2f)/.source;
+const PATH_SEP = /(?:[\\/]|%(?:25)?(?:2f|5c))/.source;
 const PARENT = /(?:\.\.\/)+/.source;
 // An embedded drive (host/C:/Users/...) must not fall back to a bare /Users match.
 const USER_ROOT = `(?:(?:${LOCAL_FILE}/)?${DRIVE}${PATH_SEP}{1,2}|`+
-  `(?:${LOCAL_FILE}/|${PARENT}|(?<![\\w.%/-]/${DRIVE})/)(?:(?:mnt/)?[a-z]/)?)`;
-const USER_NAME = /((?:(?!(?:%2f|%5c))[^\\/\s`'"<>…])+)/.source;
+  `(?:${LOCAL_FILE}/|${PARENT}|(?<![\\w.%/-]/${DRIVE})${FORWARD_SLASH})(?:(?:mnt/)?[a-z]/)?)`;
+const USER_NAME = `((?:(?!${PATH_SEP})`+ /[^\s`'"<>…]/.source +`)+)`;
 // A colon at the start of a username segment denotes a route parameter, not a literal username.
-const USER_HOME = new RegExp(`${HOME_START}${USER_ROOT}users${PATH_SEP}{1,2}(?!:|%3c)${USER_NAME}`, 'gi');
-const UNIX_HOME = new RegExp(`${HOME_START}(?:${LOCAL_FILE}/|${PARENT}|/)home/([\\w.-]+)`, 'g');
+const USER_HOME = new RegExp(`${HOME_START}${USER_ROOT}users${PATH_SEP}{1,2}(?!:|%(?:25)?3c)${USER_NAME}`, 'gi');
+const UNIX_HOME = new RegExp(`${HOME_START}(?:${LOCAL_FILE}/|${PARENT}|${FORWARD_SLASH})home${FORWARD_SLASH}([\\w.-]+)`, 'gi');
+// Only bare /users and /home are ambiguous with app routes (not drive paths or file URLs).
+const BARE_ROUTE_ROOT = `${FORWARD_SLASH}(?:users|home)${FORWARD_SLASH}`;
+const ROUTE_PARAM = new RegExp(`^${BARE_ROUTE_ROOT}(?:[:{]|%(?:25)?(?:3a|7b))`, 'i');
+// Keep the list short and match whole segments so e.g. "megan" remains a candidate.
+const ROUTE_WORD = new RegExp(`^${BARE_ROUTE_ROOT}(?:me|dashboard|index|settings|profile|login|new)`+
+  `(?=$|${FORWARD_SLASH}|`+ /[?#\s`'"<>…()[\]{},;|]/.source +`)`, 'i');
 // Angle-bracket placeholders such as <user> and <name> aren't account names in either pattern.
 const PLACEHOLDERS = new Set(['yourname', 'username']);
 const SHARED_USERS = new Set(['나', 'public']), SANDBOX_USERS = new Set(['pyodide', 'web_user']);
@@ -32,7 +40,10 @@ const DENSITY_ASSET = /^[23]x\.(?:png|jpe?g|gif|webp|svg)$/i;
 const PACKAGE_ARCHIVE = /^\d+\.\d+\.\d+(?:-[a-z0-9-]+(?:\.[a-z0-9-]+)*)?\.tgz$/i;
 
 function looksLikeHome(match, text) {
-  if (!match[0].startsWith('../')) return true;
+  if (!match[0].startsWith('../')) {
+    const tail = text.slice(match.index);
+    return !ROUTE_PARAM.test(tail) && !ROUTE_WORD.test(tail);
+  }
   // A parent-relative home needs a directory-like username and a child path, not a module filename.
   return !/\.[a-z\d]+$/i.test(match[1]) &&
     /^\/+[^\\/\s`'"<>…()[\]{},;|]/.test(text.slice(match.index+match[0].length));
@@ -170,6 +181,50 @@ test('privacy scanner does not confuse parent-relative module imports with home 
   assert.deepEqual(personalMatches(relativeHome+'/notes'), [relativeHome]);
   const absoluteHome = ['', 'home', 'demo.user'].join('/');
   assert.deepEqual(personalMatches(absoluteHome+'/notes'), [absoluteHome]);
+});
+
+test('privacy scanner recognizes attached long compiler flags', () => {
+  const mac = ['', 'Users', 'DemoUser'].join('/');
+  const unix = ['', 'home', 'demo-user'].join('/');
+  assert.deepEqual(personalMatches(`cc -isystem${mac}/include`), [mac]);
+  assert.deepEqual(personalMatches(`cc -iquote${unix}/include`), [unix]);
+  assert.deepEqual(personalMatches(`cc --sysroot=${unix}`), [unix]);
+  for (const text of [`prefix-isystem${mac}`, `prefix-iquote${unix}`, 'cc -isystem/usr/include', 'cc --sysroot=/opt/sysroot']) {
+    assert.deepEqual(personalMatches(text), [], text);
+  }
+});
+
+test('privacy scanner recognizes fully URL-encoded Unix-style home paths', () => {
+  for (const [rootName, separator] of [['home', '%2F'], ['Users', '%2F'], ['home', '%2f'], ['users', '%2f']]) {
+    const home = ['', rootName, 'DemoUser'].join(separator);
+    assert.deepEqual(personalMatches(home+separator+'notes'), [home], home);
+    assert.deepEqual(personalMatches('https://example.org/docs'+home), [], home);
+  }
+});
+
+test('privacy scanner recognizes twice-encoded paths without matching placeholders', () => {
+  const twice = text => encodeURIComponent(encodeURIComponent(text));
+  for (const home of [['', 'home', 'demo-user'].join('/'), ['C:', 'Users', 'DemoUser'].join('\\')]) {
+    const encoded = twice(home);
+    assert.deepEqual(personalMatches(encoded), [encoded], encoded);
+    assert.deepEqual(personalMatches(twice(home+'/notes')), [encoded], encoded);
+  }
+  assert.deepEqual(personalMatches(twice(['C:', 'Users', '<user>'].join('\\'))), []);
+  assert.deepEqual(personalMatches(twice('/opt/tool')), []);
+});
+
+test('privacy scanner distinguishes bare app routes from account names', () => {
+  for (const text of [
+    '"/users/{id}"', 'fetch("/users/me")', '"/home/dashboard"', "'/users/:id'", '?p=/home/index',
+    '"/users/settings/security"', '"/home/profile?tab=one"', '"/users/login"', '"/home/new"',
+    encodeURIComponent('/users/{id}'), encodeURIComponent('/home/dashboard')
+  ]) assert.deepEqual(personalMatches(text), [], text);
+
+  for (const home of [
+    ['', 'home', 'alice'].join('/'), ['', 'Users', 'megan'].join('/'),
+    ['', 'home', 'dashboard-admin'].join('/'), ['C:', 'Users', 'me'].join('/'),
+    ['file://', 'home', 'dashboard'].join('/')
+  ]) assert.deepEqual(personalMatches(home+'/notes'), [home], home);
 });
 
 test('tracked text files carry no personal paths or e-mail addresses', () => {
